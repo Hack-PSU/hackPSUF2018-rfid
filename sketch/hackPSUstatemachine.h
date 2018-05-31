@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Scheduler.h>
+
 namespace hackPSU {
 
   /**
@@ -13,16 +15,17 @@ namespace hackPSU {
   class StateMachine {
     private:
       static const uint8_t MAX_STATES = 16;
-      uint8_t presentState;
+      volatile uint8_t presentState;
       uint8_t finalState;
       callback state[MAX_STATES];
       
     public:
+      StateMachine();
       uint8_t getNumStates(void);
       uint8_t getPresentState(void);
-      bool addState(callback);
-      void removeState(callback);
-      void setState(uint8_t);
+      bool addState(callback state);
+      void removeState(callback state);
+      void setState(uint8_t state);
       void start(void);
       
   }
