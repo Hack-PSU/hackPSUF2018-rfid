@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Scheduler.h>
+#include <ESP8266WiFi.h>
 #include <stdint.h>
 
 namespace hackPSU {

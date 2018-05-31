@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <Scheduler.h>
+#include <ESP8266WiFi.h>
 #include <MFRC522.h>
 
 namespace hackPSU {
