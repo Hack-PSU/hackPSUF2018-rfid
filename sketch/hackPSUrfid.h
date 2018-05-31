@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Scheduler.h>
 #include <MFRC522.h>
 
 namespace hackPSU {
@@ -11,9 +12,9 @@ namespace hackPSU {
       MFRC522 reader;
     public:
       Scanner(uint8_t ssPin, uint8_t rstPin, byte* key=&DEFAULT_KEY);
-      String getUID(void);
-      String getData(void);
-      void setData(String data);
+      uint32_t getUID(void);
+      uint32_t getData(void);
+      void setData(uint32_t data);
   }
 
 }
