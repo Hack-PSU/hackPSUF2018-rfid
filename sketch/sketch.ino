@@ -1,4 +1,5 @@
 #include "hackPSUrfid.h"
+using namespace hackPSU;
 
 void setup() {
 
