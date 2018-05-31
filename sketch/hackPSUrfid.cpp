@@ -2,19 +2,21 @@
 
 namespace hackPSU {
 
-  Scanner::Scanner(uint8_t ssPin, uint8_t rstPin, byte* key=&DEFAULT_KEY){
-    this->reader = mfrc522(ssPin, rstPin);
+  
+  Scanner::Scanner(const uint8_t ssPin, const uint8_t rstPin, const byte* key) : reader(ssPin, rstPin){
     this->reader.PCD_Init();
     this->reader.PCD_SetAntennaGain(reader.RxGain_max);
-    this->key = key
+    this->key = key;
   }
+
+  Scanner::Scanner(uint8_t ssPin, uint8_t rstPin) : Scanner(ssPin, rstPin, Scanner::DEFAULT_KEY) {}
   
   uint32_t Scanner::getUID(void){
     byte data[4];
     uint32_t* uid;
 
     //Wait for new card and yield to coroutines while waiting
-    while(!this->reader.PICC_IsNewCardpresent()){
+    while(!this->reader.PICC_IsNewCardPresent()){
       yield();
     }
 
@@ -32,7 +34,6 @@ namespace hackPSU {
 
     uid = (uint32_t*)data;
     
-    uid = sprintf("0x%x%x%x%x", data[0], data[1], data[2], data[2]);
     return *uid;
   }
 

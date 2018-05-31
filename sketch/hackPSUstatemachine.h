@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Scheduler.h>
+#include <stdint.h>
 
 namespace hackPSU {
 
@@ -28,6 +29,6 @@ namespace hackPSU {
       void setState(uint8_t state);
       void start(void);
       
-  }
+  };
 
 }

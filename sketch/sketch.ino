@@ -1,8 +1,12 @@
 #include "hackPSUrfid.h"
+#include "hackPSUstatemachine.h"
 using namespace hackPSU;
 
-void setup() {
+Scanner scanner(0,0);
+StateMachine fsm();
 
+void setup() {
+  
 }
 
 void loop() {
