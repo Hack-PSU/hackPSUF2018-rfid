@@ -3,8 +3,8 @@ These libraries are to be downloaded from their original creator and placed into
 
 ## Arduino Library
 We are using the Arduino default library for NodeMCU
-### Arduino Scheduler
-The Arduino Scheduler library is a standard Arduino library that requires separate installation, so that will need to be added via the Arduino SDK prior to compilation.
+### NodeMCU Note
+The NodeMCU board must be added to Arduino SDK for this code to compile
 
 ## RFID Library
 We are using [miguelbalboa](https://github.com/miguelbalboa)'s [rfid library](https://github.com/miguelbalboa/rfid) for NXP's MFRC522.<br/>
