@@ -1,0 +1,3 @@
+[submodule "HackPSUKeyboard/Keypad"]
+	path = HackPSUKeyboard/Keypad
+	url = git://github.com/Hack-PSU/Keypad.git
