@@ -2,6 +2,8 @@
 
 namespace hackPSU {
 
+constexpr byte Scanner::DEFAULT_KEY[6];
+
   
   Scanner::Scanner(const uint8_t ssPin, const uint8_t rstPin, const byte* key) : reader(ssPin, rstPin){
     this->reader.PCD_Init();
