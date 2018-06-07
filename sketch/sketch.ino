@@ -13,7 +13,7 @@ void loop() {
   Serial.println(scanner.getUID());
 }
 
-void chageState(){
+void changeState(){
   
 }
 
