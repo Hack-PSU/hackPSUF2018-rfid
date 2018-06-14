@@ -65,10 +65,10 @@ void printSize(String size){
     lcd.print("Size: " + size);
 }
 
-void printScan(bool goodScan){
+void printScan(bool isgoodScan){
   lcd.clear();
   lcd.setCursor(0, 1);
-  lcd.print("Allow in: " + goodScan);
+  lcd.print("Allow in: " + isgoodScan);
 }
 
 void printLocation(String location){
