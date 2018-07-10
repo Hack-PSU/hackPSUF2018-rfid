@@ -10,7 +10,11 @@ namespace hackPSU {
   		String payload;
   		int responseCode;
 	}responseInfo;   //declare structure obejct to return
-
+	
+	struct headers{		//does this belong here??
+		String header;
+	}headerInfo;
+	
   class HTTP{
     public:
 	  /**
