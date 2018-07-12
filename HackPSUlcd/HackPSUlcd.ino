@@ -5,13 +5,18 @@
 // height (in characters). Depending on the
 // Actual device, the IC2 address may change.
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
-
+#define SDA D2
+#define SCL D1
 void setup() {
 
   // The begin call takes the width and height. This
   // Should match the number provided to the constructor.
   lcd.begin(16,2);
   lcd.init();
+
+  Wire.begin(SDA, SCL);
+  Serial.begin(9600);
+  Serial.println("HI");
 
   // Turn on the backlight.
   lcd.backlight();
