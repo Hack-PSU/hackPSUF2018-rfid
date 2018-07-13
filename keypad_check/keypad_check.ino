@@ -1,6 +1,27 @@
 
-#define enable 9
-void getKey(int);
+#define enable D0
+
+// ARDUINO UNO
+//int values[4][4] = { {207, 171, 130, 80}, 
+//                     {204, 165, 115, 64},
+//                     {186, 145, 91,  37},
+//                     {175, 134, 71,  9} };
+
+// NODEMCU
+int values[4][4] = { {330, 274, 210, 130}, 
+                     {324, 265, 186, 102},
+                     {298, 234, 151,  62},
+                     {280, 216, 117,  20} };
+char keys[4][4] = {  {'1', '2', '3', 'A'},
+                     {'4', '5', '6', 'B'},
+                     {'7', '8', '9', 'C'},
+                     {'*', '0', '#', 'D'} };
+
+char readKeypad(int);
+char getKeyPress(int, long, int);
+char getUniqueKey(int);
+
+#define BOARD arduino
 
 void setup() {
   // put your setup code here, to run once:
@@ -13,34 +34,53 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  getKey(A0);
-  delay(500);
+  //Serial.println(getKeyPress(3, 1000, A0));
+  char ret = getKeyPress(3, 100, A0);
+  //char ret = getUniqueKey(A0);
+  if(ret != 'u') Serial.println(ret);
+  delay(100);
 }
 
 bool within(int real, int expected, int delta){
   return real > expected - delta && real < expected + delta;
 }
 
-void getKey(int pin = A0) {
+char getUniqueKey(int pin = A0){
+  char val = getKeyPress(3, 500, pin);
+  while(getKeyPress(3, 500, pin) == val);
+  return(val);
+}
+
+#define SPACE 5
+char getKeyPress(int stable = 3, long timeout = 1500, int pin = A0) {
+  char val;
+  long start = millis();
+  
+  val = readKeypad(pin);
+  delay(SPACE);
+  int i;
+  for( i = 0; i <= stable && start + timeout > millis(); i++) {
+    char temp = readKeypad(pin);
+    if( i == stable && val != 'x') {
+      return(val);   
+    } else if( temp != val ) {
+      val = temp;
+      i = 0;
+    }  
+    delay(SPACE);
+  }
+  return('u');
+}
+
+char readKeypad(int pin = A0) {
   int tmp = analogRead(pin);
-  if(      within(tmp, 141, 3) ) Serial.print("A - ");
-  else if( within(tmp, 104, 3) ) Serial.print("B - ");
-  else if( within(tmp,  65, 5) ) Serial.print("C - ");
-  else if( within(tmp,  33, 3) ) Serial.print("D - ");
-  else if( within(tmp, 225, 3) ) Serial.print("0 - "); // 3
-  else if( within(tmp, 337, 3) ) Serial.print("1 - "); //x
-  else if( within(tmp, 282, 3) ) Serial.print("2 - ");
-  else if( within(tmp, 218, 3) ) Serial.print("3 - "); // 0
-  else if( within(tmp, 326, 5) ) Serial.print("4 - ");
-  else if( within(tmp, 267, 3) ) Serial.print("5 - ");
-  else if( within(tmp, 114, 3) ) Serial.print("6 - ");//x
-  else if( within(tmp, 298, 3) ) Serial.print("7 - ");
-  else if( within(tmp, 236, 3) ) Serial.print("8 - ");
-  else if( within(tmp, 154, 3) ) Serial.print("9 - ");
-  else if( within(tmp, 175, 3) ) Serial.print("* - ");//x 2
-  else if( within(tmp, 118, 3) ) Serial.print("# - ");//x
-  else Serial.print("x - ");
-  Serial.print(String(tmp));
-  Serial.print('\n');  
+  for( int col = 0; col < 4; col++){
+    for( int row = 0; row < 4; row++) {
+      if( within(tmp, values[row][col], 4) ) {
+        return(keys[row][col]);
+      }
+    }
+  }
+  return 'x';
 }
 
