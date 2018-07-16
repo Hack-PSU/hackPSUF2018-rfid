@@ -1,74 +1,52 @@
-//https://techtutorialsx.com/2016/07/21/esp8266-post-requests/
-#include <hackPSUhttp.h>
+#include "hackPSUrfid.h"
 
 namespace hackPSU {
-  	Response::GET(String url, String payload, struct headers){
-  		HTTPClient http;
-   		http.begin(url); //http Begin call
-    	http.addHeader(Headers.headerInformation);
-		  int httpCode = http.GET(); //GET call
 
+constexpr byte Scanner::DEFAULT_KEY[6];
 
-  		//httpCode will be negative (or zero) if there is an error
+  
+  Scanner::Scanner(const uint8_t ssPin, const uint8_t rstPin, const byte* key) : reader(ssPin, rstPin){
+    this->reader.PCD_Init();
+    this->reader.PCD_SetAntennaGain(reader.RxGain_max);
+    this->key = key;
+  }
 
-  		//HAVE IF FOR IF NEGATIVE AND ERROR CONNECTION TO WIFI??
-  		if (httpCode > 0){ 	//If the GET call was successful
-      		responseInfo.payload = http.getString(); 		//getting the repsonse from the get
-      		responseInfo.responseCode = httpCode;
-  		}else{
-     		  responseInfo.payload = http.errorToString(httpCode); //I think this is the error information??
-     		  responseInfo.responseCode = httpCode; //should be negative or zero?
-  		}
-    	http.end();
-  	}
+  Scanner::Scanner(uint8_t ssPin, uint8_t rstPin) : Scanner(ssPin, rstPin, Scanner::DEFAULT_KEY) {}
+  
+  uint32_t Scanner::getUID(void){
+    byte data[4];
+    uint32_t* uid;
 
-  	Response::GET(String url, String payload){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
-   		int httpCode = http.GET(); //GET call
+    //Wait for new card and yield to coroutines while waiting
+    while(!this->reader.PICC_IsNewCardPresent()){
+      yield();
+    }
 
-  		//httpCode will be negative (or zero) if there is an error
-  		if (httpCode > 0){ 	//If the GET call was successful
-     		  responseInfo.payload = http.getString(); 		//getting the repsonse from the get
-      		responseInfo.responseCode = httpCode;
-  		}else{
-      		responseInfo.payload = http.errorToString(httpCode); //I think this is the error information??
-      		responseInfo.responseCode = httpCode; //should be negative or zero?
-  		}
-    	http.end();
-  	}
+    //Wait for card with data and yield to coroutines while waiting
+    while(!this->reader.PICC_ReadCardSerial()){
+      yield();
+    }
 
-  	Response::POST(String url, String payload, struct headers){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
-    	http.addHeader(Headers.headerInformation);
+    //Copy into local buffer
+    for(uint8_t i = 0; i < 4; i++){
+      data[i] = reader.uid.uidByte[i];
+    }
+    //Free reader resources
+    this->reader.PICC_HaltA();
 
-    	int httpCode = http.POST(payload); //POST call sending the payload?
+    uid = (uint32_t*)data;
+    
+    return *uid;
+  }
 
-  		//httpCode will be negative (or zero) if there is an error
-  		if (httpCode){ 	//If the POST call was successful
-      		responseInfo.payload = http.getString(); 		
-      		responseInfo.responseCode = httpCode;
-  		}else{
-      		responseInfo.payload = http.errorToString(httpCode);
-      		responseInfo.responseCode = httpCode;
-  		}
-    	http.end();
-  	}
+  //TODO
+  uint32_t Scanner::getData(void){
+    return 0;
+  }
 
-  	Response::POST(String url, String payload){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
+  //TODO
+  void Scanner::setData(uint32_t data){
+    yield();
+  }
 
-    	int httpCode = http.POST(payload); //POST call sending the payload?
-
-  		//httpCode will be negative (or zero) if there is an error
-  		if (httpCode){ 	//If the POST call was successful
-      		responseInfo.payload = http.getString(); 		
-      		responseInfo.responseCode = httpCode;
-  		}else{
-      		responseInfo.payload = http.errorToString(httpCode);
-      		responseInfo.responseCode = httpCode;
-  		}
-    	http.end();
-  	}
+}
