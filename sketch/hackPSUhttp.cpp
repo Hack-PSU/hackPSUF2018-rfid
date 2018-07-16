@@ -2,14 +2,16 @@
 #include <hackPSUhttp.h>
 
 namespace hackPSU {
-  	Response::GET(String url, String payload, struct headers){
-  		HTTPClient http;
+	Response::GET(String url, String payload, struct headers){
+		HTTPClient http;
    		http.begin(url); //http Begin call
-    		http.addHeader(headerInfo.header);
+    		http.addHeader(Headers.headerInformation);
 		int httpCode = http.GET(); //GET call
+
 
   		//httpCode will be negative (or zero) if there is an error
 
+  		//HAVE IF FOR IF NEGATIVE AND ERROR CONNECTION TO WIFI??
   		if (httpCode > 0){ 	//If the GET call was successful
       			responseInfo.payload = http.getString(); 		//getting the repsonse from the get
       			responseInfo.responseCode = httpCode;
@@ -39,7 +41,7 @@ namespace hackPSU {
   	Response::POST(String url, String payload, struct headers){
     		HTTPClient http;
     		http.begin(url); //http Begin call
-    		http.addHeader(headerInfo.header);
+    		http.addHeader(Headers.headerInformation);
 
     		int httpCode = http.POST(payload); //POST call sending the payload?
 
