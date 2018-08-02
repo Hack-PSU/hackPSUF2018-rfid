@@ -1,22 +1,6 @@
 
-#define enable D0
-
-// ARDUINO UNO
-//int values[4][4] = { {207, 171, 130, 80}, 
-//                     {204, 165, 115, 64},
-//                     {186, 145, 91,  37},
-//                     {175, 134, 71,  9} };
-
-// NODEMCU
-int values[4][4] = { {330, 274, 210, 130}, 
-                     {324, 265, 186, 102},
-                     {298, 234, 151,  62},
-                     {280, 216, 117,  20} };
-char keys[4][4] = {  {'1', '2', '3', 'A'},
-                     {'4', '5', '6', 'B'},
-                     {'7', '8', '9', 'C'},
-                     {'*', '0', '#', 'D'} };
-
+int COLS[] = {0,4,5,16}; // D3, D2, D1, D0
+             
 char readKeypad(int);
 char getKeyPress(int, long, int);
 char getUniqueKey(int);
@@ -25,24 +9,18 @@ char getUniqueKey(int);
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(enable, OUTPUT);
   pinMode(A0, INPUT);
+  for(int col : COLS)
+    pinMode(col, OUTPUT);
   Serial.begin(9600);
 
-  digitalWrite(enable, HIGH);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  //Serial.println(getKeyPress(3, 1000, A0));
-  char ret = getKeyPress(3, 100, A0);
-  //char ret = getUniqueKey(A0);
-  if(ret != 'u') Serial.println(ret);
+  char key = readKeypad(A0);
+  if(key != 'x') Serial.println(key);
   delay(100);
-}
-
-bool within(int real, int expected, int delta){
-  return real > expected - delta && real < expected + delta;
 }
 
 char getUniqueKey(int pin = A0){
@@ -73,14 +51,17 @@ char getKeyPress(int stable = 3, long timeout = 1500, int pin = A0) {
 }
 
 char readKeypad(int pin = A0) {
-  int tmp = analogRead(pin);
-  for( int col = 0; col < 4; col++){
-    for( int row = 0; row < 4; row++) {
-      if( within(tmp, values[row][col], 4) ) {
-        return(keys[row][col]);
-      }
-    }
+  char key = 'x';
+  for( int i = 0; i < 4 && key == 'x'; i++){
+    int col = COLS[i];
+    digitalWrite(col, HIGH);
+    int tmp = analogRead(pin);
+    if( tmp > 800 ) key = keys[0][i];
+    else if( tmp > 450 ) key = keys[1][i];
+    else if( tmp > 320 ) key = keys[2][i];
+    else if( tmp > 50 )  key = keys[3][i];
+    digitalWrite(col, LOW);
   }
-  return 'x';
+  return key;
 }
 
