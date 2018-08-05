@@ -50,4 +50,3 @@ constexpr byte Scanner::DEFAULT_KEY[6];
   }
 
 }
-
