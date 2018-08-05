@@ -6,7 +6,6 @@
 #include <HttpClient.h>
 
 namespace hackPSU {
-  
   typedef struct Response {
       String payload;
       int responseCode;
