@@ -1,5 +1,6 @@
 #pragma once 
 
+#include <malloc.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <HttpClient.h>
@@ -12,7 +13,8 @@ namespace hackPSU {
   }Response;   //declare structure obejct to return
 
   typedef struct Headers{   //does this belong here??
-       String headerInformation;
+       String headerKey;
+       String headerValue;
   }Headers;
 
   class HTTP{
@@ -20,10 +22,10 @@ namespace hackPSU {
     /**
      * TODO: Add docstring explaining these parameters
      */
-      static Response GET(String url, String headers)
-      static Response GET(String url)
-      static Response POST(String url, String payload, String headers)
-      static Response GET(String url, String payload)
+      static Response* GET(String url, int count, Headers headers[]);
+      static Response* GET(String url);
+      static Response* POST(String url, String payload, int count, Headers headers[]);
+      static Response* POST(String url, String payload);
 
   };
 }
