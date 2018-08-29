@@ -23,7 +23,7 @@ namespace hackPSU {
     	return responseInfo;
 	}
 
-  	static Response HTTP::GET(String url){
+  	static Response* HTTP::GET(String url){
     	HTTPClient http;
     	http.begin(url); //http Begin call
    		int httpCode = http.GET(); //GET call
@@ -32,13 +32,13 @@ namespace hackPSU {
         responseInfo = new Response;
 
      	responseInfo->payload = http.getString(); 		//getting the repsonse from the get
-        responseInfo->responseCode = httpCode;
+      responseInfo->responseCode = httpCode;
 
     	http.end();
     	return responseInfo;
   	}
 
-  	static Response HTTP::POST(String url, String payload, int count, Headers headers[]){
+  	static Response* HTTP::POST(String url, String payload, int count, Headers headers[]){
     	HTTPClient http;
     	http.begin(url); //http Begin call
     	
@@ -59,7 +59,7 @@ namespace hackPSU {
     	return responseInfo;
   	}
 
-  	static Response HTTP::POST(String url, String payload){
+  	static Response* HTTP::POST(String url, String payload){
     	HTTPClient http;
     	http.begin(url); //http Begin call
 
