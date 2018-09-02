@@ -1,4 +1,4 @@
-#pragma once 
+/*#pragma once 
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -16,14 +16,14 @@ namespace hackPSU {
 	  /**
 	   * TODO: Add docstring explaining these parameters
 	   */
-      static Response GET(String url, String headers)
-      static Response GET(String url)
-      static Response POST(String url, String payload, String headers)
-      static Response GET(String url, String payload)
+      static Response GET(String url, String headers);
+      static Response GET(String url);
+      static Response POST(String url, String payload, String headers);
+      static Response GET(String url, String payload);
 
   };
 }
 
 
 
-
+*/
