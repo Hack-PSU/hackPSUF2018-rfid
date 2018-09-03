@@ -2,14 +2,14 @@
 
 
 namespace hackPSU {
-	static jawn HTTPImpl::getDataFromPin(String pin){	//person inserts pin
+	jawn HTTPImpl::getDataFromPin(String pin){	//person inserts pin
 		/*
 		post request sent to redis with pin 	redis url: tabs/getpin
 		parse through above information and assign to variable(s)
 		return variables
 		*/
 
-		String url = "https://"+redisHost+"/tabs/getpin";
+		String url = "https://"+this.redisHost+"/tabs/getpin";
 		String payload = "{\"pin\":"+pin+"}";
 		int count = 1;	//will be used to measure number of headers
 		Headers headers [] = { { "Content-Type", "application/json" } };
@@ -30,14 +30,14 @@ namespace hackPSU {
   		}
 	}
 
-	static jawn HTTPImpl::assignRfidToUser(String userId, String userBandId){ //userId sent in from band, locationId sent in from device
+	jawn HTTPImpl::assignRfidToUser(String userId, String userBandId){ //userId sent in from band, locationId sent in from device
 		/*
 		post request sent to redis with userId and locationId     redis url: tabs/setup
 		redis returns if they are good or not
 		return ok or not
 		*/
 
-		String url = "https://"+redisHost+"/tabs/setup";
+		String url = "https://"+this.redisHost+"/tabs/setup";
 		String payload = "{\"userID\":"+userId+",\"userBandId\":"+userBandId+"}";
 		int count = 1;	//will be used to measure number of headers
 		Headers headers [] = { { "Content-Type", "application/json" } };
@@ -58,14 +58,14 @@ namespace hackPSU {
   		}
 	}
 
-	static bool HTTPImpl::entryScan(String userBandId, String locationId){
+	bool HTTPImpl::entryScan(String userBandId, String locationId){
 		/*
 		post request sent to redis with userId and locationId      redis url: tabs/add
 		parse through above information and assign to variable(s)
 		return variables (whether they are good to go or not)
 		*/
 
-		String url = "https://"+redisHost+"/tabs/add";
+		String url = "https://"+this.redisHost+"/tabs/add";
 		String payload = "{\"userBandID\":"+userBandId+",\"locationId\":"+locationId+"}";
 		int count = 1;	//will be used to measure number of headers
 		Headers headers [] = { { "Content-Type", "application/json" } };

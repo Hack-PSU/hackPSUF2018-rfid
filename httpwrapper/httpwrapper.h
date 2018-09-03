@@ -3,15 +3,17 @@
 #include <malloc.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "hackPSUhttp.h"
 #include <ArduinoJson.h>
-#define redisHost "66.71.80.160:3000" //TODO: change to actual host name
+#include "hackPSUhttp.h"
 
 namespace hackPSU {
   class HttpImpl{
+  private:
+    String redisHost;
     public:
-      static jawn getDataFromPin(int pin);
-      static jawn assignRfidToUser(String userId, String userBandId);
-      static bool entryScan(String userBandId, String locationId);
+      constructor(String host): redisHost(host);
+      jawn getDataFromPin(int pin);
+      jawn assignRfidToUser(String userId, String userBandId);
+      bool entryScan(String userBandId, String locationId);
   }
 }
