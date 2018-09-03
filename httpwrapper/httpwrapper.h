@@ -9,9 +9,9 @@
 
 namespace hackPSU {
   class HttpImpl{
-  public:
-    static jawn getDataFromPin(int pin);
-    static jawn assignRfidToUser(String userId, String userBandId);
-    static bool entryScan(String userBandId, String locationId);
+    public:
+      static jawn getDataFromPin(int pin);
+      static jawn assignRfidToUser(String userId, String userBandId);
+      static bool entryScan(String userBandId, String locationId);
   }
 }
