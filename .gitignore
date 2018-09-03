@@ -52,4 +52,5 @@ Mkfile.old
 dkms.conf
 
 # External libraries
-lib/*
+lib/*.DS_Store
+.DS_Store
