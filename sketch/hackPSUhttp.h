@@ -7,13 +7,13 @@
 
 namespace hackPSU {
   typedef struct Response {
-      String payload;
-      int responseCode;
+    String payload;
+    int responseCode;
   } Response;   //declare structure obejct to return
 
   typedef struct Headers{   //does this belong here??
-       String headerKey;
-       String headerValue;
+    String headerKey;
+    String headerValue;
   } Headers;
 
   class HTTP{

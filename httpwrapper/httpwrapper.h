@@ -7,13 +7,23 @@
 #include "hackPSUhttp.h"
 
 namespace hackPSU {
+  typedef struct jawn{
+    String uid;
+    String givenPin;
+    String name;
+    String shirtSize;
+    String diet;
+    String counter;
+    String numScans;
+  } jawn;
+
   class HttpImpl{
-  private:
-    String redisHost;
+    private:
+      String redisHost;
     public:
       constructor(String host): redisHost(host);
-      jawn getDataFromPin(int pin);
-      jawn assignRfidToUser(String userId, String userBandId);
+      jawn* getDataFromPin(int pin);
+      bool assignRfidToUser(String use``rId, String userBandId);
       bool entryScan(String userBandId, String locationId);
   }
 }
