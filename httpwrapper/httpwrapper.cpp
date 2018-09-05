@@ -2,11 +2,11 @@
 
 
 namespace hackPSU {
-	redisData* HTTPImpl::getDataFromPin(String pin){	//person inserts pin
+	redisData* HTTPImpl::getDataFromPin(String pin){	
 
 		String url = "https://"+this.redisHost+"/tabs/getpin";
 		String payload = "{\"pin\":"+pin+"}";
-		int count = 1;	//will be used to measure number of headers
+		int count = 1;	
 		Headers headers [] = { { "Content-Type", "application/json" } };
 		
 
@@ -19,11 +19,14 @@ namespace hackPSU {
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
+		//Free up memory since parsing is complete
+		delete response;
+
 		if (!root.success()) {
 			throw "json parsing failed :( lit";
   		}
 
-  		//This is an attempt to read directly from jsonObject
+  		//Redis json parse
 		redisData* pinData = new redisData;
 		pinData->uid = root["uid"].asString();
 		pinData->pin = root["pin"].asString();
@@ -36,11 +39,11 @@ namespace hackPSU {
   		return pinData;
 	}
 
-	bool HTTPImpl::assignRfidToUser(String userId, String userBandId){ //userId sent in from band, locationId sent in from device
+	bool HTTPImpl::assignRfidToUser(String userId, String userBandId){ 
 
 		String url = "https://"+this.redisHost+"/tabs/setup";
 		String payload = "{\"userID\":"+userId+",\"userBandId\":"+userBandId+"}";
-		int count = 1;	//will be used to measure number of headers
+		int count = 1;	
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
 
@@ -53,18 +56,23 @@ namespace hackPSU {
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
+		//Free up memory since parsing is complete
+		delete response;
+
 		if (!root.success()) {
 			throw "json parsing failed :(";
   		}
 
+  		//Redis json parse
   		return root["status"].asString() == "success";
 	}
 
 	bool HTTPImpl::entryScan(String userBandId, String locationId){
 
+
 		String url = "https://"+this.redisHost+"/tabs/add";
 		String payload = "{\"userBandID\":"+userBandId+",\"locationId\":"+locationId+"}";
-		int count = 1;	//will be used to measure number of headers
+		int count = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
 
@@ -74,6 +82,8 @@ namespace hackPSU {
 			throw "http request failed :(";
 		}
 
+
+
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
@@ -81,14 +91,16 @@ namespace hackPSU {
 			throw "json parsing failed :(";
   		}
 
-		//I'm pulling this from pj's documentation and this might be incorrect
-		String name = root["name"].asString();
-		String description = root["description"].asString();	//I'm assuming this will be either True/False?
-		
-		//If description is false should the code return why they cannot get in (i.e they are not regsitered for the hackathon)
+		//Free up memory since parsing is complete
+		delete response;
 
+		//Redis json parse
+		String status = root["status"].asString();
+		String data = root["data"].asString();
+		String message = root["message"].asString();	//Should message also be returned to display why user was not allowed in?
+		
   		//The following is based on assumptions and should be checked
-  		return (description == "success");
+  		return (status == "success");
 	}
 
 }
