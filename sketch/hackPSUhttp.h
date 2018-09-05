@@ -18,12 +18,28 @@ namespace hackPSU {
 
   class HTTP{
     public:
-    /**
-     * TODO: Add docstring explaining these parameters
+      /*
+        Use case: When a GET request must be made with headers
+        Returns: payload and response code
      */
       static Response* GET(String url, int count, Headers headers[]);
+
+      /*
+        Use case: When a GET request must be made without headers
+        Returns: payload and response code
+     */
       static Response* GET(String url);
+
+      /*
+        Use case: When a POST request must be made with headers
+        Returns: payload and response code
+     */
       static Response* POST(String url, String payload, int count, Headers headers[]);
+      
+      /*
+        Use case: When a POST request must be made without headers
+        Returns: payload and response code
+     */
       static Response* POST(String url, String payload);
 
   };

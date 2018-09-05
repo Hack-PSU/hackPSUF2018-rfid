@@ -2,12 +2,7 @@
 
 
 namespace hackPSU {
-	jawn* HTTPImpl::getDataFromPin(String pin){	//person inserts pin
-		/*
-		post request sent to redis with pin 	redis url: tabs/getpin
-		parse through above information and assign to variable(s)
-		return variables
-		*/
+	redisData* HTTPImpl::getDataFromPin(String pin){	//person inserts pin
 
 		String url = "https://"+this.redisHost+"/tabs/getpin";
 		String payload = "{\"pin\":"+pin+"}";
@@ -24,42 +19,24 @@ namespace hackPSU {
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
-		String userUid =root["uid"];
-		String userPin =root["pin"];
-		String userName =root["name"];
-		String userShirtSize =root["shirtSize"];
-		String userDiet =root["diet"];
-		String userCounter =root["counter"];
-		String userNumScans =root["numScans"];
-
-		/*I was not sure if if could have
-			pinData->uid = uid 
-			and have the variables that same name so I tried to change them
-		*/
-		jawn* pinData;
-		pinData = new jawn;
-		pinData->uid = userUid;
-		pinData->givenPin = userPin;
-		pinData->name = userName;
-		pinData->shirtSize = userShirtSize;
-		pinData->diet = userDiet;
-		pinData->counter = userCounter;
-		pinData->numScans = userNumScans;
-
-		// Parse from JSONObject into type jawn
 		if (!root.success()) {
 			throw "json parsing failed :( lit";
   		}
+
+  		//This is an attempt to read directly from jsonObject
+		redisData* pinData = new redisData;
+		pinData->uid = root["uid"].asString();
+		pinData->pin = root["pin"].asString();
+		pinData->name = root["name"].asString();
+		pinData->shirtSize = root["shirtSize"].asString();
+		pinData->diet = root["diet"].asString();
+		pinData->counter = root["counter"].asString();
+		pinData->numScans = root["numScans"].asString();
 
   		return pinData;
 	}
 
 	bool HTTPImpl::assignRfidToUser(String userId, String userBandId){ //userId sent in from band, locationId sent in from device
-		/*
-		post request sent to redis with userId and locationId     redis url: tabs/setup
-		redis returns if they are good or not
-		return ok or not
-		*/
 
 		String url = "https://"+this.redisHost+"/tabs/setup";
 		String payload = "{\"userID\":"+userId+",\"userBandId\":"+userBandId+"}";
@@ -76,7 +53,6 @@ namespace hackPSU {
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
-		// Parse from JSONObject into type jawn
 		if (!root.success()) {
 			throw "json parsing failed :(";
   		}
@@ -85,11 +61,6 @@ namespace hackPSU {
 	}
 
 	bool HTTPImpl::entryScan(String userBandId, String locationId){
-		/*
-		post request sent to redis with userId and locationId      redis url: tabs/add
-		parse through above information and assign to variable(s)
-		return variables (whether they are good to go or not)
-		*/
 
 		String url = "https://"+this.redisHost+"/tabs/add";
 		String payload = "{\"userBandID\":"+userBandId+",\"locationId\":"+locationId+"}";
@@ -105,15 +76,19 @@ namespace hackPSU {
 
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
-		
-		// Parse from JSONObject into type jawn
+
 		if (!root.success()) {
 			throw "json parsing failed :(";
   		}
 
-  		//The following is based on assumptions and should be checked
+		//I'm pulling this from pj's documentation and this might be incorrect
+		String name = root["name"].asString();
+		String description = root["description"].asString();	//I'm assuming this will be either True/False?
+		
+		//If description is false should the code return why they cannot get in (i.e they are not regsitered for the hackathon)
 
-  		return (bool) root["data"][0];
+  		//The following is based on assumptions and should be checked
+  		return (description == "success");
 	}
 
 }

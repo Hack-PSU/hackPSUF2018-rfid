@@ -26,8 +26,7 @@ namespace hackPSU {
     http.begin(url); //http Begin call
     int httpCode = http.GET(); //GET call
 
-    Response* responseInfo;
-    responseInfo = new Response;
+    Response* responseInfo = new Response;
 
     responseInfo->payload = http.getString(); 		//getting the repsonse from the get
     responseInfo->responseCode = httpCode;
@@ -47,8 +46,7 @@ namespace hackPSU {
 
     int httpCode = http.POST(payload); //POST call sending the payload?
 
-    Response* responseInfo;
-    responseInfo = new Response;
+    Response* responseInfo = new Response;
 
     responseInfo->payload = http.getString(); 		
     responseInfo->responseCode = httpCode;
@@ -62,8 +60,7 @@ namespace hackPSU {
     http.begin(url); //http Begin call
 
     int httpCode = http.POST(payload); //POST call sending the payload?
-    Response* responseInfo;
-    responseInfo = new Response;
+    Response* responseInfo = new Response;
 
     responseInfo->payload = http.getString(); 		
     responseInfo->responseCode = httpCode;
