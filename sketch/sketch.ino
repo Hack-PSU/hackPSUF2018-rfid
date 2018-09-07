@@ -17,8 +17,8 @@ using namespace hackPSU;
 
 // Keypad pins
 #define KPD_SRC  A0
-#define KPD_CLK  D3
-#define KPD_SIG  D0
+#define KPD_CLK  D0
+#define KPD_SIG  D3
 
 char getKeyPress(int, long, int);
 char getUniqueKey(int);
@@ -30,8 +30,8 @@ char keys[4][4] = {  {'1', '2', '3', 'A'},
                      {'7', '8', '9', 'C'},
                      {'*', '0', '#', 'D'} };
 
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+const byte I2C_ADDRESSES[] = {0x27, 0x3f};
+LiquidCrystal_I2C *lcd;
 MFRC522 mfrc522(RFID_SS, RFID_RST);  // Create MFRC522 instance
 
 //Scanner scanner(RFID_SS, RFID_RST);
@@ -47,14 +47,25 @@ void setup() {
   pinMode(KPD_SIG, OUTPUT);
   pinMode(KPD_SRC, INPUT);
   clearSR();
+
+  Wire.begin();
+  for(byte i : I2C_ADDRESSES){
+    Wire.beginTransmission(i);
+    if(Wire.endTransmission() == 0){
+      lcd = new LiquidCrystal_I2C(i, 16, 2);
+//      Serial.print("I2C LCD found at 0x" + i < 16 ? "0":"");
+//      Serial.println(i, HEX);
+      break;
+    }
+  }
   
-  lcd.begin();
-  lcd.clear();
-  lcd.backlight();
-  lcd.setCursor(0,0);
-  lcd.print("Hello!");
-  lcd.setCursor(0,1);
-  lcd.print("Scan wristband");
+  lcd->begin();
+  lcd->clear();
+  lcd->backlight();
+  lcd->setCursor(0,0);
+  lcd->print("Hello!");
+  lcd->setCursor(0,1);
+  lcd->print("Scan wristband");
 
   
   SPI.begin();      // Init SPI bus
@@ -76,21 +87,21 @@ void loop() {
     return;
   }
   
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("UID:");
+  lcd->clear();
+  lcd->setCursor(0,0);
+  lcd->print("UID:");
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
   
-  lcd.setCursor(0,1);
+  lcd->setCursor(0,1);
   for(int i = 0; i < 8; i++){
-    if(readKeypad(A0) != 'x') lcd.print(readKeypad(A0));
+    if(readKeypad(A0) != 'x') lcd->print(readKeypad(A0));
     else i--;
   }
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print("Hello!");
-  lcd.setCursor(0,1);
-  lcd.print("Scan wristband");
+  lcd->clear();
+  lcd->setCursor(0,0);
+  lcd->print("Hello!");
+  lcd->setCursor(0,1);
+  lcd->print("Scan wristband");
 }
 
 void changeState(){
@@ -160,7 +171,7 @@ char getKeyPress(int stable = 3, long timeout = 1500, int pin = A0) {
 // Helper routine to dump a byte array as hex values to Serial
 void dump_byte_array(byte *buffer, byte bufferSize) {
   for (byte i = 0; i < bufferSize; i++) {
-    lcd.print(buffer[i] < 0x10 ? " 0" : " ");
-    lcd.print(buffer[i], HEX);
+    lcd->print(buffer[i] < 0x10 ? " 0" : " ");
+    lcd->print(buffer[i], HEX);
   }
 }
