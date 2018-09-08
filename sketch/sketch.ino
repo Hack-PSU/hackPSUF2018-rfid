@@ -94,7 +94,8 @@ void loop() {
   
   lcd->setCursor(0,1);
   for(int i = 0; i < 8; i++){
-    if(readKeypad(A0) != 'x') lcd->print(readKeypad(A0));
+    char key = getUniqueKey(A0);
+    if(key != 'u') lcd->print(key);
     else i--;
   }
   lcd->clear();
@@ -107,13 +108,15 @@ void loop() {
 void changeState(){
   
 }
-
+/**
+ * Input: Analog pin to read value
+ */
 char readKeypad(int pin){
-  char key = 'x';
+  char key = 'x'; // x is the default return value, only returned if no keypress is detected
   int i = 0;
 
   for(int i = 0; i < 4 && key == 'x'; i++){
-    toggle(i == 0, 10);
+    toggle(i == 0, 4);
     int tmp = analogRead(pin);
     if( tmp > 800 ) key = keys[0][3-i];
     else if( tmp > 450 ) key = keys[1][3-i];
@@ -125,7 +128,7 @@ char readKeypad(int pin){
     else if( tmp > 320 ) key = keys[2][4-i]; // 355, 275
     else if( tmp > 50 )  key = keys[3][4-i]; // 368, 200
     */
-    Serial.println(String(tmp) + " - " + key);
+    //Serial.println(String(tmp) + " - " + key);
   }
   clearSR();
   return key;
@@ -140,22 +143,28 @@ void toggle(bool data, int space) {
 }
 
 char getUniqueKey(int pin = A0){
-  char val = getKeyPress(3, 500, pin);
-  while(getKeyPress(3, 500, pin) == val);
+  char val = getKeyPress(1, 500, pin);
+  if(val != 'u'){
+    Serial.print(val);
+    while(getKeyPress(1, 250, pin) == val) Serial.print('.');
+    Serial.print('\n');
+  }
   return(val);
 }
 
 #define SPACE 5
 char getKeyPress(int stable = 3, long timeout = 1500, int pin = A0) {
   char val;
-  long start = millis();
+  unsigned long start = millis();
   
   val = readKeypad(pin);
   delay(SPACE);
   int i;
   for( i = 0; i <= stable && start + timeout > millis(); i++) {
     char temp = readKeypad(pin);
+    //if(temp != 'x') Serial.print(temp);
     if( i == stable && val != 'x') {
+      //Serial.print("Time = " + String(millis() - start));
       return(val);   
     } else if( temp != val ) {
       val = temp;
