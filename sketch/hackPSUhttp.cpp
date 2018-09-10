@@ -2,13 +2,13 @@
 #include "hackPSUhttp.h"
 
 namespace hackPSU {
-  static Response* HTTP::GET(String url, int count, Headers headers[]){
+    Response* HTTP::GET(String url, int count, Headers headers[]){
     HTTPClient http;
     http.begin(url); //http Begin call
 
-    for (int i = 0; i<count, i++){
-      Headers headers = headers[i];
-      http.addHeader(headers.headerKey,headers.headerValue);
+    for (int i = 0; i<count; i++){
+      Headers header = headers[i];
+      http.addHeader(header.headerKey,header.headerValue);
     }
 
     int httpCode = http.GET(); //GET call
@@ -21,7 +21,7 @@ namespace hackPSU {
     return responseInfo;
   }
 
-  static Response* HTTP::GET(String url){
+    Response* HTTP::GET(String url){
     HTTPClient http;
     http.begin(url); //http Begin call
     int httpCode = http.GET(); //GET call
@@ -35,13 +35,13 @@ namespace hackPSU {
     return responseInfo;
   }
 
-  static Response* HTTP::POST(String url, String payload, int count, Headers headers[]){
+    Response* HTTP::POST(String url, String payload, int count, Headers headers[]){
     HTTPClient http;
     http.begin(url); //http Begin call
 
-    for (int i = 0; i<count, i++){
-      Headers headers = headers[i];
-      http.addHeader(headers.headerKey,headers.headerValue);
+    for (int i = 0; i<count; i++){
+      Headers header = headers[i];
+      http.addHeader(header.headerKey,header.headerValue);
     }
 
     int httpCode = http.POST(payload); //POST call sending the payload?
@@ -55,17 +55,17 @@ namespace hackPSU {
     return responseInfo;
   }
 
-  static Response* HTTP::POST(String url, String payload){
-    HTTPClient http;
-    http.begin(url); //http Begin call
-
-    int httpCode = http.POST(payload); //POST call sending the payload?
-    Response* responseInfo = new Response;
-
-    responseInfo->payload = http.getString(); 		
-    responseInfo->responseCode = httpCode;
-
-    http.end();
-    return responseInfo;
-  }
+    Response* HTTP::POST(String url, String payload){
+      HTTPClient http;
+      http.begin(url); //http Begin call
+  
+      int httpCode = http.POST(payload); //POST call sending the payload?
+      Response* responseInfo = new Response;
+  
+      responseInfo->payload = http.getString(); 		
+      responseInfo->responseCode = httpCode;
+  
+      http.end();
+      return responseInfo;
+    }
 }

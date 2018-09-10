@@ -1,9 +1,7 @@
 #pragma once 
 
-#include <malloc.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <HttpClient.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
 
 namespace hackPSU {
   typedef struct Response {
