@@ -1,14 +1,22 @@
 #pragma once
 
+#include <Arduino.h>
+
 namespace hackPSU{
-  class keypad{
+  #define READ_PERIOD 4    // setup period before each keypad read
+  
+  class Keypad{
     private:
-      int pin;
+      int pin, sig, clk;
       char keys[4][4] = {  {'1', '2', '3', 'A'},
                            {'4', '5', '6', 'B'},
                            {'7', '8', '9', 'C'},
                            {'*', '0', '#', 'D'} };
-      void pulse(int space);
+      void pulse(bool data, int space = 2);
+      void (*clear)();
+      void (*putChar)(char);
+
+      void clearSR() { shiftOut(sig, clk, MSBFIRST, B00000000); };
     public:
 
       /**
@@ -21,7 +29,7 @@ namespace hackPSU{
        *  putChar - method to display a character on the LCD (and/or serial port) as keys are pressed
        *  
        */
-      keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, void (*clear)(), void (*putChar)(char));
+      Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, void (*clear)(), void (*putChar)(char));
 
       /**
        * INPUT:
@@ -39,8 +47,25 @@ namespace hackPSU{
        * OUTPUT:
        *  key once it is released or 'u' after a timeout was reached
        */
-      char getUniqueKey();
-      void getPin(char* buffer, int length, char clr, char submit);
+      char getUniqueKey(unsigned long timeout);
+
+      /**
+       * INPUTS:
+       *  stable - number of consecutive reads to ensure stable input
+       *  timeout - number of milliseconds function can wait for a stable input
+       *  
+       * OUTPUT:
+       *  key pressed or 't' on timeout
+       */
+      char getKeyPress(int stable, unsigned long timeout);
+
+      /**
+       * INPUT:
+       *  
+       * OUTPUT:
+       *  Number of characters that make up the pin
+       */
+      String getPin(int maxLen, char clr, char submit, int timeout);
   };
   
 }
