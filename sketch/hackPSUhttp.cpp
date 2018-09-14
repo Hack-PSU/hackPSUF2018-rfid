@@ -17,6 +17,11 @@ namespace hackPSU {
     responseInfo->payload = http.getString(); 		//getting the repsonse from the get
     responseInfo->responseCode = httpCode;
 
+    const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+    int code = (httpCode*-1);
+    String x = errrorString[code];
+    responseInfo->errorStrings = x;
+    
     http.end();
     return responseInfo;
   }
@@ -30,7 +35,11 @@ namespace hackPSU {
 
     responseInfo->payload = http.getString(); 		//getting the repsonse from the get
     responseInfo->responseCode = httpCode;
-
+    const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+    int code = (httpCode*-1);
+    String x = errrorString[code];
+    responseInfo->errorStrings = x;
+    
     http.end();
     return responseInfo;
   }
@@ -50,7 +59,10 @@ namespace hackPSU {
 
     responseInfo->payload = http.getString(); 		
     responseInfo->responseCode = httpCode;
-
+    const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+    int code = (httpCode*-1);
+    String x = errrorString[code];
+    responseInfo->errorStrings = x;
     http.end();
     return responseInfo;
   }
@@ -64,7 +76,11 @@ namespace hackPSU {
   
       responseInfo->payload = http.getString(); 		
       responseInfo->responseCode = httpCode;
-  
+      const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+      int code = (httpCode*-1);
+      String x = errrorString[code];
+      responseInfo->errorStrings = x;
+      
       http.end();
       return responseInfo;
     }

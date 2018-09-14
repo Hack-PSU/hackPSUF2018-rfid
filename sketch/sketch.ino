@@ -35,18 +35,20 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   Headers headers [] = { { "Content-Type", "application/json" } };
-  Response* r = HTTP::GET("http://httpbin.org/get",1, headers);
+  Response* r = HTTP::GET("http://httpbin.org/get");
   Response* x = HTTP::POST("http://httpbin.org/post","{\"dat\": \"boi\"}",1, headers);
 
-  HTTPImpl* http = new HTTPImpl("192.168.137.29:3000");
-  redisData* data = http->getDataFromPin("1234");
+  //HTTPImpl* http = new HTTPImpl("192.168.137.29:3000");
+  //redisData* data = http->getDataFromPin("1234");
   
   Serial.println(r->payload);
   Serial.println(r->responseCode);
+  Serial.println(r->errorStrings);
   Serial.println(x->payload);
   Serial.println(x->responseCode);
-  Serial.println(data->shirtSize);
-  Serial.println(data->diet);
+  Serial.println(x->errorStrings);
+  //Serial.println(data->shirtSize);
+  //Serial.println(data->diet);
 
   delete r;
   delete x;

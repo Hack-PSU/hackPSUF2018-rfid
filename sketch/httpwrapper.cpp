@@ -5,7 +5,7 @@ namespace hackPSU {
 	redisData* HTTPImpl::getDataFromPin(String pin){	
 
 		String url = "http://"+redisHost+"/tabs/getpin";
-   Serial.println(url);
+    Serial.println(url);
 		String payload = "{\"pin\":"+pin+"}";
 		int count = 1;	
 		Headers headers [] = { { "Content-Type", "application/json" } };
@@ -17,6 +17,7 @@ namespace hackPSU {
 			//throw "http request failed :(";
      Serial.println("get rekt :(");
 		}
+
     Serial.println(response->payload);
 
 		StaticJsonBuffer<200> jsonBuffer;

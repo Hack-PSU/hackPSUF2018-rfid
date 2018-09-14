@@ -6,14 +6,15 @@
 namespace hackPSU {
   typedef struct Response {
     String payload;
+    String errorStrings;
     int responseCode;
   } Response;   //declare structure obejct to return
 
-  typedef struct Headers{   //does this belong here??
+  typedef struct Headers{
     String headerKey;
     String headerValue;
   } Headers;
-
+  
   class HTTP{
     public:
       /*
