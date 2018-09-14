@@ -3,9 +3,8 @@
 
 namespace hackPSU {
 	redisData* HTTPImpl::getDataFromPin(String pin){	
-
 		String url = "http://"+redisHost+"/tabs/getpin";
-    Serial.println(url);
+    	Serial.println(url);
 		String payload = "{\"pin\":"+pin+"}";
 		int count = 1;	
 		Headers headers [] = { { "Content-Type", "application/json" } };
@@ -14,11 +13,12 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			//throw "http request failed :(";
-     Serial.println("get rekt :(");
+			Serial.print("Http request failed: ")
+			Serial.println(HTTP:handleError(response->responseCode));
+			return null;
 		}
 
-    Serial.println(response->payload);
+    	Serial.println(response->payload);
 
 		StaticJsonBuffer<200> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
@@ -43,10 +43,10 @@ namespace hackPSU {
   		return pinData;
 	}
 
-	bool HTTPImpl::assignRfidToUser(String userId, String userBandId){ 
+	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){ 
 
 		String url = "https://"+redisHost+"/tabs/setup";
-		String payload = "{\"userID\":"+userId+",\"userBandId\":"+userBandId+"}";
+		String payload = "{\"id\":"+rfidCode+",\"pin\":"+pin+"}";
 		int count = 1;	
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -54,7 +54,9 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			//throw "http request failed :(";
+			Serial.print("Http request failed: ")
+			Serial.println(HTTP:handleError(response->responseCode));
+			return null;
 		}
 
 		StaticJsonBuffer<200> jsonBuffer;
@@ -71,11 +73,11 @@ namespace hackPSU {
   		return root["status"] == "success";
 	}
 
-	bool HTTPImpl::entryScan(String userBandId, String locationId){
+	bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
 		String url = "https://"+redisHost+"/tabs/add";
-		String payload = "{\"userBandID\":"+userBandId+",\"locationId\":"+locationId+"}";
+		String payload = "{\"location\":"+locationId+",\"id\":"+rfidTag+"}";
 		int count = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -83,7 +85,9 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			//throw "http request failed :(";
+			Serial.print("Http request failed: ")
+			Serial.println(HTTP:handleError(response->responseCode));
+			return null;
 		}
 
 

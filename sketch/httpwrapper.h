@@ -36,13 +36,13 @@ namespace hackPSU {
         Parameters: String userId, String userBandId
         Returns: success or fail
      */
-      bool assignRfidToUser(String userId, String userBandId);
+      bool assignRfidToUser(String rfidCode, String pin);
       
       /*
         Use case: When the user is trying to scan into a workshop/event
         Parameters: String userBandId, String locationId
         Returns: success or fail (they can enter or not)
      */
-      bool entryScan(String userBandId, String locationId);
+      bool entryScan(String locationId, String rfidTag);
   };
 }

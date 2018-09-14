@@ -6,7 +6,7 @@
 namespace hackPSU {
   typedef struct Response {
     String payload;
-    String errorStrings;
+    String errorMessage;
     int responseCode;
   } Response;   //declare structure obejct to return
 
@@ -48,6 +48,8 @@ namespace hackPSU {
         Response is allocated by the function and should be freed upon completion by the caller
      */
       static Response* POST(String url, String payload);
+
+      static String handleError(int httpCode);
 
   };
 }

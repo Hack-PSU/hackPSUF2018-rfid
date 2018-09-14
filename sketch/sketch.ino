@@ -20,8 +20,9 @@ void setup() {
     USE_SERIAL.flush();
     delay(1000);
   }
-
-   WiFi.begin("julia's laptop", "placeholder");
+   ssid = //inster ssid here
+   password = //insert password here
+   WiFi.begin(ssid, password);
 
   Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
