@@ -2,76 +2,79 @@
 #include "hackPSUhttp.h"
 
 namespace hackPSU {
-	static Response* HTTP::GET(String url, int count, Headers headers[]){
-		HTTPClient http;
-   		http.begin(url); //http Begin call
+  String handleError(int httpCode){
+    const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+    return errorString[(httpCode*(-1))];
+  }
 
-        for (int i = 0; i<count, i++){
-			Headers headers = headers[i];
-        	http.addHeader(headers.headerKey,headers.headerValue);
-        }
+  Response* HTTP::GET(String url, int count, Headers headers[]){
+    HTTPClient http;
+    http.begin(url); //http Begin call
 
-		int httpCode = http.GET(); //GET call
+    for (int i = 0; i<count; i++){
+      Headers header = headers[i];
+      http.addHeader(header.headerKey,header.headerValue);
+    } /*end for loop*/
 
-		Response* responseInfo;
-        responseInfo = new Response;
+    int httpCode = http.GET(); //GET call
+    Response* responseInfo = new Response;
 
-        responseInfo->payload = http.getString(); 		//getting the repsonse from the get
-        responseInfo->responseCode = httpCode;
+    responseInfo->payload = http.getString();
+    responseInfo->responseCode = httpCode;
+    responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
+    
+    http.end();
+    return responseInfo;
+  }/* end HTTP::GET*/
 
-    	http.end();
-    	return responseInfo;
-	}
+  Response* HTTP::GET(String url){
+    HTTPClient http;
+    http.begin(url); //http Begin call
 
-  	static Response HTTP::GET(String url){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
-   		int httpCode = http.GET(); //GET call
+    int httpCode = http.GET(); //GET call
+    Response* responseInfo = new Response;
 
-   		Response* responseInfo;
-        responseInfo = new Response;
+    responseInfo->payload = http.getString(); 
+    responseInfo->responseCode = httpCode;
+    responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
-     	responseInfo->payload = http.getString(); 		//getting the repsonse from the get
-        responseInfo->responseCode = httpCode;
+    http.end();
+    return responseInfo;
+  }/* end HTTP::GET*/
 
-    	http.end();
-    	return responseInfo;
-  	}
+  Response* HTTP::POST(String url, String payload, int count, Headers headers[]){
+    HTTPClient http;
+    http.begin(url); //http Begin call
 
-  	static Response HTTP::POST(String url, String payload, int count, Headers headers[]){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
-    	
-        for (int i = 0; i<count, i++){
-			Headers headers = headers[i];
-			http.addHeader(headers.headerKey,headers.headerValue);
-         }
+    for (int i = 0; i<count; i++){
+      Headers header = headers[i];
+      http.addHeader(header.headerKey,header.headerValue);
+    }/* end for loop*/
 
-    	int httpCode = http.POST(payload); //POST call sending the payload?
+    int httpCode = http.POST(payload);
 
-    	Response* responseInfo;
-        responseInfo = new Response;
+    Response* responseInfo = new Response;
 
-        responseInfo->payload = http.getString(); 		
-        responseInfo->responseCode = httpCode;
+    responseInfo->payload = http.getString(); 		
+    responseInfo->responseCode = httpCode;
+    responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
-    	http.end();
-    	return responseInfo;
-  	}
+    http.end();
+    return responseInfo;
+  }/* end HTTP::POST*/
 
-  	static Response HTTP::POST(String url, String payload){
-    	HTTPClient http;
-    	http.begin(url); //http Begin call
+  Response* HTTP::POST(String url, String payload){
+      HTTPClient http;
+      http.begin(url); //http Begin call
+  
+      int httpCode = http.POST(payload);
+      Response* responseInfo = new Response;
+  
+      responseInfo->payload = http.getString(); 		
+      responseInfo->responseCode = httpCode;
+      responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
-    	int httpCode = http.POST(payload); //POST call sending the payload?
-
-    	Response* responseInfo;
-        responseInfo = new Response;
-
-        responseInfo->payload = http.getString(); 		
-        responseInfo->responseCode = httpCode;
-
-    	http.end();
-    	return responseInfo;
-  	}
+      http.end();
+      return responseInfo;
+    }/* end HTTP::POST*/
 }
