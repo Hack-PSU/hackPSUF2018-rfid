@@ -13,9 +13,9 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			Serial.print("Http request failed: ")
-			Serial.println(HTTP:handleError(response->responseCode));
-			return null;
+			Serial.print("Http request failed: ");
+			Serial.println(HTTP::handleError(response->responseCode));
+			return false;
 		}
 
     	Serial.println(response->payload);
@@ -54,9 +54,9 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			Serial.print("Http request failed: ")
-			Serial.println(HTTP:handleError(response->responseCode));
-			return null;
+			Serial.print("Http request failed: ");
+			Serial.println(HTTP::handleError(response->responseCode));
+			return false;
 		}
 
 		StaticJsonBuffer<200> jsonBuffer;
@@ -85,9 +85,9 @@ namespace hackPSU {
 		Response* response = HTTP::POST(url, payload, count, headers);
 
 		if (response->responseCode < 0){
-			Serial.print("Http request failed: ")
-			Serial.println(HTTP:handleError(response->responseCode));
-			return null;
+			Serial.print("Http request failed: ");
+			Serial.println(HTTP::handleError(response->responseCode));
+			return false;
 		}
 
 
