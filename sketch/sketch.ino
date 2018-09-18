@@ -1,4 +1,3 @@
-ev//#include <MD5.h>
 
 #include "hackPSUrfid.h"
 #include "hackPSUstatemachine.h"
@@ -55,6 +54,7 @@ StateMachine fsm();
 
 
 void setup() {
+  
   // INIT Serial communication
   Serial.begin(9600);
   while(!Serial);
@@ -80,7 +80,7 @@ void setup() {
   
   lcd->setCursor(0,1);
   lcd->print("Scan wristband");
-
+  
   // INITI SPI/scanner communication
   SPI.begin();      // Init SPI bus
   mfrc522.PCD_Init();   // Init MFRC522
