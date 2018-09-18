@@ -1,4 +1,4 @@
-//#include <MD5.h>
+ev//#include <MD5.h>
 
 #include "hackPSUrfid.h"
 #include "hackPSUstatemachine.h"
@@ -55,12 +55,12 @@ StateMachine fsm();
 
 
 void setup() {
-
+  // INIT Serial communication
   Serial.begin(9600);
   while(!Serial);
   Serial.println("Begin of program");
   
-
+  // INIT LCD/I2C communication
   Wire.begin();
   for(byte i : I2C_ADDRESSES){
     Wire.beginTransmission(i);
@@ -80,7 +80,8 @@ void setup() {
   
   lcd->setCursor(0,1);
   lcd->print("Scan wristband");
-  
+
+  // INITI SPI/scanner communication
   SPI.begin();      // Init SPI bus
   mfrc522.PCD_Init();   // Init MFRC522
   mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader details

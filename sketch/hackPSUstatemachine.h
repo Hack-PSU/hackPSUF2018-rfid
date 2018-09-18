@@ -1,34 +1,39 @@
 #pragma once
 
-#include <ESP8266WiFi.h>
-#include <stdint.h>
+#define GOLDEN_KEY "C0DEBABE"
 
-namespace hackPSU {
+namespace hackPSU{
 
-  /**
-   * The type callback references a function like: void foo(void).  This is to simplify the StateMachine class
-   */
-  typedef void (*callback)(void);
-  
-  /**
-   * This class abstracts the FSM that is the control structure for the rfid reader.  This class also overrides Arduino's native watchdog timer conrols to prevent unexpected reboots.
-   */
-  class StateMachine {
+  typedef enum State {BOOT, MENU, MAKE, WIFI, LOCATE, REGISTER, SCAN} State_e;
+
+  class hackPSUstatemachine{
     private:
-      static const uint8_t MAX_STATES = 16;
-      volatile uint8_t presentState;
-      uint8_t finalState;
-      callback state[MAX_STATES];
+      State_e state;
+      byte[4] key;
+      int keylen;
+      
+      State_e boot_state(void);
+      State_e menu_state(void);
+      State_e make_master_state(void);
+      State_e wifi_state(void);
+      State_e locate_state(void);
+      State_e register_state(void);
+      State_e scan_state(void);
+      State_e gotoRoot(void);
+      
+      void restart_machine(void);
       
     public:
-      StateMachine();
-      uint8_t getNumStates(void);
-      uint8_t getPresentState(void);
-      bool addState(callback state);
-      void removeState(callback state);
-      void setState(uint8_t state);
-      void start(void);
-      
-  };
+      hackPSUstatemachine(
+        byte[4] key, 
+        int keylen, 
+        hackPSUrfid* scanner, 
+        hackPSUlcd* lcd, 
+        hackPSUkeypad* keypad
+      ): key(key), kenlen(keylen){ state = BOOT };
 
+      // Call cycle from loop.
+      void cycle(); // runs one state at a time
+  };
 }
+
