@@ -1,32 +1,64 @@
 #pragma once
 
-#define GOLDEN_KEY "C0DEBABE"
+#include<stdint.h>
+
+#include "httpwrapper.h"
+#include "hackPSUkeypad.h"
+//#include "hackPSUdisplay.h"
+#include "hackPSUrfid.h"
+
+#define GOLDEN_KEY 0xC0DEBABE
+
+// RFID Pins
+#define RFID_RST 2          // SDD2 Configurable, see typical pin layout above
+#define RFID_SS  15         // SDD3 Configurable, see typical pin layout above
+
+// LCD Pins (I2C pins)
+#define LCD_SCL  5
+#define LCD_SDA  4
+
+// Keypad pins
+#define KPD_SRC  A0
+#define KPD_CLK  D0
+#define KPD_SIG  D3
 
 namespace hackPSU{
 
-  typedef enum State {BOOT, MENU, MAKE, WIFI, LOCATE, REGISTER, SCAN} State_e;
+  typedef enum State {INIT, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
 
-  class hackPSUstatemachine{
+  class Box{
     private:
-      State_e state;
-      
-      State_e boot_state(void);
-      State_e menu_state(void);
-      State_e make_master_state(void);
-      State_e wifi_state(void);
-      State_e locate_state(void);
-      State_e register_state(void);
-      State_e scan_state(void);
-      State_e gotoRoot(void);
-      
-      void restart_machine(void);
-      
-    public:
-      hackPSUstatemachine( 
-      ) { state = BOOT; };
+      typedef struct {
+        String name;
+        uint32_t id;
+      } Location;
 
-      // Call cycle from loop.
-      void cycle(); // runs one state at a time
+      Location* location_list;
+      uint16_t num_locations;
+      
+      State_e state;
+      uint32_t lid; // Location id
+      uint32_t last_scan;
+
+
+      Scanner*    scanner;
+      Keypad*  keypad;
+      //hackPSUdisplay* display;
+
+      void init();
+      void menu();
+      void duplicate();
+      void wifi();
+      void location();
+      void checkin();
+      void scan();      
+      
+
+    public:
+      Box(String redis_addr, const char* ssid, const char* password, const byte* band_key=nullptr);
+      ~Box();
+
+      void cycle();
   };
 }
 
