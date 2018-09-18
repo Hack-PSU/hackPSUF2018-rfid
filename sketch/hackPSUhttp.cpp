@@ -5,6 +5,7 @@
 namespace hackPSU {
   String handleError(int httpCode){
     const char* errorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+
     return errorString[(httpCode*(-1))];
   }
 
@@ -56,7 +57,8 @@ namespace hackPSU {
 
     Response* responseInfo = new Response;
 
-    responseInfo->payload = http.getString();     
+
+    responseInfo->payload = http.getString(); 		
     responseInfo->responseCode = httpCode;
     responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
@@ -71,7 +73,7 @@ namespace hackPSU {
       int httpCode = http.POST(payload);
       Response* responseInfo = new Response;
   
-      responseInfo->payload = http.getString();     
+      responseInfo->payload = http.getString(); 	
       responseInfo->responseCode = httpCode;
       responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
