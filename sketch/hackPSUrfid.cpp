@@ -2,8 +2,7 @@
 
 namespace hackPSU {
 
-constexpr byte Scanner::DEFAULT_KEY[6];
-
+  constexpr byte Scanner::DEFAULT_KEY[6];
   
   Scanner::Scanner(const uint8_t ssPin, const uint8_t rstPin, const byte* key) : reader(ssPin, rstPin){
     this->reader.PCD_Init();
@@ -39,14 +38,17 @@ constexpr byte Scanner::DEFAULT_KEY[6];
     return *uid;
   }
 
-  //TODO
-  uint32_t Scanner::getData(void){
-    return 0;
-  }
-
-  //TODO
-  void Scanner::setData(uint32_t data){
-    yield();
+  void Scanner::setUID(uint32_t uid){
+    
+    //Create one hacky_boi to run the uid change
+    MFRC522Hack hacky_boi(&reader);
+    
+    //While we haven't set the UID, yield
+    while(!mfrc522.MIFARE_SetUid((byte*)&uid, (byte)4, true))
+      yield();
+      
+    //Halt the reader so we don't break it
+    reader.PICC_HaltA();
   }
 
 }
