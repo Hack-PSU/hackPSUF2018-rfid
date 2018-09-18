@@ -1,9 +1,11 @@
+
 //https://techtutorialsx.com/2016/07/21/esp8266-post-requests/
 #include "hackPSUhttp.h"
 
 namespace hackPSU {
   String handleError(int httpCode){
-    const char* errrorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+    const char* errorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
+
     return errorString[(httpCode*(-1))];
   }
 
@@ -55,6 +57,7 @@ namespace hackPSU {
 
     Response* responseInfo = new Response;
 
+
     responseInfo->payload = http.getString(); 		
     responseInfo->responseCode = httpCode;
     responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
@@ -70,7 +73,7 @@ namespace hackPSU {
       int httpCode = http.POST(payload);
       Response* responseInfo = new Response;
   
-      responseInfo->payload = http.getString(); 		
+      responseInfo->payload = http.getString(); 	
       responseInfo->responseCode = httpCode;
       responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
