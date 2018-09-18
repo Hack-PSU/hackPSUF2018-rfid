@@ -3,7 +3,7 @@
 #include "hackPSUhttp.h"
 
 namespace hackPSU {
-  String handleError(int httpCode){
+  String HTTP::handleError(int httpCode){
     const char* errorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
 
     return errorString[(httpCode*(-1))];

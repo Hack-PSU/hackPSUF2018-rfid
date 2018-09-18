@@ -1,13 +1,13 @@
 
 #include "hackPSUrfid.h"
 #include "hackPSUstatemachine.h"
-#include <ESP8266WiFi.h>
 #include "hackPSUhttp.h"
 #include "httpwrapper.h"
 #include "hackPSUkeypad.h"
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal_I2C.h>
+#include <ESP8266WiFi.h>
 using namespace hackPSU;
 
 void dump_byte_array(byte*, byte);
@@ -59,9 +59,9 @@ void setup() {
     Serial.flush();
     delay(1000);
   }
-   String ssid = "";//inster ssid here
-   String password = "";//insert password here
-   //WiFi.begin(ssid, password);
+   const char* ssid = "";//inster ssid here
+   const char* password = "";//insert password here
+   WiFi.begin(ssid, password);
 
   Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
@@ -83,10 +83,10 @@ void setup() {
   
   Serial.println(r->payload);
   Serial.println(r->responseCode);
-  Serial.println(r->errorStrings);
+  Serial.println(r->errorMessage);
   Serial.println(x->payload);
   Serial.println(x->responseCode);
-  Serial.println(x->errorStrings);
+  Serial.println(x->errorMessage);
   //Serial.println(data->shirtSize);
   //Serial.println(data->diet);
 

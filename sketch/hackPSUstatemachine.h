@@ -9,8 +9,6 @@ namespace hackPSU{
   class hackPSUstatemachine{
     private:
       State_e state;
-      byte[4] key;
-      int keylen;
       
       State_e boot_state(void);
       State_e menu_state(void);
@@ -24,13 +22,8 @@ namespace hackPSU{
       void restart_machine(void);
       
     public:
-      hackPSUstatemachine(
-        byte[4] key, 
-        int keylen, 
-        hackPSUrfid* scanner, 
-        hackPSUlcd* lcd, 
-        hackPSUkeypad* keypad
-      ): key(key), kenlen(keylen){ state = BOOT };
+      hackPSUstatemachine( 
+      ) { state = BOOT; };
 
       // Call cycle from loop.
       void cycle(); // runs one state at a time
