@@ -48,10 +48,16 @@ namespace hackPSU {
           }
           last_scan = uid;
         }
-        
+        //No state transition
     }
-    
-    
+        
   }
 
+  void Box::duplicate(void){
+    scanner->setUID(GOLDEN_KEY);
+    state = MENU;
+  }
+
+  
+    
 }
