@@ -2,19 +2,18 @@
 
 namespace hackPSU {
 
-  Box::Box(String redis_addr, const char* ssid, const char* password, const byte* band_key=nullptr){
+  Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key){
     scanner = new Scanner(RFID_SS, RFID_RST);
-    http = new HTTPImpl(redis_addr);
-    //TODO add LCD
-    //TODO replace nullptr with clear&putChar from LCD
-    keypad = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, nullptr, nullptr);
+    http =    new HTTPImpl(redis_addr);
+    display = new Display(mode);
+    keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display->clear, display->print);
   }
   
   Box::~Box(){
     delete scanner;
     delete keypad;
     delete http;
-    //TODO cleanup LCD
+    delete display;
     Serial.println("Deleted all Box members");
   }
 

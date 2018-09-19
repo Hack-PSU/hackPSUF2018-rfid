@@ -31,7 +31,7 @@ namespace hackPSU{
        *  putChar - method to display a character on the LCD (and/or serial port) as keys are pressed
        *  
        */
-      Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, void (*clear)(), void (*putChar)(char));
+      Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, void (*clear)(void), void (*putChar)(char));
 
       /**
        * INPUT:

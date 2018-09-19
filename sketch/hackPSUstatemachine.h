@@ -6,7 +6,7 @@
 
 #include "httpwrapper.h"
 #include "hackPSUkeypad.h"
-//#include "hackPSUdisplay.h"
+#include "hackPSUdisplay.h"
 #include "hackPSUrfid.h"
 
 #define GOLDEN_KEY 0xC0DEBABE
@@ -43,9 +43,10 @@ namespace hackPSU{
       uint32_t last_scan;
 
 
-      Scanner*    scanner;
-      Keypad*  keypad;
+      Scanner*  scanner;
+      Keypad*   keypad;
       HTTPImpl* http;
+      Display*  display;
       
       //hackPSUdisplay* display;
 
@@ -59,7 +60,7 @@ namespace hackPSU{
       
 
     public:
-      Box(String redis_addr, const char* ssid, const char* password, const byte* band_key=nullptr);
+      Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
       ~Box();
 
       void cycle();
