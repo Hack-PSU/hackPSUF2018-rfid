@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <ESP8266WiFi.h>
 #include <MFRC522.h>
+#include <MFRC522Hack.h>
 
 namespace hackPSU {
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include<stdint.h>
+#include<stdio.h>
+#include<stdlib.h>
 
 #include "httpwrapper.h"
 #include "hackPSUkeypad.h"
@@ -43,6 +45,8 @@ namespace hackPSU{
 
       Scanner*    scanner;
       Keypad*  keypad;
+      HTTPImpl* http;
+      
       //hackPSUdisplay* display;
 
       void init();

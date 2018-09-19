@@ -44,7 +44,7 @@ namespace hackPSU {
     MFRC522Hack hacky_boi(&reader);
     
     //While we haven't set the UID, yield
-    while(!mfrc522.MIFARE_SetUid((byte*)&uid, (byte)4, true))
+    while(!hacky_boi.MIFARE_SetUid((byte*)&uid, (byte)4, true))
       yield();
       
     //Halt the reader so we don't break it
