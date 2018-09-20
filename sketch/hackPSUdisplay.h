@@ -7,20 +7,20 @@ namespace hackPSU {
   typedef enum {PROD, DEV, HEADLESS} Mode_e;
   class Display{
     private:
-      Mode_e mode;
+      static Mode_e mode;
       // PROD     - print to LCD only
       // DEV      - print to both LCD and Serial
       // HEADLESS - print only to Serial
-      LiquidCrystal_I2C* lcd;
+      static LiquidCrystal_I2C* lcd;
       
     public:
       Display(Mode_e mode);
       ~Display();
-      void print(char character);
-      void print(String msg);
-      void print(String msg, int row);
-      void clear(void);
-      void clear(int row);
+      static void print(char character);
+      static void print(String msg);
+      static void print(String msg, int row);
+      static void clear(void);
+      static void clear(int row);
   };
 
 }

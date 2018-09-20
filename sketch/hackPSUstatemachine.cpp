@@ -6,7 +6,7 @@ namespace hackPSU {
     scanner = new Scanner(RFID_SS, RFID_RST);
     http =    new HTTPImpl(redis_addr);
     display = new Display(mode);
-    keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display->clear, display->print);
+    keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG);
   }
   
   Box::~Box(){

@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "hackPSUdisplay.h"
 
 #include <Arduino.h>
 
@@ -15,8 +15,6 @@ namespace hackPSU{
                            {'7', '8', '9', 'C'},
                            {'*', '0', '#', 'D'} };
       void pulse(bool data, int space = 2);
-      void (*clear)();
-      void (*putChar)(char);
 
       void clearSR() { shiftOut(sig, clk, MSBFIRST, B00000000); };
     public:
@@ -31,7 +29,7 @@ namespace hackPSU{
        *  putChar - method to display a character on the LCD (and/or serial port) as keys are pressed
        *  
        */
-      Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, void (*clear)(void), void (*putChar)(char));
+      Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG);
 
       /**
        * INPUT:

@@ -10,7 +10,7 @@ Box* box;
 #define PASSWD ""
 
 void setup() {  
-  box = new Box(REDIS, SSID, PASSWD, nullptr);
+  box = new Box(REDIS, SSID, PASSWD, DEV, nullptr);
 }
 
 void loop() {
