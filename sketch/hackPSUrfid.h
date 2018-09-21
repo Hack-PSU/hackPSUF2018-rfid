@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <ESP8266WiFi.h>
 #include <MFRC522.h>
+#include <MFRC522Hack.h>
 
 namespace hackPSU {
 
@@ -14,9 +14,10 @@ namespace hackPSU {
     public:
       Scanner(uint8_t ssPin, uint8_t rstPin, const byte* key);
       Scanner(uint8_t ssPin, uint8_t rstPin);
+      
       uint32_t getUID(void);
-      uint32_t getData(void);
-      void setData(uint32_t data);
+      void setUID(uint32_t uid);
+      
   };
 
 }
