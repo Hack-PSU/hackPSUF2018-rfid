@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 namespace hackPSU {
@@ -18,6 +18,7 @@ namespace hackPSU {
       void print(String msg, int row);
       void clear();
       void clear(int row);
+
   };
 
 }
