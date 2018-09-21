@@ -1,26 +1,24 @@
 #pragma once
 
+#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 namespace hackPSU {
 
-  typedef enum {PROD, DEV, HEADLESS} Mode_e;
+  typedef enum {PROD, DEV, HEADLESS} State_e;
+
   class Display{
     private:
-      static Mode_e mode;
-      // PROD     - print to LCD only
-      // DEV      - print to both LCD and Serial
-      // HEADLESS - print only to Serial
-      static LiquidCrystal_I2C* lcd;
-      
+      State_e state;
+      LiquidCrystal_I2C* lcd;
     public:
-      Display(Mode_e mode);
-      ~Display();
-      static void print(char character);
-      static void print(String msg);
-      static void print(String msg, int row);
-      static void clear(void);
-      static void clear(int row);
+      Display(State_e state);
+      void print(String msg);
+      void print(char msg);
+      void print(String msg, int row);
+      void clear();
+      void clear(int row);
+
   };
 
 }
