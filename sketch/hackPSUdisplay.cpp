@@ -1,9 +1,9 @@
 #include "hackPSUdisplay.h"
 
 namespace hackPSU {
-  Display::Display(State_e state){
-    this->state = state;
-    if(state == PROD || state == DEV){
+  Display::Display(Mode_e mode){
+    this->mode = mode;
+    if(mode == PROD || mode == DEV){
         const uint8_t I2C_ADDRESSES[] = {0x27, 0x3f};
         Wire.begin(/*SRA, SCL*/);
         for(uint8_t i : I2C_ADDRESSES){
@@ -20,49 +20,49 @@ namespace hackPSU {
         lcd->backlight();
         lcd->setCursor(0,0);
       }
-      if(state == DEV || state == HEADLESS) {
+      if(mode == DEV || mode == HEADLESS) {
         Serial.begin(9600);
       }
       
   }
 
   void Display::print(char msg){
-    if(state == PROD || state == DEV){
+    if(mode == PROD || mode == DEV){
       lcd->print(msg);
     }
-    if(state == DEV || state == HEADLESS) {
+    if(mode == DEV || mode == HEADLESS) {
       Serial.println(msg);
     }
   }
   
   void Display::print(String msg){
-    if(state == PROD || state == DEV){
+    if(mode == PROD || mode == DEV){
       lcd->print(msg);
     }
-    if(state == DEV || state == HEADLESS) {
+    if(mode == DEV || mode == HEADLESS) {
       Serial.println(msg);
     }
   }
 
   void Display::print(String msg, int row){
-    if(state == PROD || state == DEV){
+    if(mode == PROD || mode == DEV){
       clear(row);
       lcd->setCursor(0, row);
       lcd->print(msg);
     }
-    if(state == DEV || state == HEADLESS) {
+    if(mode == DEV || mode == HEADLESS) {
       Serial.println(msg);
     }
   }
 
   void Display::clear(){
-    if(state != HEADLESS) {
+    if(mode != HEADLESS) {
       lcd->clear();
     }
   }
 
   void Display::clear(int row){
-    if(state != HEADLESS) {
+    if(mode != HEADLESS) {
       lcd->setCursor(0, row);
       lcd->print("                ");
       lcd->setCursor(0, row);

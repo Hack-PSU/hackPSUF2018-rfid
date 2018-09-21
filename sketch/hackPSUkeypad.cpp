@@ -10,10 +10,11 @@ namespace hackPSU{
     delay(space / 2);
   }
 
-  Keypad::Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG){
+  Keypad::Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, Display* display){
     pin = KPD_SRC;
     clk = KPD_CLK;
     sig = KPD_SIG;
+    this->display = display;
     pinMode(clk, OUTPUT);
     pinMode(sig, OUTPUT);
     pinMode(pin, INPUT);
@@ -80,17 +81,18 @@ namespace hackPSU{
     for(int i = 0; i < maxLen && start + timeout > millis(); i++){
       char key = getUniqueKey(start + timeout - millis());
       if(key == clr){
-        Display::clear();
+        display->clear();
         pin = "";
         i = 0;
       } else if( key == submit) {
         return pin;
       } else if( key != 't' && key != 'z') {
-        Display::print(key);
+        display->print(key);
         pin += key;
         start = millis(); // timeout is from the last pressed key
       } else {
         i--;
+        yield();
       }
     }
     if( start + timeout < millis() ){

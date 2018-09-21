@@ -6,7 +6,11 @@ namespace hackPSU {
     scanner = new Scanner(RFID_SS, RFID_RST);
     http =    new HTTPImpl(redis_addr);
     display = new Display(mode);
-    keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG);
+    keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
+    
+    //Hit up that wifi boi
+    while(!WiFi.begin(ssid, password)
+      yield();
   }
   
   Box::~Box(){
@@ -15,6 +19,71 @@ namespace hackPSU {
     delete http;
     delete display;
     Serial.println("Deleted all Box members");
+  }
+
+  void Box::cycle(void){
+    //switch on state; default to init
+    switch(state){
+      case INIT:
+        init();
+        break;
+      case MENU:
+        menu();
+        break;
+      case DUPLICATE:
+        duplicate();
+        break;
+      case WIFI:
+        wifi();
+        break;
+      case LOCATION:
+        location();
+        break;
+      case CHECKIN:
+        checkin();
+        break;
+      case SCAN:
+        scan();
+        break;
+      default:
+        state = INIT;
+        break;
+    }
+  }
+
+  void wifi(void){
+ 
+    char buff[16] = {0};
+    int32_t rssi;
+    int32_t rssi_old = 0xFFFFFFFF;
+
+    #IFNDEF SSID
+      display->print("DEFINE SSID", 0);
+      return;
+    #ENDIF
+
+    if (WiFi.status() != WL_CONNECTED){
+      display->("WiFi Disconnect", 0);
+      return;
+    }
+    
+    for (int network = 0; network < available_networks; network++) {
+      if (strcmp(WiFi.SSID(network), SSID) == 0) {
+        rssi = WiFi.RSSI(network);
+        break;
+      }
+    }
+
+    //Only print on significant change
+    if( abs(rssi - rssi_old ) <= 5){
+      sprintf("RSSI %d dBm", rssi, buff);
+      display->print(SSID, 0);
+      display->print(buff, 1);
+    }    
+
+    if (keypad->getUniqueKey(500) == 'B')
+      state = MENU;
+          
   }
 
   void Box::scan(void){

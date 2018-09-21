@@ -3,6 +3,7 @@
 #include<stdint.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include<ESP8266WiFi.h>
 
 #include "httpwrapper.h"
 #include "hackPSUkeypad.h"
