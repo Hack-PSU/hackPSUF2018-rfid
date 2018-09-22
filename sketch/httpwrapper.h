@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <ArduinoJson.h>
 #include "hackPSUhttp.h"
+#include "hackPSUconfig.h"
 
 namespace hackPSU {
   typedef struct redisData{

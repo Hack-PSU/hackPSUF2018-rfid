@@ -4,6 +4,8 @@
 #include <MFRC522.h>
 #include <MFRC522Hack.h>
 
+#include "hackPSUconfig.h"
+
 namespace hackPSU {
 
   class Scanner{

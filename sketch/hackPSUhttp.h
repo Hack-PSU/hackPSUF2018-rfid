@@ -3,6 +3,8 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 
+#include "hackPSUconfig.h"
+
 namespace hackPSU {
   typedef struct Response {
     String payload;

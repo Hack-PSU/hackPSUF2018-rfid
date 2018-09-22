@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 
+#include "hackPSUconfig.h"
+
 namespace hackPSU {
 
   typedef enum {PROD, DEV, HEADLESS} Mode_e;

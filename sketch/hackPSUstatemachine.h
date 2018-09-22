@@ -9,6 +9,8 @@
 #include "hackPSUkeypad.h"
 #include "hackPSUdisplay.h"
 #include "hackPSUrfid.h"
+#include "hackPSUconfig.h"
+
 
 #define GOLDEN_KEY 0xC0DEBABE
 
@@ -42,6 +44,8 @@ namespace hackPSU{
       State_e state;
       uint32_t lid; // Location id
       uint32_t last_scan;
+
+      uint32_t rssi_old;
 
 
       Scanner*  scanner;
