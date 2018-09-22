@@ -3,6 +3,7 @@
 namespace hackPSU {
 
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
+  menu_state = 0;
   scanner = new Scanner(RFID_SS, RFID_RST);
   http =    new HTTPImpl(redis_addr);
   display = new Display(mode);
@@ -53,15 +54,61 @@ void Box::cycle(void) {
 }
 
 void Box::menu() {
-  /*
-    |-> 1:Set & Scan
-    |-> Location list
-    |-> 2:WiFi info
-    |-> 3:Clone WB*/
+  
+  display->print("A:UP, B:DOWN", 0);
+  switch(menu_state){
+    case 0:
+      display->print("1:Set & Scan", 1);
+      break;
+    case 1:
+      display->print("2:WiFi info", 1);
+      break;
+    case 2:
+      display->print("3:Clone Master", 1);
+      break;
+    case 3:
+      display->print("4:Checkin", 1);
+      break;
+    case 4:
+      display->print("5:Lock", 1);
+      break;
+    default:
+      menu_state = 0;
+      state = INIT;
+      return;
+  }
 
   switch (keypad->getUniqueKey(500)) {
-
+    case 'A':
+      menu_state++;
+      menu_state %=5;
+      break;
+    case 'B':
+      menu_state--;
+      menu_state %= 5;
+      break;
+    case '1':
+      state = LOCATION;
+      menu_state = 0;
+      break;
+    case '2':
+      state = WIFI;
+      menu_state = 0;
+      break;
+    case '3':
+      state = DUPLICATE;
+      menu_state = 0;
+      break;
+    case '4':
+      state = CHECKIN;
+      menu_state = 0;
+      break;
+    case '5':
+      state = INIT;
+      menu_state = 0;
+      break;
   }
+  
 }
 
 void Box::wifi(void) {
@@ -134,6 +181,61 @@ void Box::duplicate(void) {
   state = MENU;
 }
 
+void Box::checkin(void) {
+
+  String pin;
+  redisData* data = nullptr;
+  char keyPress;
+  
+  display->print("Enter a pin", 0);
+  pin = keypad->getPin(5, '*', '#', 10000);
+
+  //Timeout
+  if (pin[0] == 't'){
+    return;
+  }
+
+  //Character press
+  if (pin[0] > 64) {
+    switch(pin[0]){
+      case 'B':
+        state = MENU;
+        return;
+      case 'D':
+        state = INIT;
+        return;
+    }
+  }
+
+  //We have a pin
+  data = http->getDataFromPin(pin);
+
+  display->print("Validate name:", 0);
+  display->print(data->name, 1);
+
+  do{
+    keyPress = keypad->getUniqueKey(5000);
+  } while (keyPress != '#' && keyPress != '*');
+
+  if (keyPress ==  '*'){
+    delete data;
+    return;
+  }
+
+  display->print("Shirt Size:", 0);
+  display->print(data->shirtSize, 1);
+
+  delay(2000);
+  
+  delete data;
+  
+}
+
+void location(void){
+
+  
+  
+}
 
 
 }

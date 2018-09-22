@@ -111,4 +111,26 @@ namespace hackPSU {
   		return (status == "success");
 	}
 
+  Location* HTTPImpl::getLocations(void){
+    String url = "https://"+redisHost+"/tabs/active-locations";
+    Response* response = HTTP::GET(url);
+
+    if (response->responseCode < 0) {
+      display->print("GET REQUEST FAIL", 1);
+    }
+
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(response->payload);
+ 
+    delete response;
+    int len = root["length"];
+    Location* locations = new Location[len];
+    
+    for(int i = 0; i < len; i++0{
+      locations[i] = {.};
+    }
+    
+  }
+
+
 }

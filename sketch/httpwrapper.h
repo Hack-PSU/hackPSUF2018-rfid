@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include "hackPSUhttp.h"
 #include "hackPSUconfig.h"
+#include "hackPSUstatemachine.h"
 
 namespace hackPSU {
   typedef struct redisData{
@@ -45,5 +46,8 @@ namespace hackPSU {
         Returns: success or fail (they can enter or not)
      */
       bool entryScan(String locationId, String rfidTag);
+
+      Location* getLocations();
+      
   };
 }

@@ -30,14 +30,13 @@
 namespace hackPSU{
 
   typedef enum State {INIT, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
+  typedef struct {
+    String name;
+    uint32_t id;
+  } Location;
 
   class Box{
     private:
-      typedef struct {
-        String name;
-        uint32_t id;
-      } Location;
-
       Location* location_list;
       uint16_t num_locations;
       
@@ -46,6 +45,8 @@ namespace hackPSU{
       uint32_t last_scan;
 
       uint32_t rssi_old;
+
+      uint8_t menu_state;
 
 
       Scanner*  scanner;
