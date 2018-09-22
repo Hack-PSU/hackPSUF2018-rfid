@@ -168,7 +168,7 @@ namespace hackPSU {
     Location* locations = new Location[len];
 
     for(int i = 0; i < len; i++){
-      locations[i] = {.name = locations[i]["location_name"], .id = locations[i]["uid"]};
+      locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
     }
 
     return locations;
