@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <MFRC522.h>
-#include <MFRC522Hack.h>
 
 #include "hackPSUconfig.h"
 
@@ -16,10 +15,10 @@ namespace hackPSU {
     public:
       Scanner(uint8_t ssPin, uint8_t rstPin, const byte* key);
       Scanner(uint8_t ssPin, uint8_t rstPin);
-      
+
       uint32_t getUID(void);
       void setUID(uint32_t uid);
-      
+
   };
 
 }
