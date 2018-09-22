@@ -30,10 +30,6 @@
 namespace hackPSU{
 
   typedef enum State {INIT, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
-  typedef struct {
-    String name;
-    uint32_t id;
-  } Location;
 
   class Box{
     private:

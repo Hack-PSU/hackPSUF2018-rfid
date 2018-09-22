@@ -6,6 +6,12 @@ namespace hackPSU{
   constexpr char* SSID   = "psuwirelesssetup";
   constexpr char* PASSWD = "";
   constexpr char* MASTER_KEY = "GET_REKT";
+
+  typedef struct{
+    String name;
+    uint32_t id;
+  } Location;
+
 }
 
 #endif
