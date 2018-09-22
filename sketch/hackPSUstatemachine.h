@@ -35,6 +35,7 @@ namespace hackPSU{
     private:
       Location* location_list;
       uint16_t num_locations;
+      uint16_t location_state;
       
       State_e state;
       uint32_t lid; // Location id

@@ -233,7 +233,38 @@ void Box::checkin(void) {
 
 void location(void){
 
+  if (location_list == nullptr) {
+    location_list = http->getLocations(&num_locations);
+    location_state = 0;
+  }
 
+  display->print("A:UP, B:DOWN", 0);
+  display->print(location_list[loation_state], 1);
+
+  char key = keypad->getUniqueKey(5000);
+
+  switch (key) {
+    case 'A':
+      location_state++;
+      location_state %= num_locations;
+      break
+    case 'B':
+      location_state++;
+      location_state %= num_locations;
+      break
+    case '#':
+      lid = location_list[location_state].id;
+      delete location_list;
+      state = SCAN;
+    default:
+      return;
+  }
+
+  if (key <= '9' && key >= '1'){
+    lid = location_list[key-'1'].id;
+    delete location_list;
+    state = SCAN;
+  }
 
 }
 
