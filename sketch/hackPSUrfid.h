@@ -17,7 +17,6 @@ namespace hackPSU {
       Scanner(uint8_t ssPin, uint8_t rstPin);
 
       uint32_t getUID(void);
-      void setUID(uint32_t uid);
 
   };
 
