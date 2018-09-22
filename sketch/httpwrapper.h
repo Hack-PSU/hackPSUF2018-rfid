@@ -21,25 +21,25 @@ namespace hackPSU {
 
   class HTTPImpl{
     private:
-      String redisHost;
+      String redisHost, apiKey;
     public:
-      HTTPImpl(String host): redisHost(host) {}
+      HTTPImpl(String host): redisHost(host), apiKey("") {}
 
       /*
         Use case: The first time the user gives us their pin during regisration and we need this information
-        Parameters: String pin 
+        Parameters: String pin
         Returns: uid, pin, name, shirtsize, diet restriction, counter, number of scans
         pinData is allocated by the function and should be freed upon completion by the caller
      */
       redisData* getDataFromPin(String pin);
-      
+
       /*
         Use case: The first time the bands are scanned during regisration and we need to assign the band to the user
         Parameters: String userId, String userBandId
         Returns: success or fail
      */
       bool assignRfidToUser(String rfidCode, String pin);
-      
+
       /*
         Use case: When the user is trying to scan into a workshop/event
         Parameters: String userBandId, String locationId
@@ -48,6 +48,6 @@ namespace hackPSU {
       bool entryScan(String locationId, String rfidTag);
 
       Location* getLocations();
-      
+
   };
 }

@@ -54,7 +54,7 @@ void Box::cycle(void) {
 }
 
 void Box::menu() {
-  
+
   display->print("A:UP, B:DOWN", 0);
   switch(menu_state){
     case 0:
@@ -108,7 +108,7 @@ void Box::menu() {
       menu_state = 0;
       break;
   }
-  
+
 }
 
 void Box::wifi(void) {
@@ -186,7 +186,7 @@ void Box::checkin(void) {
   String pin;
   redisData* data = nullptr;
   char keyPress;
-  
+
   display->print("Enter a pin", 0);
   pin = keypad->getPin(5, '*', '#', 10000);
 
@@ -226,15 +226,15 @@ void Box::checkin(void) {
   display->print(data->shirtSize, 1);
 
   delay(2000);
-  
+
   delete data;
-  
+
 }
 
 void location(void){
 
-  
-  
+
+
 }
 
 
