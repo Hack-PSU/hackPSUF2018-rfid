@@ -33,7 +33,7 @@ void Box::cycle(void) {
       menu();
       break;
     case DUPLICATE:
-      duplicate();
+      //duplicate();
       break;
     case WIFI:
       wifi();
@@ -266,6 +266,9 @@ void Box::location(void){
     state = SCAN;
   }
 
+}
+void Box::init(void){
+  state = MENU;
 }
 
 

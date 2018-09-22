@@ -30,8 +30,8 @@ namespace hackPSU {
 		//Redis json parse
 		String status = root["status"];
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		auto data = root["data"];
-    apiKey = data[0];
+		JsonObject& data = root["data"];
+    apiKey = data["apikey"].as<String>();
     //The following is based on assumptions and should be checked
   	return (status == "success");
 	}
@@ -164,10 +164,10 @@ namespace hackPSU {
     JsonObject& root = jsonBuffer.parseObject(response->payload);
 
     delete response;
-    len* = root["length"];
-    Location* locations = new Location[len];
+    *len = root["length"];
+    Location *locations = new Location[*len];
 
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < *len; i++){
       locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
     }
 
