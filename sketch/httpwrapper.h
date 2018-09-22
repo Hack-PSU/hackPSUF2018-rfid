@@ -22,6 +22,9 @@ namespace hackPSU {
     private:
       String redisHost, apiKey;
     public:
+
+      bool getAPIKey();
+      
       HTTPImpl(String host): redisHost(host), apiKey("") {}
 
       /*

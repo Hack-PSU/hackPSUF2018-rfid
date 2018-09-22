@@ -6,7 +6,7 @@ namespace hackPSU {
 
 
 		String url = "https://"+redisHost+"/auth/register-scanner";
-		String payload = "{\"pin\":"+MASTER_KEY+"}";
+		String payload = "{\"pin\":"+String(MASTER_KEY)+"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -29,11 +29,11 @@ namespace hackPSU {
 
 		//Redis json parse
 		String status = root["status"];
-		String data = root["data"];
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		apiKey = data["apikey"];
-  		//The following is based on assumptions and should be checked
-  		return (status == "success");
+		auto data = root["data"];
+    apiKey = data[0];
+    //The following is based on assumptions and should be checked
+  	return (status == "success");
 	}
 
 	redisData* HTTPImpl::getDataFromPin(String pin){
@@ -156,6 +156,8 @@ namespace hackPSU {
 
     if (response->responseCode < 0) {
       Serial.println("GET REQUEST FAIL");
+      delete response;
+      return nullptr;
     }
 
     StaticJsonBuffer<200> jsonBuffer;
@@ -165,7 +167,7 @@ namespace hackPSU {
     int len = root["length"];
     Location* locations = new Location[len];
 
-    for(int i = 0; i < len; i++0){
+    for(int i = 0; i < len; i++){
       locations[i] = {.name = locations[i]["location_name"], .id = locations[i]["uid"]};
     }
 
