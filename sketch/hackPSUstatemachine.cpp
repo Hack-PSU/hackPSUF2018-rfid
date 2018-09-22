@@ -176,10 +176,7 @@ void Box::scan(void) {
 
 }
 
-void Box::duplicate(void) {
-  scanner->setUID(GOLDEN_KEY);
-  state = MENU;
-}
+
 
 void Box::checkin(void) {
 
@@ -192,6 +189,7 @@ void Box::checkin(void) {
 
   //Timeout
   if (pin[0] == 't'){
+    delete data;
     return;
   }
 
@@ -200,9 +198,11 @@ void Box::checkin(void) {
     switch(pin[0]){
       case 'B':
         state = MENU;
+        delete data;
         return;
       case 'D':
         state = INIT;
+        delete data;
         return;
     }
   }
