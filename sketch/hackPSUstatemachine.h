@@ -34,8 +34,9 @@ namespace hackPSU{
   class Box{
     private:
       Location* location_list;
-      uint16_t num_locations;
-      uint16_t location_state;
+      int num_locations;
+      int location_state;
+      
       State_e state;
       uint32_t lid; // Location id
       uint32_t last_scan;
@@ -49,16 +50,17 @@ namespace hackPSU{
       Keypad*   keypad;
       HTTPImpl* http;
       Display*  display;
-
+      
       //hackPSUdisplay* display;
 
       void init();
       void menu();
+      void duplicate();
       void wifi();
       void location();
       void checkin();
-      void scan();
-
+      void scan();      
+      
 
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
@@ -67,3 +69,4 @@ namespace hackPSU{
       void cycle();
   };
 }
+

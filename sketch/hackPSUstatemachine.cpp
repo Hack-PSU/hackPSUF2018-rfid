@@ -176,7 +176,10 @@ void Box::scan(void) {
 
 }
 
-
+void Box::duplicate(void) {
+  //GET REKT
+  state = MENU;
+}
 
 void Box::checkin(void) {
 
@@ -189,7 +192,6 @@ void Box::checkin(void) {
 
   //Timeout
   if (pin[0] == 't'){
-    delete data;
     return;
   }
 
@@ -198,11 +200,9 @@ void Box::checkin(void) {
     switch(pin[0]){
       case 'B':
         state = MENU;
-        delete data;
         return;
       case 'D':
         state = INIT;
-        delete data;
         return;
     }
   }
@@ -231,7 +231,7 @@ void Box::checkin(void) {
 
 }
 
-void location(void){
+void Box::location(void){
 
   if (location_list == nullptr) {
     location_list = http->getLocations(&num_locations);
@@ -239,7 +239,7 @@ void location(void){
   }
 
   display->print("A:UP, B:DOWN", 0);
-  display->print(location_list[loation_state], 1);
+  display->print(location_list[location_state].name, 1);
 
   char key = keypad->getUniqueKey(5000);
 
@@ -247,11 +247,11 @@ void location(void){
     case 'A':
       location_state++;
       location_state %= num_locations;
-      break
+      break;
     case 'B':
       location_state++;
       location_state %= num_locations;
-      break
+      break;
     case '#':
       lid = location_list[location_state].id;
       delete location_list;
