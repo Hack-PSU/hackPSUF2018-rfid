@@ -2,19 +2,54 @@
 
 
 namespace hackPSU {
-	redisData* HTTPImpl::getDataFromPin(String pin){	
-		String url = "http://"+redisHost+"/tabs/getpin";
-    	Serial.println(url);
-		String payload = "{\"pin\":"+pin+"}";
-		int count = 1;	
-		Headers headers [] = { { "Content-Type", "application/json" } };
-		
+	bool HTTPImpl::getAPIKey(){
 
-		Response* response = HTTP::POST(url, payload, count, headers);
+
+		String url = "https://"+redisHost+"/auth/register-scanner";
+		String payload = "{\"pin\":"+MASTER_KEY+"}";
+		int headerCount = 1;
+		Headers headers [] = { { "Content-Type", "application/json" } };
+
+
+		Response* response = HTTP::POST(url, payload, headerCount, headers);
 
 		if (response->responseCode < 0){
 			Serial.print("Http request failed: ");
 			Serial.println(HTTP::handleError(response->responseCode));
+			//Free up memory since parsing is complete
+			delete response;
+			return false;
+		}
+
+		StaticJsonBuffer<200> jsonBuffer;
+		JsonObject& root = jsonBuffer.parseObject(response->payload);
+
+		//Free up memory since parsing is complete
+		delete response;
+
+		//Redis json parse
+		String status = root["status"];
+		String data = root["data"];
+		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
+		apiKey = data["apikey"];
+  		//The following is based on assumptions and should be checked
+  		return (status == "success");
+	}
+
+	redisData* HTTPImpl::getDataFromPin(String pin){
+		String url = "http://"+redisHost+"/tabs/getpin";
+    	Serial.println(url);
+		String payload = "{\"pin\":"+pin+"}";
+		int headerCount = 1;
+		Headers headers [] = { { "Content-Type", "application/json" } };
+
+
+		Response* response = HTTP::POST(url, payload, headerCount, headers);
+
+		if (response->responseCode < 0){
+			Serial.print("Http request failed: ");
+			Serial.println(HTTP::handleError(response->responseCode));
+			delete response;
 			return false;
 		}
 
@@ -43,19 +78,21 @@ namespace hackPSU {
   		return pinData;
 	}
 
-	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){ 
+	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
 		String url = "https://"+redisHost+"/tabs/setup";
 		String payload = "{\"id\":"+rfidCode+",\"pin\":"+pin+"}";
-		int count = 1;	
+		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
 
-		Response* response = HTTP::POST(url, payload, count, headers);
+		Response* response = HTTP::POST(url, payload, headerCount, headers);
 
 		if (response->responseCode < 0){
 			Serial.print("Http request failed: ");
 			Serial.println(HTTP::handleError(response->responseCode));
+			//Free up memory since parsing is complete
+			delete response;
 			return false;
 		}
 
@@ -78,15 +115,17 @@ namespace hackPSU {
 
 		String url = "https://"+redisHost+"/tabs/add";
 		String payload = "{\"location\":"+locationId+",\"id\":"+rfidTag+"}";
-		int count = 1;
+		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
 
-		Response* response = HTTP::POST(url, payload, count, headers);
+		Response* response = HTTP::POST(url, payload, headerCount, headers);
 
 		if (response->responseCode < 0){
 			Serial.print("Http request failed: ");
 			Serial.println(HTTP::handleError(response->responseCode));
+			//Free up memory since parsing is complete
+			delete response;
 			return false;
 		}
 
@@ -106,7 +145,7 @@ namespace hackPSU {
 		String status = root["status"];
 		String data = root["data"];
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		
+
   		//The following is based on assumptions and should be checked
   		return (status == "success");
 	}
@@ -121,17 +160,17 @@ namespace hackPSU {
 
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(response->payload);
- 
+
     delete response;
     int len = root["length"];
     Location* locations = new Location[len];
-    
-    for(int i = 0; i < len; i++){
-      locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
+
+    for(int i = 0; i < len; i++0){
+      locations[i] = {.name = locations[i]["location_name"], .id = locations[i]["uid"]};
     }
 
     return locations;
-    
+
   }
 
 
