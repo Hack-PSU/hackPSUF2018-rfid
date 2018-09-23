@@ -48,8 +48,10 @@ namespace hackPSU {
     HTTPClient http;
     http.begin(url); //http Begin call
 
+    Serial.println("HEAD");
     for (int i = 0; i<headerCount; i++){
       Headers header = headers[i];
+      Serial.println(header.headerKey + ":" + header.headerValue);
       http.addHeader(header.headerKey,header.headerValue);
     }/* end for loop*/
 
@@ -60,7 +62,7 @@ namespace hackPSU {
 
     responseInfo->payload = http.getString();
     responseInfo->responseCode = httpCode;
-    responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
+    responseInfo->errorMessage = httpCode < 0 ? handleError(httpCode) : "Success";  //httpCode comes in negative
 
     http.end();
     return responseInfo;

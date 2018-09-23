@@ -4,24 +4,26 @@
 namespace hackPSU {
 	bool HTTPImpl::getAPIKey(){
 
-
-		String url = "https://"+redisHost+"/auth/register-scanner";
-		String payload = "{\"pin\":"+String(MASTER_KEY)+"}";
+    //TODO MAKE DAT ONE SECURE BOI
+		String url = "http://"+redisHost+"/auth/register-scanner";
+		String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
 
 		Response* response = HTTP::POST(url, payload, headerCount, headers);
+    Serial.println(response->payload);
 
 		if (response->responseCode < 0){
 			Serial.print("Http request failed: ");
 			Serial.println(HTTP::handleError(response->responseCode));
+      Serial.println(response->errorMessage);
 			//Free up memory since parsing is complete
 			delete response;
 			return false;
 		}
 
-		StaticJsonBuffer<200> jsonBuffer;
+		StaticJsonBuffer<500> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 		//Free up memory since parsing is complete
@@ -29,9 +31,12 @@ namespace hackPSU {
 
 		//Redis json parse
 		String status = root["status"];
+    Serial.println(status);
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		JsonObject& data = root["data"];
-    apiKey = data["apikey"].as<String>();
+		String data = root["data"];
+    Serial.println(data);
+    apiKey = jsonBuffer.parseObject(data)["apikey"].as<String>();
+    Serial.println(apiKey);
     //The following is based on assumptions and should be checked
   	return (status == "success");
 	}

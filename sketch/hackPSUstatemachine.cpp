@@ -1,6 +1,6 @@
 #include "hackPSUstatemachine.h"
 
-namespace hackPSU {
+namespace hackPSU{
 
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   menu_state = 0;
@@ -13,6 +13,13 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   //Hit up that wifi boi
   while (!WiFi.begin(ssid, password))
     yield();
+
+  int i = 0;
+  while(!http->getAPIKey()){
+    Serial.println(++i);
+    Serial.println("NO KEY BOI");
+    delay(1000);
+  }
 }
 
 Box::~Box() {
@@ -24,6 +31,7 @@ Box::~Box() {
 }
 
 void Box::cycle(void) {
+  Serial.println("CYCLE");
   //switch on state; default to init
   switch (state) {
     case INIT:
@@ -54,7 +62,7 @@ void Box::cycle(void) {
 }
 
 void Box::menu() {
-
+  Serial.println("MENU");
   display->print("A:UP, B:DOWN", 0);
   switch(menu_state){
     case 0:
@@ -113,6 +121,8 @@ void Box::menu() {
 
 void Box::wifi(void) {
 
+  Serial.println("WIFI");
+
   char buff[16] = {0};
   int32_t rssi;
 
@@ -142,6 +152,8 @@ void Box::wifi(void) {
 }
 
 void Box::scan(void) {
+
+   Serial.println("SCAN");
 
   char input = keypad->readKeypad();
 
@@ -178,10 +190,13 @@ void Box::scan(void) {
 
 void Box::duplicate(void) {
   //GET REKT
+  Serial.println("DUPE");
   state = MENU;
 }
 
 void Box::checkin(void) {
+
+    Serial.println("CHECKIN");
 
   String pin;
   redisData* data = nullptr;
@@ -233,6 +248,8 @@ void Box::checkin(void) {
 
 void Box::location(void){
 
+    Serial.println("LOCATION");
+
   if (location_list == nullptr) {
     location_list = http->getLocations(&num_locations);
     location_state = 0;
@@ -268,6 +285,8 @@ void Box::location(void){
 
 }
 void Box::init(void){
+    Serial.println("INIT");
+
   state = MENU;
 }
 
