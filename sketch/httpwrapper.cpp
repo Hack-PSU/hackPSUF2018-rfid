@@ -71,13 +71,15 @@ namespace hackPSU {
 
   		//Redis json parse
 		redisData* pinData = new redisData;
-		pinData->uid = root["uid"];
-		pinData->pin = root["pin"];
-		pinData->name = root["name"];
-		pinData->shirtSize = root["shirtSize"];
-		pinData->diet = root["diet"];
-		pinData->counter = root["counter"];
-		pinData->numScans = root["numScans"];
+		JsonObject& data = root.get<JsonObject>("data");
+    apiKey = data.get<String>("apikey");
+		pinData->uid = data.get<String>("uid");
+		pinData->pin = data.get<String>("pin");
+		pinData->name = data.get<String>("name");
+		pinData->shirtSize = data.get<String>("shirtSize");
+		pinData->diet = data.get<String>("diet");
+		pinData->counter = data.get<String>("counter");
+		pinData->numScans = data.get<String>("numScans");
 
   		return pinData;
 	}
@@ -85,7 +87,7 @@ namespace hackPSU {
 	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
 		String url = "https://"+redisHost+"/tabs/setup";
-		String payload = "{\"id\":"+rfidCode+",\"pin\":"+pin+", \"apikey\":"+apiKey+"}";
+		String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -118,7 +120,7 @@ namespace hackPSU {
 
 
 		String url = "https://"+redisHost+"/tabs/add";
-		String payload = "{\"location\":"+locationId+",\"id\":"+rfidTag+", \"apikey\":"+apiKey+"}";
+		String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
