@@ -33,7 +33,7 @@ namespace hackPSU {
 		String status = root["status"];
     Serial.println(status);
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		JsonObject& data = jsonBuffer.parseObject(root["data"].as<String>());
+		JsonObject& data = root.get<JsonObject>("data");
     apiKey = data.get<String>("apikey");
     Serial.println(apiKey);
     //The following is based on assumptions and should be checked
@@ -59,7 +59,7 @@ namespace hackPSU {
 
     	Serial.println(response->payload);
 
-		StaticJsonBuffer<200> jsonBuffer;
+		StaticJsonBuffer<500> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 		//Free up memory since parsing is complete
@@ -100,7 +100,7 @@ namespace hackPSU {
 			return false;
 		}
 
-		StaticJsonBuffer<200> jsonBuffer;
+		StaticJsonBuffer<500> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 		//Free up memory since parsing is complete
@@ -135,7 +135,7 @@ namespace hackPSU {
 
 
 
-		StaticJsonBuffer<200> jsonBuffer;
+		StaticJsonBuffer<500> jsonBuffer;
 		JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 //		if (!root.success()) {
@@ -164,7 +164,7 @@ namespace hackPSU {
       return nullptr;
     }
 
-    StaticJsonBuffer<200> jsonBuffer;
+    StaticJsonBuffer<1000> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(response->payload);
 
     delete response;
