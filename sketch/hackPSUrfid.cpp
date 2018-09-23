@@ -38,5 +38,89 @@ namespace hackPSU {
     return *uid;
   }
 
+  void Scanner::getData(byte* buffer, byte size, byte blockAddr){
+
+    byte data[4];
+    uint32_t* uid;
+
+    //Wait for new card and yield to coroutines while waiting
+    while(!this->reader.PICC_IsNewCardPresent()){
+      yield();
+    }
+
+    //Wait for card with data and yield to coroutines while waiting
+    while(!this->reader.PICC_ReadCardSerial()){
+      yield();
+    }
+
+    //Copy into local buffer
+    for(uint8_t i = 0; i < 4; i++){
+      data[i] = reader.uid.uidByte[i];
+    }
+
+    uid = (uint32_t*)data;
+
+    MFRC522::MIFARE_Key key_mf;
+    for (int i = 0; i < KEY_LEN; i++)
+      key_mf.keyByte[i] = key[i];
+      
+    if (reader.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 7, &key_mf, &(reader.uid)) != MFRC522::STATUS_OK) {
+      Serial.println("AUTH FAIL");
+      return;
+    }
+    
+    if (reader.MIFARE_Read(blockAddr, buffer, &size) != MFRC522::STATUS_OK) {
+      Serial.println("READ FAIL");
+      return;
+    }
+
+    // Halt PICC
+    reader.PICC_HaltA();
+    // Stop encryption on PCD
+    reader.PCD_StopCrypto1();
+  }
+
+  void Scanner::setData(byte* buffer, byte size, byte blockAddr){
+
+    byte data[4];
+    uint32_t* uid;
+
+    //Wait for new card and yield to coroutines while waiting
+    while(!this->reader.PICC_IsNewCardPresent()){
+      yield();
+    }
+
+    //Wait for card with data and yield to coroutines while waiting
+    while(!this->reader.PICC_ReadCardSerial()){
+      yield();
+    }
+
+    //Copy into local buffer
+    for(uint8_t i = 0; i < 4; i++){
+      data[i] = reader.uid.uidByte[i];
+    }
+
+    uid = (uint32_t*)data;
+
+    MFRC522::MIFARE_Key key_mf;
+    for (int i = 0; i < KEY_LEN; i++)
+      key_mf.keyByte[i] = key[i];
+      
+    if (reader.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, 7, &key_mf, &(reader.uid)) != MFRC522::STATUS_OK) {
+      Serial.println("AUTH FAIL");
+      return;
+    }
+    
+    if (reader.MIFARE_Write(blockAddr, buffer, size) != MFRC522::STATUS_OK) {
+      Serial.println("WRITE FAIL");
+      return;
+    }
+
+    // Halt PICC
+    reader.PICC_HaltA();
+    // Stop encryption on PCD
+    reader.PCD_StopCrypto1();
+  }
+  
 
 }
