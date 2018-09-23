@@ -72,14 +72,14 @@ namespace hackPSU {
   		//Redis json parse
 		redisData* pinData = new redisData;
 		JsonObject& data = root.get<JsonObject>("data");
-    apiKey = data.get<String>("apikey");
-		pinData->uid = data.get<String>("uid");
-		pinData->pin = data.get<String>("pin");
-		pinData->name = data.get<String>("name");
-		pinData->shirtSize = data.get<String>("shirtSize");
-		pinData->diet = data.get<String>("diet");
-		pinData->counter = data.get<String>("counter");
-		pinData->numScans = data.get<String>("numScans");
+    apiKey = data.get<char *>("apikey");
+		pinData->uid = data.get<char *>("uid");
+		pinData->pin = data.get<char *>("pin");
+		pinData->name = data.get<char *>("name");
+		pinData->shirtSize = data.get<char *>("shirtSize");
+		pinData->diet = data.get<char *>("diet");
+		pinData->counter = data.get<char *>("counter");
+		pinData->numScans = data.get<char *>("numScans");
 
   		return pinData;
 	}
