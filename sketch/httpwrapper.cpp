@@ -43,7 +43,7 @@ namespace hackPSU {
 	redisData* HTTPImpl::getDataFromPin(String pin){
 		String url = "http://"+redisHost+"/tabs/getpin";
     	Serial.println(url);
-		String payload = "{\"pin\":"+pin+"}";
+		String payload = "{\"pin\":"+pin+", \"apikey\":"+apiKey+"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -85,7 +85,7 @@ namespace hackPSU {
 	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
 		String url = "https://"+redisHost+"/tabs/setup";
-		String payload = "{\"id\":"+rfidCode+",\"pin\":"+pin+"}";
+		String payload = "{\"id\":"+rfidCode+",\"pin\":"+pin+", \"apikey\":"+apiKey+"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
@@ -118,7 +118,7 @@ namespace hackPSU {
 
 
 		String url = "https://"+redisHost+"/tabs/add";
-		String payload = "{\"location\":"+locationId+",\"id\":"+rfidTag+"}";
+		String payload = "{\"location\":"+locationId+",\"id\":"+rfidTag+", \"apikey\":"+apiKey+"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
