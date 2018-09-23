@@ -3,6 +3,10 @@
 namespace hackPSU {
   Display::Display(Mode_e mode){
     this->mode = mode;
+    row = 0;
+    data[0] = "";
+    data[1] = "";
+    
     if(mode == PROD || mode == DEV){
         const uint8_t I2C_ADDRESSES[] = {0x27, 0x3f};
         Wire.begin(/*SRA, SCL*/);
@@ -27,6 +31,7 @@ namespace hackPSU {
   }
 
   void Display::print(char msg){
+    data[row] += msg;
     if(mode == PROD || mode == DEV){
       lcd->print(msg);
     }
@@ -36,6 +41,7 @@ namespace hackPSU {
   }
   
   void Display::print(String msg){
+    data[row] += msg;
     if(mode == PROD || mode == DEV){
       lcd->print(msg);
     }
@@ -45,13 +51,17 @@ namespace hackPSU {
   }
 
   void Display::print(String msg, int row){
-    if(mode == PROD || mode == DEV){
-      clear(row);
-      lcd->setCursor(0, row);
-      lcd->print(msg);
-    }
-    if(mode == DEV || mode == HEADLESS) {
-      Serial.println(msg);
+    if(msg != data[row]){
+      if(mode == PROD || mode == DEV){
+        clear(row);
+        lcd->setCursor(0, row);
+        lcd->print(msg);
+      }
+      if(mode == DEV || mode == HEADLESS) {
+        Serial.println(msg);
+      }
+      data[row] = msg;
+      this->row = row;
     }
   }
 

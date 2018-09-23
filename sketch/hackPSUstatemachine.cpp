@@ -2,6 +2,8 @@
 
 namespace hackPSU{
 
+#define MENU_STATES 5
+
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   menu_state = 0;
   scanner = new Scanner(RFID_SS, RFID_RST);
@@ -88,12 +90,12 @@ void Box::menu() {
 
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      menu_state++;
-      menu_state %=5;
+      menu_state--;
+      menu_state %= MENU_STATES;
       break;
     case 'B':
-      menu_state--;
-      menu_state %= 5;
+      menu_state++;
+      menu_state %= MENU_STATES;
       break;
     case '1':
       state = LOCATION;
