@@ -5,7 +5,7 @@ namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "http://"+redisHost+"/auth/register-scanner";
+        String url = "http://"+redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
