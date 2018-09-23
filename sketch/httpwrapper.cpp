@@ -2,184 +2,184 @@
 
 
 namespace hackPSU {
-	bool HTTPImpl::getAPIKey(){
+    bool HTTPImpl::getAPIKey(){
 
-    //TODO MAKE DAT ONE SECURE BOI
-		String url = "http://"+redisHost+"/auth/register-scanner";
-		String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
-		int headerCount = 1;
-		Headers headers [] = { { "Content-Type", "application/json" } };
-
-
-		Response* response = HTTP::POST(url, payload, headerCount, headers);
-    Serial.println(response->payload);
-
-		if (response->responseCode < 0){
-			Serial.print("Http request failed: ");
-			Serial.println(HTTP::handleError(response->responseCode));
-      Serial.println(response->errorMessage);
-			//Free up memory since parsing is complete
-			delete response;
-			return false;
-		}
-
-		StaticJsonBuffer<500> jsonBuffer;
-		JsonObject& root = jsonBuffer.parseObject(response->payload);
-
-		//Free up memory since parsing is complete
-		delete response;
-
-		//Redis json parse
-		String status = root["status"];
-    Serial.println(status);
-		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		JsonObject& data = root.get<JsonObject>("data");
-    apiKey = data.get<String>("apikey");
-    Serial.println(apiKey);
-    //The following is based on assumptions and should be checked
-  	return (status == "success");
-	}
-
-	redisData* HTTPImpl::getDataFromPin(String pin){
-		String url = "http://"+redisHost+"/tabs/getpin";
-    	Serial.println(url);
-		String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
-		int headerCount = 1;
-		Headers headers [] = { { "Content-Type", "application/json" } };
+        //TODO MAKE DAT ONE SECURE BOI
+        String url = "http://"+redisHost+"/auth/register-scanner";
+        String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
+        int headerCount = 1;
+        Headers headers [] = { { "Content-Type", "application/json" } };
 
 
-		Response* response = HTTP::POST(url, payload, headerCount, headers);
+        Response* response = HTTP::POST(url, payload, headerCount, headers);
+        Serial.println(response->payload);
 
-		if (response->responseCode < 0){
-			Serial.print("Http request failed: ");
-			Serial.println(HTTP::handleError(response->responseCode));
-			delete response;
-			return false;
-		}
+        if (response->responseCode < 0){
+            Serial.print("Http request failed: ");
+            Serial.println(HTTP::handleError(response->responseCode));
+            Serial.println(response->errorMessage);
+            //Free up memory since parsing is complete
+            delete response;
+            return false;
+        }
 
-    	Serial.println(response->payload);
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(response->payload);
 
-		StaticJsonBuffer<500> jsonBuffer;
-		JsonObject& root = jsonBuffer.parseObject(response->payload);
+        //Free up memory since parsing is complete
+        delete response;
 
-		//Free up memory since parsing is complete
-		delete response;
+        //Redis json parse
+        String status = root["status"];
+        Serial.println(status);
+        String message = root["message"];	//Should message also be returned to display why user was not allowed in?
+        JsonObject& data = root.get<JsonObject>("data");
+        apiKey = data.get<String>("apikey");
+        Serial.println(apiKey);
+        //The following is based on assumptions and should be checked
+        return (status == "success");
+    }
+
+    redisData* HTTPImpl::getDataFromPin(String pin){
+        String url = "http://"+redisHost+"/tabs/getpin";
+        Serial.println(url);
+        String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
+        int headerCount = 1;
+        Headers headers [] = { { "Content-Type", "application/json" } };
+
+
+        Response* response = HTTP::POST(url, payload, headerCount, headers);
+
+        if (response->responseCode < 0){
+            Serial.print("Http request failed: ");
+            Serial.println(HTTP::handleError(response->responseCode));
+            delete response;
+            return false;
+        }
+
+        Serial.println(response->payload);
+
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(response->payload);
+
+        //Free up memory since parsing is complete
+        delete response;
 
 //		if (!root.success()) {
 //			throw "json parsing failed :( lit";
 //  		}
 
-  		//Redis json parse
-		redisData* pinData = new redisData;
-		JsonObject& data = root.get<JsonObject>("data");
-    apiKey = data.get<String>("apikey");
-		pinData->uid = data.get<String>("uid");
-		pinData->pin = data.get<String>("pin");
-		pinData->name = data.get<String>("name");
-		pinData->shirtSize = data.get<String>("shirtSize");
-		pinData->diet = data.get<String>("diet");
-		pinData->counter = data.get<String>("counter");
-		pinData->numScans = data.get<String>("numScans");
+        //Redis json parse
+        redisData* pinData = new redisData;
+        JsonObject& data = root.get<JsonObject>("data");
+        apiKey = data.get<char*>("apikey");
+        pinData->uid = data.get<char*>("uid");
+        pinData->pin = data.get<char*>("pin");
+        pinData->name = data.get<char*>("name");
+        pinData->shirtSize = data.get<char*>("shirtSize");
+        pinData->diet = data.get<char*>("diet");
+        pinData->counter = data.get<char*>("counter");
+        pinData->numScans = data.get<char*>("numScans");
 
-  		return pinData;
-	}
+        return pinData;
+    }
 
-	bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
+    bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
-		String url = "https://"+redisHost+"/tabs/setup";
-		String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
-		int headerCount = 1;
-		Headers headers [] = { { "Content-Type", "application/json" } };
+        String url = "https://"+redisHost+"/tabs/setup";
+        String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
+        int headerCount = 1;
+        Headers headers [] = { { "Content-Type", "application/json" } };
 
 
-		Response* response = HTTP::POST(url, payload, headerCount, headers);
+        Response* response = HTTP::POST(url, payload, headerCount, headers);
 
-		if (response->responseCode < 0){
-			Serial.print("Http request failed: ");
-			Serial.println(HTTP::handleError(response->responseCode));
-			//Free up memory since parsing is complete
-			delete response;
-			return false;
-		}
+        if (response->responseCode < 0){
+            Serial.print("Http request failed: ");
+            Serial.println(HTTP::handleError(response->responseCode));
+            //Free up memory since parsing is complete
+            delete response;
+            return false;
+        }
 
-		StaticJsonBuffer<500> jsonBuffer;
-		JsonObject& root = jsonBuffer.parseObject(response->payload);
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(response->payload);
 
-		//Free up memory since parsing is complete
-		delete response;
+        //Free up memory since parsing is complete
+        delete response;
 
 //		if (!root.success()) {
 //			throw "json parsing failed :(";
 //  		}
 
-  		//Redis json parse
-  		return root["status"] == "success";
-	}
+        //Redis json parse
+        return root["status"] == "success";
+    }
 
-	bool HTTPImpl::entryScan(String locationId, String rfidTag){
-
-
-		String url = "https://"+redisHost+"/tabs/add";
-		String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
-		int headerCount = 1;
-		Headers headers [] = { { "Content-Type", "application/json" } };
+    bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-		Response* response = HTTP::POST(url, payload, headerCount, headers);
-
-		if (response->responseCode < 0){
-			Serial.print("Http request failed: ");
-			Serial.println(HTTP::handleError(response->responseCode));
-			//Free up memory since parsing is complete
-			delete response;
-			return false;
-		}
+        String url = "https://"+redisHost+"/tabs/add";
+        String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
+        int headerCount = 1;
+        Headers headers [] = { { "Content-Type", "application/json" } };
 
 
+        Response* response = HTTP::POST(url, payload, headerCount, headers);
 
-		StaticJsonBuffer<500> jsonBuffer;
-		JsonObject& root = jsonBuffer.parseObject(response->payload);
+        if (response->responseCode < 0){
+            Serial.print("Http request failed: ");
+            Serial.println(HTTP::handleError(response->responseCode));
+            //Free up memory since parsing is complete
+            delete response;
+            return false;
+        }
+
+
+
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 //		if (!root.success()) {
 //			throw "json parsing failed :(";
 //  		}
 
-		//Free up memory since parsing is complete
-		delete response;
+        //Free up memory since parsing is complete
+        delete response;
 
-		//Redis json parse
-		String status = root["status"];
-		String data = root["data"];
-		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
+        //Redis json parse
+        String status = root["status"];
+        String data = root["data"];
+        String message = root["message"];	//Should message also be returned to display why user was not allowed in?
 
-  		//The following is based on assumptions and should be checked
-  		return (status == "success");
-	}
-
-  Location* HTTPImpl::getLocations(int* len){
-    String url = "https://"+redisHost+"/tabs/active-locations";
-    Response* response = HTTP::GET(url);
-
-    if (response->responseCode < 0) {
-      Serial.println("GET REQUEST FAIL");
-      delete response;
-      return nullptr;
+        //The following is based on assumptions and should be checked
+        return (status == "success");
     }
 
-    StaticJsonBuffer<1000> jsonBuffer;
-    JsonObject& root = jsonBuffer.parseObject(response->payload);
+    Location* HTTPImpl::getLocations(int* len){
+        String url = "https://"+redisHost+"/tabs/active-locations";
+        Response* response = HTTP::GET(url);
 
-    delete response;
-    *len = root["length"];
-    Location *locations = new Location[*len];
+        if (response->responseCode < 0) {
+            Serial.println("GET REQUEST FAIL");
+            delete response;
+            return nullptr;
+        }
 
-    for(int i = 0; i < *len; i++){
-      locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
+        StaticJsonBuffer<1000> jsonBuffer;
+        JsonObject& root = jsonBuffer.parseObject(response->payload);
+
+        delete response;
+        *len = root["length"];
+        Location *locations = new Location[*len];
+
+        for(int i = 0; i < *len; i++){
+            locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
+        }
+
+        return locations;
+
     }
-
-    return locations;
-
-  }
 
 
 }
