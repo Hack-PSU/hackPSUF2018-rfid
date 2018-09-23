@@ -63,14 +63,10 @@ namespace hackPSU{
   char Keypad::getUniqueKey(unsigned long timeout){
     unsigned long start = millis();
     char val = getKeyPress(1, timeout);  // 500 ms timeout
-    Serial.println("Key pressed: " + val);
     if(val != 'z'){
-      Serial.print(val);
       while( getKeyPress(1, start + timeout - millis()) == val && start + timeout > millis() ) { // check every 50ms
-        Serial.print('.');
         delay(50);
       }
-      Serial.print('\n');
     }
     return(start + timeout < millis() ? 't' : val);
   }
@@ -96,7 +92,6 @@ namespace hackPSU{
       }
     }
     if( start + timeout < millis() ){
-      Serial.println("Timeout in getPin");
       return "timeout";
     } else {
       return pin;
