@@ -33,9 +33,8 @@ namespace hackPSU {
 		String status = root["status"];
     Serial.println(status);
 		String message = root["message"];	//Should message also be returned to display why user was not allowed in?
-		String data = root["data"];
-    Serial.println(data);
-    apiKey = jsonBuffer.parseObject(data)["apikey"].as<String>();
+		JsonObject& data = jsonBuffer.parseObject(root["data"].as<String>());
+    apiKey = data.get<String>("apikey");
     Serial.println(apiKey);
     //The following is based on assumptions and should be checked
   	return (status == "success");
