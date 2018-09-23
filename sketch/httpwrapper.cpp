@@ -43,7 +43,7 @@ namespace hackPSU {
 	redisData* HTTPImpl::getDataFromPin(String pin){
 		String url = "http://"+redisHost+"/tabs/getpin";
     	Serial.println(url);
-		String payload = "{\"pin\":"+pin+", \"apikey\":"+apiKey+"}";
+		String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
 		int headerCount = 1;
 		Headers headers [] = { { "Content-Type", "application/json" } };
 
