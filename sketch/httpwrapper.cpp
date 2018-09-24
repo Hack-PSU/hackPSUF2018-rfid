@@ -5,7 +5,7 @@ namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "http://"+redisHost+"/auth/scanner/register";
+        String url = "https://"+redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -41,7 +41,7 @@ namespace hackPSU {
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
-        String url = "http://"+redisHost+"/tabs/getpin";
+        String url = "https://"+redisHost+"/tabs/getpin";
         Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -89,7 +89,7 @@ namespace hackPSU {
     bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
         Serial.println("Attempt assign " + rfidCode + " to " + pin);
-        String url = "http://"+redisHost+"/tabs/setup";
+        String url = "https://"+redisHost+"/tabs/setup";
         //PHP like string replacement because concatenating strins isn't working here
         String payload = "{\"id\":\"$RFID\", \"pin\":$PIN, \"apikey\":\"$KEY\"}";
         payload.replace("$RFID", rfidCode);
@@ -129,7 +129,7 @@ namespace hackPSU {
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-        String url = "http://"+redisHost+"/tabs/add";
+        String url = "https://"+redisHost+"/tabs/add";
         String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -167,7 +167,7 @@ namespace hackPSU {
     }
 
     Location* HTTPImpl::getLocations(int* len){
-        String url = "http://"+redisHost+"/tabs/active-locations";
+        String url = "https://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
 
         if (response->responseCode < 0) {
