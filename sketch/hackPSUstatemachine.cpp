@@ -12,15 +12,14 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
   rssi_old = 0xFFFFFFFF;
 
-  // Wait for wifi to connect
-  while (!WiFi.begin(ssid, password)){
-    display->print("Connecting...", 0);
+  //Hit up that wifi boi
+  display->print("WiFi connecting", 0);
+  while (!WiFi.begin(ssid, password))
     yield();
-  }
-  
+
+  display->print("Fetching API key", 1);
   while(!http->getAPIKey()){
-    display->print("Connecting...", 0);
-    delay(1000);
+    yield();
   }
 }
 
@@ -29,9 +28,11 @@ Box::~Box() {
   delete keypad;
   delete http;
   delete display;
+  Serial.println("Deleted all Box members");
 }
 
 void Box::cycle(void) {
+  Serial.println("CYCLE");
   //switch on state; default to init
   switch (state) {
     case INIT:
@@ -62,6 +63,7 @@ void Box::cycle(void) {
 }
 
 void Box::menu() {
+  Serial.println("MENU");
   display->print("A:UP, B:DOWN", 0);
   switch(menu_state){
     case 0:
@@ -87,7 +89,7 @@ void Box::menu() {
 
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      menu_state = MENU_STATES + menu_state - 1;
+      menu_state--;
       menu_state %= MENU_STATES;
       break;
     case 'B':
@@ -114,45 +116,34 @@ void Box::menu() {
       state = INIT;
       menu_state = 0;
       break;
-    case '#':
-      switch(menu_state){
-        case 0: 
-          state = LOCATION;
-          break;
-        case 1:
-          state = WIFI;
-          break;
-        case 2:
-          state = DUPLICATE;
-          break;
-        case 3:
-          state = CHECKIN;
-          break;
-        case 4:
-          state = INIT;
-          break;
-        default:
-          state = INIT;
-      }
-      menu_state = 0;
   }
 
 }
 
 void Box::wifi(void) {
-  
+
+  Serial.println("WIFI");
+
+  char buff[16] = {0};
   int32_t rssi;
 
   if (WiFi.status() != WL_CONNECTED) {
     display->print("WiFi Disconnect", 0);
     return;
   }
+  byte available_networks = WiFi.scanNetworks();
+  for (int network = 0; network < available_networks; network++) {
+    if (WiFi.SSID(network), String(SSID)) {
+      rssi = WiFi.RSSI(network);
+      break;
+    }
+  }
 
-  rssi = WiFi.RSSI();
   //Only print on significant change
-  if ( abs(rssi - rssi_old ) >= 5) {
+  if ( abs(rssi - rssi_old ) <= 5) {
+    sprintf("RSSI %d dBm", buff, rssi);
     display->print(SSID, 0);
-    display->print("RSSI " + String(rssi) + " dBm", 1);
+    display->print(buff, 1);
     rssi_old = rssi;
   }
 
@@ -162,6 +153,8 @@ void Box::wifi(void) {
 }
 
 void Box::scan(void) {
+
+   Serial.println("SCAN");
 
   char input = keypad->readKeypad();
 
@@ -197,12 +190,43 @@ void Box::scan(void) {
 }
 
 void Box::duplicate(void) {
-  //GET REKT
-  Serial.println("DUPE");
-  state = MENU;
+
+  display->print("Scan Target", 0);
+
+  byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
+
+  scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK);
+
+  display->print("Target written", 0);
+  display->print("Rescan to validate", 1);
+
+  byte read_buffer[READ_BUFFER] = {0};
+
+  scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK);
+
+  display->clear();
+  if (String((char*)read_buffer) == String(MASTER_KEY)) {
+    display->print("Write success!", 0);
+  } else {
+    display->print("Write failure!", 0);
+  }
+
+  delay(1000);
+
+  display->print("Press B return", 0);
+  display->print("Wait to loop", 1);
+
+  char key = keypad->getUniqueKey(1000);
+
+  if (key == 'B'){
+    state = MENU;
+  }
+  
 }
 
 void Box::checkin(void) {
+
+  Serial.println("CHECKIN");
 
   String pin;
   redisData* data = nullptr;
@@ -210,7 +234,7 @@ void Box::checkin(void) {
 
   display->print("Enter a pin", 0);
   pin = keypad->getPin(5, '*', '#', 10000);
-  Serial.println(pin);
+
   //Timeout
   if (pin[0] == 't'){
     return;
@@ -254,6 +278,8 @@ void Box::checkin(void) {
 
 void Box::location(void){
 
+    Serial.println("LOCATION");
+
   if (location_list == nullptr) {
     location_list = http->getLocations(&num_locations);
     location_state = 0;
@@ -289,7 +315,25 @@ void Box::location(void){
 
 }
 void Box::init(void){
-  state = MENU;
+
+    #ifdef SECURE_BOX
+      byte buffer[READ_BUFFER] = {0};
+  
+      display->print("Scan to unlock", 0);
+      
+      scanner->getData(buffer, READ_BUFFER, KEY_BLOCK);
+  
+      if(String(MASTER_KEY) == String((char*)buffer)){
+        state = MENU;
+      } else {
+        display->print("Invalid band", 1);
+      }
+    #else
+      display->print("INSECURE BOOT!", 0);
+      delay(1000);
+      state = MENU;
+    #endif
+    
 }
 
 

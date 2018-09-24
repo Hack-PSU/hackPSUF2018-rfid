@@ -1,11 +1,12 @@
 #ifndef CONFIG__H
 #define CONFIG__H
 
+#define MASTER_KEY "GET_REKT"
+
 namespace hackPSU{
-  constexpr char* REDIS  = "192.168.0.11:3000";
-  constexpr char* SSID   = "TheBlueWhat";
-  constexpr char* PASSWD = "The_Gr3@t-68";
-  constexpr char* MASTER_KEY = "GET_REKT";
+  constexpr char* REDIS  = "https://c-98-235-90-5.hsd1.pa.comcast.net:3000/";
+  constexpr char* SSID   = "McDermott";
+  constexpr char* PASSWD = "mathematical";
 
   typedef struct{
     String name;
