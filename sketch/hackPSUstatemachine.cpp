@@ -32,7 +32,6 @@ Box::~Box() {
 }
 
 void Box::cycle(void) {
-  Serial.println("CYCLE");
   //switch on state; default to init
   switch (state) {
     case INIT:
@@ -63,7 +62,6 @@ void Box::cycle(void) {
 }
 
 void Box::menu() {
-  Serial.println("MENU");
   display->print("A:UP, B:DOWN", 0);
   switch(menu_state){
     case 0:
@@ -116,46 +114,59 @@ void Box::menu() {
       state = INIT;
       menu_state = 0;
       break;
+    case '#':
+      switch(menu_state){
+        case 0: 
+          state = LOCATION;
+          break;
+        case 1:
+          state = WIFI;
+          break;
+        case 2:
+          state = DUPLICATE;
+          break;
+        case 3:
+          state = CHECKIN;
+          break;
+        case 4: 
+          state = INIT;
+          break;
+        default:
+          state = INIT;
+      }
+      menu_state = 0;
   }
 
 }
 
 void Box::wifi(void) {
-
-  Serial.println("WIFI");
-
   char buff[16] = {0};
   int32_t rssi;
 
   if (WiFi.status() != WL_CONNECTED) {
     display->print("WiFi Disconnect", 0);
+    rssi_old = 0xFFFFFFFF;
     return;
   }
-  byte available_networks = WiFi.scanNetworks();
-  for (int network = 0; network < available_networks; network++) {
-    if (WiFi.SSID(network), String(SSID)) {
-      rssi = WiFi.RSSI(network);
-      break;
-    }
-  }
+
+  rssi = WiFi.RSSI();
 
   //Only print on significant change
-  if ( abs(rssi - rssi_old ) <= 5) {
-    sprintf("RSSI %d dBm", buff, rssi);
+  if ( abs(rssi - rssi_old ) >= 5) {
+    Serial.println("DISPLAY RSSI");
     display->print(SSID, 0);
-    display->print(buff, 1);
+    display->print("RSSI " + String(rssi) + " dBm", 1);
     rssi_old = rssi;
   }
 
-  if (keypad->getUniqueKey(500) == 'B')
+  if (keypad->getUniqueKey(500) == 'B'){
     state = MENU;
+    rssi_old = 0xFFFFFFFF;
+  }
 
 }
 
 void Box::scan(void) {
-
-   Serial.println("SCAN");
-
   char input = keypad->readKeypad();
 
   switch (input) {
@@ -227,9 +238,6 @@ void Box::duplicate(void) {
 }
 
 void Box::checkin(void) {
-
-  Serial.println("CHECKIN");
-
   String pin;
   redisData* data = nullptr;
   char keyPress;
@@ -296,9 +304,6 @@ void Box::checkin(void) {
 }
 
 void Box::location(void){
-
-  Serial.println("LOCATION");
-
   if (location_list == nullptr) {
     location_list = http->getLocations(&num_locations);
     location_state = 0;
