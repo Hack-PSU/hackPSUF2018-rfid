@@ -50,7 +50,11 @@ namespace hackPSU {
 
   Response* HTTP::GET(String url){
     HTTPClient http;
-    http.begin(url); //http Begin call
+    if (url.startsWith("https:")) {
+      http.begin(url, fingerprint);
+    }else{
+      http.begin(url); //http Begin call
+    }
 
     int httpCode = http.GET(); //GET call
     Response* responseInfo = new Response;
@@ -65,7 +69,11 @@ namespace hackPSU {
 
   Response* HTTP::POST(String url, String payload, int headerCount, Headers headers[]){
     HTTPClient http;
-    http.begin(url); //http Begin call
+    if (url.startsWith("https:")) {
+      http.begin(url, fingerprint);
+    }else{
+      http.begin(url); //http Begin call
+    }
 
     Serial.println("HEAD");
     for (int i = 0; i<headerCount; i++){
@@ -89,7 +97,11 @@ namespace hackPSU {
 
   Response* HTTP::POST(String url, String payload){
       HTTPClient http;
-      http.begin(url); //http Begin call
+      if (url.startsWith("https:")) {
+        http.begin(url, fingerprint);
+      }else{
+        http.begin(url); //http Begin call
+      }
 
       int httpCode = http.POST(payload);
       Response* responseInfo = new Response;
