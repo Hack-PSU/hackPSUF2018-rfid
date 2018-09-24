@@ -65,6 +65,9 @@ namespace hackPSU {
         //Free up memory since parsing is complete
         delete response;
 
+
+        if (String(root.get<char*>("status")) == "error")
+          return nullptr;
 //    if (!root.success()) {
 //      throw "json parsing failed :( lit";
 //      }
