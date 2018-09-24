@@ -42,7 +42,7 @@ void Box::cycle(void) {
       menu();
       break;
     case DUPLICATE:
-      //duplicate();
+      duplicate();
       break;
     case WIFI:
       wifi();
@@ -204,6 +204,8 @@ void Box::duplicate(void) {
 
   scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK);
 
+  Serial.println(String((char*)read_buffer));
+
   display->clear();
   if (String((char*)read_buffer) == String(MASTER_KEY)) {
     display->print("Write success!", 0);
@@ -233,6 +235,7 @@ void Box::checkin(void) {
   char keyPress;
 
   display->print("Enter a pin", 0);
+  display->clear(1);
   pin = keypad->getPin(5, '*', '#', 10000);
 
   //Timeout
@@ -260,7 +263,23 @@ void Box::checkin(void) {
 
   do{
     keyPress = keypad->getUniqueKey(5000);
+    //TODO faster with scroll
   } while (keyPress != '#' && keyPress != '*');
+
+  uint32_t uid;
+  do {
+    display->print("Scan wristband", 0);
+    display->clear(1);
+    
+    uid = scanner->getUID();
+    if (!http->assignRfidToUser(String(uid), pin)){
+      display->print("Discard wristband", 0);
+      display->print("ERROR!", 1);
+      uid = 0;
+      delay(1000);
+    }
+    
+  } while(!uid);
 
   if (keyPress ==  '*'){
     delete data;
@@ -278,7 +297,7 @@ void Box::checkin(void) {
 
 void Box::location(void){
 
-    Serial.println("LOCATION");
+  Serial.println("LOCATION");
 
   if (location_list == nullptr) {
     location_list = http->getLocations(&num_locations);
@@ -318,8 +337,9 @@ void Box::init(void){
 
     #ifdef SECURE_BOX
       byte buffer[READ_BUFFER] = {0};
-  
+
       display->print("Scan to unlock", 0);
+      display->clear(1);
       
       scanner->getData(buffer, READ_BUFFER, KEY_BLOCK);
   

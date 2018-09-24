@@ -4,7 +4,7 @@
 #define MASTER_KEY "GET_REKT"
 
 namespace hackPSU{
-  constexpr char* REDIS  = "https://c-98-235-90-5.hsd1.pa.comcast.net:3000/";
+  constexpr char* REDIS  = "c-98-235-90-5.hsd1.pa.comcast.net:3000";
   constexpr char* SSID   = "McDermott";
   constexpr char* PASSWD = "mathematical";
 
