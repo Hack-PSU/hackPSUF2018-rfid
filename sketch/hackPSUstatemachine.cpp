@@ -305,12 +305,15 @@ void Box::checkin(void) {
 
 void Box::location(void){
   if (location_list == nullptr) {
-    location_list = http->getLocations(&num_locations);
+    display->print("Updating list", 1);
+    location_list = http->getLocations(num_locations);
     location_state = 0;
   }
-
-  display->print("A:UP, B:DOWN", 0);
-  display->print(location_list[location_state].name, 1);
+  
+  if(num_locations > 0){
+    display->print("A:UP, B:DOWN", 0);
+    display->print(location_list[location_state].name, 1);
+  }
 
   char key = keypad->getUniqueKey(5000);
 
@@ -324,7 +327,9 @@ void Box::location(void){
       location_state %= num_locations;
       break;
     case '#':
-      lid = location_list[location_state].id;
+      if(location_state > 0){
+        lid = location_list[location_state].id;
+      }
       delete location_list;
       state = SCAN;
     default:
@@ -335,6 +340,9 @@ void Box::location(void){
     lid = location_list[key-'1'].id;
     delete location_list;
     state = SCAN;
+  } else if( key == 'D' ) {
+    delete location_list;
+    state = INIT;
   }
 
 }

@@ -86,7 +86,7 @@ namespace hackPSU {
 
     bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
-        String url = "https://"+redisHost+"/tabs/setup";
+        String url = "http://"+redisHost+"/tabs/setup";
         String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -119,7 +119,7 @@ namespace hackPSU {
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-        String url = "https://"+redisHost+"/tabs/add";
+        String url = "http://"+redisHost+"/tabs/add";
         String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -156,27 +156,28 @@ namespace hackPSU {
         return (status == "success");
     }
 
-    Location* HTTPImpl::getLocations(int* len){
-        String url = "https://"+redisHost+"/tabs/active-locations";
+    Location* HTTPImpl::getLocations(int &len){
+        String url = "http://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
-
+        Serial.println(response->errorMessage);
+        Serial.println(response->payload);
+        
         if (response->responseCode < 0) {
             Serial.println("GET REQUEST FAIL");
             delete response;
             return nullptr;
         }
 
-        StaticJsonBuffer<1000> jsonBuffer;
+        DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-
         delete response;
-        *len = root["length"];
-        Location *locations = new Location[*len];
-
-        for(int i = 0; i < *len; i++){
+        len = root["length"]; // TODO: this value
+        Location *locations = new Location[len];
+        
+        for(int i = 0; i < len; i++){
             locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
+            Serial.println(locations[i].name + " " + String(locations[i].id));
         }
-
         return locations;
 
     }

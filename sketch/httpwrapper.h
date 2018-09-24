@@ -49,7 +49,7 @@ namespace hackPSU {
      */
       bool entryScan(String locationId, String rfidTag);
 
-      Location* getLocations(int* len);
+      Location* getLocations(int &len);
 
   };
 }
