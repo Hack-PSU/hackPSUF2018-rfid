@@ -7,7 +7,8 @@ namespace hackPSU{
   constexpr char* REDIS  = "c-98-235-90-5.hsd1.pa.comcast.net:3000";
   constexpr char* SSID   = "McDermott";
   constexpr char* PASSWD = "mathematical";
-  //TODO add fingerprint of redis cert
+  // SHA1 fingerprint of the certificate
+  constexpr char* fingerprint = "EF 8D DC 15 D8 FA EB 7C 32 D4 AD 25 F0 2A 5D 15 98 43 33 34";
 
   typedef struct{
     String name;

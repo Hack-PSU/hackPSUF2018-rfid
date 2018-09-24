@@ -5,7 +5,7 @@ namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "http://"+redisHost+"/auth/scanner/register";
+        String url = "https://"+redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -41,7 +41,7 @@ namespace hackPSU {
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
-        String url = "http://"+redisHost+"/tabs/getpin";
+        String url = "https://"+redisHost+"/tabs/getpin";
         Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -65,6 +65,9 @@ namespace hackPSU {
         //Free up memory since parsing is complete
         delete response;
 
+
+        if (String(root.get<char*>("status")) == "error")
+          return nullptr;
 //    if (!root.success()) {
 //      throw "json parsing failed :( lit";
 //      }
@@ -72,7 +75,6 @@ namespace hackPSU {
         //Redis json parse
         redisData* pinData = new redisData;
         JsonObject& data = root.get<JsonObject>("data");
-        apiKey = data.get<char*>("apikey");
         pinData->uid = data.get<char*>("uid");
         pinData->pin = data.get<char*>("pin");
         pinData->name = data.get<char*>("name");
@@ -91,8 +93,9 @@ namespace hackPSU {
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-
         Response* response = HTTP::POST(url, payload, headerCount, headers);
+
+        Serial.println(response->payload);
 
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
