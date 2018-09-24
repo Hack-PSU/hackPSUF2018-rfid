@@ -72,7 +72,6 @@ namespace hackPSU {
         //Redis json parse
         redisData* pinData = new redisData;
         JsonObject& data = root.get<JsonObject>("data");
-        apiKey = data.get<char*>("apikey");
         pinData->uid = data.get<char*>("uid");
         pinData->pin = data.get<char*>("pin");
         pinData->name = data.get<char*>("name");
@@ -86,13 +85,21 @@ namespace hackPSU {
 
     bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
-        String url = "https://"+redisHost+"/tabs/setup";
-        String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
+        Serial.println("Attempt assign " + rfidCode + " to " + pin);
+        String url = "http://"+redisHost+"/tabs/setup";
+        //PHP like string replacement because concatenating strins isn't working here
+        String payload = "{\"id\":\"$RFID\", \"pin\":$PIN, \"apikey\":\"$KEY\"}";
+        payload.replace("$RFID", rfidCode);
+        payload.replace("$PIN", pin);
+        payload.replace("$KEY", apiKey);
+        Serial.println(apiKey);
+        Serial.println(payload);
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-
         Response* response = HTTP::POST(url, payload, headerCount, headers);
+
+        Serial.println(response->payload);
 
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
@@ -119,7 +126,7 @@ namespace hackPSU {
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-        String url = "https://"+redisHost+"/tabs/add";
+        String url = "http://"+redisHost+"/tabs/add";
         String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -157,7 +164,7 @@ namespace hackPSU {
     }
 
     Location* HTTPImpl::getLocations(int* len){
-        String url = "https://"+redisHost+"/tabs/active-locations";
+        String url = "http://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
 
         if (response->responseCode < 0) {
