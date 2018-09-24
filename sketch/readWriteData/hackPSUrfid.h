@@ -7,9 +7,6 @@
 #include "hackPSUconfig.h"
 
 #define KEY_LEN 6
-#define READ_BUFFER 32
-#define WRITE_BUFFER 16
-#define KEY_SECTOR 4
 
 namespace hackPSU {
 
