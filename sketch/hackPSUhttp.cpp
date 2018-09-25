@@ -70,7 +70,7 @@ namespace hackPSU {
   Response* HTTP::POST(String url, String payload, int headerCount, Headers headers[]){
     HTTPClient http;
     if (url.startsWith("https:")) {
-      http.begin(url, fingerprint);
+      http.begin(url, fp);
     }else{
       http.begin(url); //http Begin call
     }

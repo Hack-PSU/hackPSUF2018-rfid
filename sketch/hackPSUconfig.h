@@ -8,7 +8,8 @@ namespace hackPSU{
   constexpr char* SSID   = "McDermott";
   constexpr char* PASSWD = "mathematical";
   // SHA1 fingerprint of the certificate
-  constexpr char* fingerprint = "EF 8D DC 15 D8 FA EB 7C 32 D4 AD 25 F0 2A 5D 15 98 43 33 34";
+  constexpr char* fingerprint = "AD:0E:A5:F9:AB:6A:EF:B1:25:3A:A4:47:3D:A5:75:1A:E9:8C:A7:B5";
+  constexpr uint8_t fp[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
 
   typedef struct{
     String name;
