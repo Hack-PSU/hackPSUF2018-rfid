@@ -5,7 +5,7 @@ namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "https://"+redisHost+"/auth/scanner/register";
+        String url = "http://"+redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -23,7 +23,7 @@ namespace hackPSU {
             return false;
         }
 
-        StaticJsonBuffer<500> jsonBuffer;
+        DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -41,7 +41,7 @@ namespace hackPSU {
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
-        String url = "https://"+redisHost+"/tabs/getpin";
+        String url = "http://"+redisHost+"/tabs/getpin";
         Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -59,7 +59,7 @@ namespace hackPSU {
 
         Serial.println(response->payload);
 
-        StaticJsonBuffer<500> jsonBuffer;
+        DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -105,7 +105,7 @@ namespace hackPSU {
             return false;
         }
 
-        StaticJsonBuffer<500> jsonBuffer;
+        DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -140,7 +140,7 @@ namespace hackPSU {
 
 
 
-        StaticJsonBuffer<500> jsonBuffer;
+        DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
 //    if (!root.success()) {
@@ -162,8 +162,6 @@ namespace hackPSU {
     Location* HTTPImpl::getLocations(int &len){
         String url = "http://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
-        Serial.println(response->errorMessage);
-        Serial.println(response->payload);
         
         if (response->responseCode < 0) {
             Serial.println("GET REQUEST FAIL");
@@ -179,7 +177,6 @@ namespace hackPSU {
         
         for(int i = 0; i < len; i++){
             locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
-            Serial.println(locations[i].name + " " + String(locations[i].id));
         }
         return locations;
 
