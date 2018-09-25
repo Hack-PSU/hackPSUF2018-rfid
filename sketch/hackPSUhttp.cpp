@@ -27,11 +27,16 @@ namespace hackPSU {
         return "Unknown code";
     }
   }
-
+  //TODO: Refactor all of this so that you pass in host, port and uri to make more extensible
+  // There is an httpclient function that helps HTTPClient::begin(String host, uint16_t port, String uri, bool https, String httpsFingerprint)
+  
   Response* HTTP::GET(String url, int headerCount, Headers headers[]){
     HTTPClient http;
-    http.begin(url); //http Begin call
-
+    if (url.startsWith("https:")) {
+      http.begin(url, fp);
+    }else{
+      http.begin(url); //http Begin call
+    }
     for (int i = 0; i<headerCount; i++){
       Headers header = headers[i];
       http.addHeader(header.headerKey,header.headerValue);
@@ -51,7 +56,7 @@ namespace hackPSU {
   Response* HTTP::GET(String url){
     HTTPClient http;
     if (url.startsWith("https:")) {
-      http.begin(url, fingerprint);
+      http.begin(url, fp);
     }else{
       http.begin(url); //http Begin call
     }
@@ -98,7 +103,7 @@ namespace hackPSU {
   Response* HTTP::POST(String url, String payload){
       HTTPClient http;
       if (url.startsWith("https:")) {
-        http.begin(url, fingerprint);
+        http.begin(url, fp);
       }else{
         http.begin(url); //http Begin call
       }
