@@ -12,3 +12,6 @@ This library can be installed by downloading the repository as a .zip file and i
 
 ## I2C LCD Library
 We are using [marcoshwartz](https://github.com/marcoschwartz/)'s [LiquidCrystal_I2C](https://github.com/marcoschwartz/LiquidCrystal_I2C) for our Hitachi compatible LCD with I2C backpack.  This library can be installed by downloading the repository as a .zip file and installing it in the Arduino IDE.
+
+## ArduinoJson Library
+We are using the [bblanchon](https://github.com/bblanchon)'s [ArduinoJson](https://github.com/bblanchon/ArduinoJson) library version 5.13.1 to parse JSON data returned through HTTP.  This libarary can be installed through the built in library manager in the Arduino IDE.
