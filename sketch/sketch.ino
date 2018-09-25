@@ -1,6 +1,5 @@
 
 #include "hackPSUstatemachine.h"
-#include <ESP8266WiFi.h>
 
 using namespace hackPSU;
 

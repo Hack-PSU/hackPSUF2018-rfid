@@ -81,7 +81,7 @@ namespace hackPSU{
     for(int i = 0; i < maxLen && start + timeout > millis(); i++){
       char key = getUniqueKey(start + timeout - millis());
       if(key == clr){
-        display->clear();
+        display->backspace(pin.length());
         pin = "";
         i = 0;
       } else if( key == submit) {

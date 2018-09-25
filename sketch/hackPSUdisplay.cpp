@@ -79,6 +79,8 @@ namespace hackPSU {
   }
 
   void Display::clear(){
+    data[0] = "";
+    data[1] = "";
     if(mode != HEADLESS) {
       lcd->clear();
     }
@@ -90,5 +92,16 @@ namespace hackPSU {
       lcd->print("                ");
       lcd->setCursor(0, row);
     }
+    data[row] = "";
+  }
+
+  void Display::backspace(int num){
+    int pos = data[row].length() - num;
+    lcd->setCursor(pos, row);
+    for(int i = 0; i < num; i++){
+      lcd->print(' ');
+    }
+    lcd->setCursor(pos, row);
+    data[row] = data[row].substring(0, pos);
   }
 };

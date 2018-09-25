@@ -23,7 +23,7 @@ namespace hackPSU {
       void print(String msg, int row);
       void clear();
       void clear(int row);
-
+      void backspace(int num);
   };
 
 }
