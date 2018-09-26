@@ -7,7 +7,7 @@ bool HTTPImpl::getAPIKey()
 
     //TODO MAKE DAT ONE SECURE BOI
     String url = "http://" + redisHost + "/auth/scanner/register";
-    String payload = "{\"pin\":\"" + String(MASTER_KEY) + "\"}";
+    String payload = "{\"pin\":\"" + String(MASTER_KEY) + "\"}";    //Where is MASTER_KEY coming from?
     int headerCount = 1;
     Headers headers[] = {{"Content-Type", "application/json"}};
 
@@ -19,6 +19,7 @@ bool HTTPImpl::getAPIKey()
         Serial.print("Http request failed: ");
         Serial.println(HTTP::handleError(response->responseCode));
         Serial.println(response->errorMessage);
+
         //Free up memory since parsing is complete
         delete response;
         return false;
@@ -33,11 +34,11 @@ bool HTTPImpl::getAPIKey()
     //Redis json parse
     String status = root.get<String>("status");
     Serial.println(status);
-    String message = root["message"]; //Should message also be returned to display why user was not allowed in?
+    String message = root.get<String>("message");
     JsonObject &data = root.get<JsonObject>("data");
     apiKey = data.get<String>("apikey");
-    Serial.println(apiKey);
-    //The following is based on assumptions and should be checked
+    Serial.println(apiKey);     //Do we want to just print the api key or return it?
+
     return (status == "success");
 }
 
@@ -45,7 +46,7 @@ redisData *HTTPImpl::getDataFromPin(String pin)
 {
     String url = "http://" + redisHost + "/tabs/getpin";
     Serial.println(url);
-    String payload = "{\"pin\":" + pin + ", \"apikey\": \"" + apiKey + "\"}";
+    String payload = "{\"pin\":" + pin + ", \"apikey\": \"" + apiKey + "\"}";   //Where is apikey comign from
     int headerCount = 1;
     Headers headers[] = {{"Content-Type", "application/json"}};
 
@@ -55,8 +56,11 @@ redisData *HTTPImpl::getDataFromPin(String pin)
     {
         Serial.print("Http request failed: ");
         Serial.println(HTTP::handleError(response->responseCode));
+        Serial.println(response->errorMessage);
+
+        //Free up memory since parsing is complete
         delete response;
-        return false;
+        return nullptr;     //for return type redisData
     }
 
     Serial.println(response->payload);
@@ -99,6 +103,8 @@ bool HTTPImpl::assignRfidToUser(String rfidCode, String pin)
     {
         Serial.print("Http request failed: ");
         Serial.println(HTTP::handleError(response->responseCode));
+        Serial.println(response->errorMessage);
+
         //Free up memory since parsing is complete
         delete response;
         return false;
@@ -106,7 +112,7 @@ bool HTTPImpl::assignRfidToUser(String rfidCode, String pin)
 
     StaticJsonBuffer<500> jsonBuffer;
     JsonObject &root = jsonBuffer.parseObject(response->payload);
-    bool success = response->responseCode == 200;
+    bool success = (response->responseCode == 200);
 
     //Free up memory since parsing is complete
     delete response;
@@ -117,12 +123,10 @@ bool HTTPImpl::assignRfidToUser(String rfidCode, String pin)
 
     //Redis json parse
     return success;
-    // return root["status"] == "success";
 }
 
 bool HTTPImpl::entryScan(String locationId, String rfidTag)
 {
-
     String url = "https://" + redisHost + "/tabs/add";
     String payload = "{\"location\":\"" + locationId + "\" ,\"id\":" + rfidTag + ", \"apikey\":\"" + apiKey + "\"}";
     int headerCount = 1;
@@ -134,28 +138,43 @@ bool HTTPImpl::entryScan(String locationId, String rfidTag)
     {
         Serial.print("Http request failed: ");
         Serial.println(HTTP::handleError(response->responseCode));
+        Serial.println(response->errorMessage);
+
         //Free up memory since parsing is complete
         delete response;
         return false;
     }
+    
+
+    // status: 'success',
+    // data: {
+    //     "uid": element.uid,
+    //     "pin": element.pin || "NULL",
+    //     "name": element.firstname + ' ' + element.lastname,
+    //     "shirtSize": element.shirt_size,
+    //     "diet": element.dietary_restriction || "NULL",
+    //     "counter": 0,
+    //     "numScans": 0,
+    //     "isRepeat": true/false
+    // },
+    // message: 'Some Message.'
 
     StaticJsonBuffer<500> jsonBuffer;
     JsonObject &root = jsonBuffer.parseObject(response->payload);
+
+    //Free up memory since parsing is complete
+    delete response;
 
     //		if (!root.success()) {
     //			throw "json parsing failed :(";
     //  		}
 
-    //Free up memory since parsing is complete
-    delete response;
+    String status = root.get<String>("status");
+    String data = root.get<String>("data");
+    bool isRepeat = data.get<bool>("isRepeat");
+    String message = root.get<String>("message");
 
-    //Redis json parse
-    String status = root["status"];
-    String data = root["data"];
-    String message = root["message"]; //Should message also be returned to display why user was not allowed in?
-
-    //The following is based on assumptions and should be checked
-    return (status == "success");
+    return (isRepeat);
 }
 
 Location *HTTPImpl::getLocations(int *len)
@@ -174,12 +193,12 @@ Location *HTTPImpl::getLocations(int *len)
     JsonObject &root = jsonBuffer.parseObject(response->payload);
 
     delete response;
-    *len = root.get<int>["length"];
+    *len = root.get<int>("length");
     Location *locations = new Location[*len];
 
     for (int i = 0; i < *len; i++)
     {
-        locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
+        locations[i] = {.name = root.get<String>("locations")[i]["location_name"], .id = root.get<String>("locations")[i]["uid"]};
     }
 
     return locations;
