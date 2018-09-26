@@ -43,9 +43,9 @@ namespace hackPSU {
       bool assignRfidToUser(String rfidCode, String pin);
 
       /*
-        Use case: When the user is trying to scan into a workshop/event
+        Use case: When the user is trying to scan into a workshop/event or food
         Parameters: String userBandId, String locationId
-        Returns: success or fail (they can enter or not)
+        Returns: success or fail; true is returned iff no erros occur and the response JSON field isRepeat is set to false
      */
       bool entryScan(String locationId, String rfidTag);
 
