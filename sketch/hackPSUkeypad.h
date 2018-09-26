@@ -5,8 +5,6 @@
 #include <Arduino.h>
 #include<ESP8266WiFi.h>
 
-#include "hackPSUconfig.h"
-
 namespace hackPSU{
   #define READ_PERIOD 4    // setup period before each keypad read
   
