@@ -128,8 +128,11 @@ namespace hackPSU {
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-
+        Serial.println("SEND IT");
+        Serial.println(millis());
         Response* response = HTTP::POST(url, payload, headerCount, headers);
+        Serial.println("GOT IT");
+        Serial.println(millis());
 
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
@@ -139,13 +142,8 @@ namespace hackPSU {
             return false;
         }
 
-
-
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-//    if (!root.success()) {
-//      throw "json parsing failed :(";
-//      }
 
         //Free up memory since parsing is complete
         delete response;
@@ -159,6 +157,9 @@ namespace hackPSU {
           Serial.println("Failed: " + message);
           return false;
         }
+
+        Serial.println("DECODED IT");
+        Serial.println(millis());
 
         if(isRepeat){
           Serial.println("Already had food.");

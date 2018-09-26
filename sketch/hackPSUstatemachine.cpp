@@ -254,14 +254,12 @@ void Box::scan() {
       Serial.println(uid);
       if (uid != last_scan) {
         if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10))) {
-          //TODO LCD->print Allow
           display->print("Allow", 1);
-          delay(1000);
         } else {
           //TODO LCD->print Deny
           display->print("Deny", 1);
-          delay(1000);
         }
+        delay(500);
         last_scan = uid;
       }
       //No state transition
@@ -339,7 +337,7 @@ void Box::checkin() {
   display->print("Shirt Size: ", 0);
   display->print(data->shirtSize);
 
-  display->print("Photo concent?",1);
+  display->print("Photo consent?",1);
 
   // Require keypress to continue
   while(keypad->getUniqueKey(1000) != 't');
