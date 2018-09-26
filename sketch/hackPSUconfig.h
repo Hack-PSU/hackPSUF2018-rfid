@@ -3,9 +3,10 @@
 
 #define MASTER_KEY "GET_REKT"
 #define SCAN_TIMEOUT 5000
+#define BAUD_RATE 9600
 
 //Uncomment this line if the SSID & PASSWDS fields are correct
-#define WIFI_CONSTS
+//#define WIFI_CONSTS
 #ifndef WIFI_CONSTS
 #error Wifi constants must be updated
 #endif

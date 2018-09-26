@@ -25,7 +25,7 @@ namespace hackPSU {
       lcd->setCursor(0,0);
     }
     if(mode == DEV || mode == HEADLESS) {
-      Serial.begin(9600);
+      Serial.begin(BAUD_RATE);
       Serial.println("Started serial communication");
     }
       
