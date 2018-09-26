@@ -21,7 +21,7 @@ namespace hackPSU {
             Serial.println(response->errorMessage);
             //Free up memory since parsing is complete
             delete response; response = nullptr;
-            return false;
+            return nullptr;
         }
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
@@ -55,7 +55,7 @@ namespace hackPSU {
             Serial.print("Http request failed: ");
             Serial.println(HTTP::handleError(response->responseCode));
             delete response; response = nullptr;
-            return false;
+            return nullptr;
         }
 
         Serial.println(response->payload);
@@ -100,7 +100,7 @@ namespace hackPSU {
             Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
             delete response; response = nullptr;
-            return false;
+            return nullptr;
         }
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
@@ -128,7 +128,7 @@ namespace hackPSU {
             Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
             delete response; response = nullptr;
-            return false;
+            return nullptr;
         }
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
@@ -144,12 +144,12 @@ namespace hackPSU {
         //data.get<char*>("name"); use if interested in displaying it down the road
         if (root.get<String>("status") != "success"){
           Serial.println("Failed: " + message);
-          return false;
+          return nullptr;
         }
 
         if(isRepeat){
           Serial.println("Already had food.");
-          return false;
+          return nullptr;
         }
 
         return true;
