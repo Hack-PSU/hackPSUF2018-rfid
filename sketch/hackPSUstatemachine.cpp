@@ -18,8 +18,12 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   state = LOCK;
 
   display->print("WiFi connecting", 0);
-  while (!WiFi.begin(ssid, password))
+  do{
+    WiFi.begin(ssid, password);
     yield();
+  } while (WiFi.status() != WL_CONNECTED);
+
+  display->print("WiFi connected ", 0);
 
   display->print("Fetching API key", 1);
   while(!http->getAPIKey()){
