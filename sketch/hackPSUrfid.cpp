@@ -21,7 +21,7 @@ namespace hackPSU {
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return 0;
@@ -31,7 +31,7 @@ namespace hackPSU {
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return 0;
@@ -60,7 +60,7 @@ namespace hackPSU {
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return false;
@@ -70,7 +70,7 @@ namespace hackPSU {
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return false;
@@ -113,7 +113,7 @@ namespace hackPSU {
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return false;
@@ -123,7 +123,7 @@ namespace hackPSU {
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
-      if ((millis() - timeout > time) && time) {
+      if ((millis() - timeout > time) && timeout) {
         //timeout
         this->reader.PICC_HaltA();
         return false;

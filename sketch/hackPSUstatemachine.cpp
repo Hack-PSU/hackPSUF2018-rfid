@@ -81,7 +81,8 @@ void Box::lock(){
       display->clear(1);
 
       //No TIMEOUT
-      scanner->getData(buffer, READ_BUFFER, KEY_BLOCK, 0);
+      if(!scanner->getData(buffer, READ_BUFFER, KEY_BLOCK, 0))
+        return;
   
       if(String(MASTER_KEY) == String((char*)buffer)){
         state = MENU;
