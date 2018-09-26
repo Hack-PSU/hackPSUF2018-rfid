@@ -13,18 +13,29 @@ namespace hackPSU {
 
   Scanner::Scanner(uint8_t ssPin, uint8_t rstPin) : Scanner(ssPin, rstPin, Scanner::DEFAULT_KEY) {}
 
-  uint32_t Scanner::getUID(void){
+  uint32_t Scanner::getUID(unsigned long timeout){
     byte data[4];
     uint32_t* uid;
+    unsigned long time = millis();
 
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return 0;
+      }
     }
 
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return 0;
+      }
     }
     
     //Copy into local buffer
@@ -39,20 +50,31 @@ namespace hackPSU {
     return *uid;
   }
 
-  void Scanner::getData(byte* buffer, byte size, byte blockAddr){
+  bool Scanner::getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
     byte data[4];
     uint32_t* uid;
+    unsigned long time = millis();
 
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return false;
+      }
     }
 
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return false;
+      }
     }
 
     //Copy into local buffer
@@ -81,20 +103,31 @@ namespace hackPSU {
     reader.PCD_StopCrypto1();
   }
 
-  void Scanner::setData(byte* buffer, byte size, byte blockAddr){
+  bool Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
     byte data[4];
     uint32_t* uid;
+    unsigned long time = millis();
 
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return false;
+      }
     }
 
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
+      if ((millis() - timeout > time) && timeout) {
+        //timeout
+        this->reader.PICC_HaltA();
+        return false;
+      }
     }
 
     //Copy into local buffer

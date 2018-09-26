@@ -18,8 +18,11 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   state = LOCK;
 
   display->print("WiFi connecting", 0);
-  while (!WiFi.begin(ssid, password))
+  WiFi.begin(ssid, password);
+  while(WiFi.status() != WL_CONNECTED) 
     yield();
+
+  display->print("WiFi connected ", 0);
 
   display->print("Fetching API key", 1);
   while(!http->getAPIKey()){
@@ -75,8 +78,10 @@ void Box::lock(){
 
       display->print("Scan to unlock", 0);
       display->clear(1);
-      
-      scanner->getData(buffer, READ_BUFFER, KEY_BLOCK);
+
+      //No TIMEOUT
+      if(!scanner->getData(buffer, READ_BUFFER, KEY_BLOCK, 0))
+        return;
   
       if(String(MASTER_KEY) == String((char*)buffer)){
         state = MENU;
@@ -237,20 +242,24 @@ void Box::scan() {
     default:
       display->print("Scan wristband", 0);
       display->clear(1);
-      uint32_t uid = scanner->getUID();
+      uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
+      if(!uid){
+        display->print("Scanner timeout", 1);
+        delay(1000);
+        display->clear(1);
+        return;        
+      }
       char lid_buffer[10] = {0};
       char uid_buffer[10] = {0};
       Serial.println(uid);
       if (uid != last_scan) {
         if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10))) {
-          //TODO LCD->print Allow
           display->print("Allow", 1);
-          delay(1000);
         } else {
           //TODO LCD->print Deny
           display->print("Deny", 1);
-          delay(1000);
         }
+        delay(500);
         last_scan = uid;
       }
       //No state transition
@@ -309,7 +318,13 @@ void Box::checkin() {
   do {
     display->clear(1);
     
-    uid = scanner->getUID();
+    uid = scanner->getUID(SCAN_TIMEOUT);
+    if(!uid){
+      display->print("Scanner timeout", 1);
+      delay(1000);
+      display->clear(1);
+      return;
+    }
     if (!http->assignRfidToUser(String(uid), pin)){
       display->print("Scrap wristband!", 1);
       uid = 0;
@@ -322,7 +337,7 @@ void Box::checkin() {
   display->print("Shirt Size: ", 0);
   display->print(data->shirtSize);
 
-  display->print("Photo concent?",1);
+  display->print("Photo consent?",1);
 
   // Require keypress to continue
   while(keypad->getUniqueKey(1000) != 't');
@@ -389,14 +404,24 @@ void Box::duplicate() {
 
   byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
 
-  scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK);
+  if(!scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
+    display->print("Scanner timeout", 1);
+    delay(1000);
+    display->clear(1);
+    return;
+  }
 
   display->print("Target written", 0);
   display->print("Rescan to validate", 1);
 
   byte read_buffer[READ_BUFFER] = {0};
 
-  scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK);
+  if(!scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
+    display->print("Scanner timeout", 1);
+    delay(1000);
+    display->clear(1);
+    return;
+  }
 
   Serial.println(String((char*)read_buffer));
 

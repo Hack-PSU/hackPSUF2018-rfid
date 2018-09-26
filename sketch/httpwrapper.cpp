@@ -1,16 +1,17 @@
 #include "httpwrapper.h"
 
-
+//TODO Get rid of DynamicJsonBuffer for StaticJsonBuffer as it will fragment memory
+//https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
 namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "http://"+redisHost+"/auth/scanner/register";
+        String url = "https://"+redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-
+        Serial.println(payload);
         Response* response = HTTP::POST(url, payload, headerCount, headers);
         Serial.println(response->payload);
 
@@ -41,7 +42,7 @@ namespace hackPSU {
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
-        String url = "http://"+redisHost+"/tabs/getpin";
+        String url = "https://"+redisHost+"/tabs/getpin";
         Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -88,7 +89,7 @@ namespace hackPSU {
 
     bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
-        String url = "http://"+redisHost+"/tabs/setup";
+        String url = "https://"+redisHost+"/tabs/setup";
         String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -122,13 +123,16 @@ namespace hackPSU {
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-        String url = "http://"+redisHost+"/tabs/add";
+        String url = "https://"+redisHost+"/tabs/add";
         String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-
+        Serial.println("SEND IT");
+        Serial.println(millis());
         Response* response = HTTP::POST(url, payload, headerCount, headers);
+        Serial.println("GOT IT");
+        Serial.println(millis());
 
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
@@ -138,31 +142,37 @@ namespace hackPSU {
             return false;
         }
 
-
-
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-
-//    if (!root.success()) {
-//      throw "json parsing failed :(";
-//      }
 
         //Free up memory since parsing is complete
         delete response;
 
         //Redis json parse
-        String status = root["status"];
-        String data = root["data"];
-        String message = root["message"]; //Should message also be returned to display why user was not allowed in?
+        String message = root.get<String>("message"); //Should message also be returned to display why user was not allowed in?
+        JsonObject& data = root.get<JsonObject>("data");
+        bool isRepeat = data.get<bool>("isRepeat");
+        //data.get<char*>("name"); use if interested in displaying it down the road
+        if (root.get<String>("status") != "success"){
+          Serial.println("Failed: " + message);
+          return false;
+        }
 
-        //The following is based on assumptions and should be checked
-        return (status == "success");
+        Serial.println("DECODED IT");
+        Serial.println(millis());
+
+        if(isRepeat){
+          Serial.println("Already had food.");
+          return false;
+        }
+
+        return true;
     }
 
     Location* HTTPImpl::getLocations(int &len){
-        String url = "http://"+redisHost+"/tabs/active-locations";
+        String url = "https://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
-        
+
         if (response->responseCode < 0) {
             Serial.println("GET REQUEST FAIL");
             delete response;
@@ -174,7 +184,7 @@ namespace hackPSU {
         delete response;
         len = root["length"]; // TODO: this value
         Location *locations = new Location[len];
-        
+
         for(int i = 0; i < len; i++){
             locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
         }

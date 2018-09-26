@@ -22,9 +22,10 @@ namespace hackPSU {
       Scanner(uint8_t ssPin, uint8_t rstPin, const byte* key);
       Scanner(uint8_t ssPin, uint8_t rstPin);
 
-      uint32_t getUID(void);
-      void getData(byte* buffer, byte size, byte blockAddr);      
-      void setData(byte* buffer, byte size, byte blockAddr); 
+      //Timeout is negated if timeout==0
+      uint32_t getUID(unsigned long timeout);
+      bool getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout);      
+      bool setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout); 
 
   };
 
