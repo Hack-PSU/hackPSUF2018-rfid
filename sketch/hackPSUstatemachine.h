@@ -141,6 +141,9 @@ namespace hackPSU{
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
       ~Box();
 
+      /**
+       * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
+       */
       void cycle();
   };
 }
