@@ -1,6 +1,7 @@
 #include "httpwrapper.h"
 
-
+//TODO Get rid of DynamicJsonBuffer for StaticJsonBuffer as it will fragment memory
+//https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
 namespace hackPSU {
     bool HTTPImpl::getAPIKey(){
 
@@ -142,7 +143,6 @@ namespace hackPSU {
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-
 //    if (!root.success()) {
 //      throw "json parsing failed :(";
 //      }
@@ -151,18 +151,27 @@ namespace hackPSU {
         delete response;
 
         //Redis json parse
-        String status = root["status"];
-        String data = root["data"];
-        String message = root["message"]; //Should message also be returned to display why user was not allowed in?
+        String message = root.get<String>("message"); //Should message also be returned to display why user was not allowed in?
+        JsonObject& data = root.get<JsonObject>("data");
+        bool isRepeat = data.get<bool>("isRepeat");
+        //data.get<char*>("name"); use if interested in displaying it down the road
+        if (root.get<String>("status") != "success"){
+          Serial.println("Failed: " + message);
+          return false;
+        }
 
-        //The following is based on assumptions and should be checked
-        return (status == "success");
+        if(isRepeat){
+          Serial.println("Already had food.");
+          return false;
+        }
+
+        return true;
     }
 
     Location* HTTPImpl::getLocations(int &len){
         String url = "https://"+redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
-        
+
         if (response->responseCode < 0) {
             Serial.println("GET REQUEST FAIL");
             delete response;
@@ -174,7 +183,7 @@ namespace hackPSU {
         delete response;
         len = root["length"]; // TODO: this value
         Location *locations = new Location[len];
-        
+
         for(int i = 0; i < len; i++){
             locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
         }
