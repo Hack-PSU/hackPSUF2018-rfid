@@ -245,7 +245,9 @@ void Box::scan() {
       uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
       if(!uid){
         display->print("Scanner timeout", 1);
-        delay(1000);
+        if(keypad->getUniqueKey(1000) == 'B'){
+          state = MENU;
+        }
         display->clear(1);
         return;        
       }
@@ -335,6 +337,7 @@ void Box::checkin() {
 
 
   display->print("Shirt Size: ", 0);
+  //TODO fix dat boi
   display->print(data->shirtSize);
 
   display->print("Photo consent?",1);
