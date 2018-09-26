@@ -69,9 +69,6 @@ namespace hackPSU {
 
         if (String(root.get<char*>("status")) == "error")
           return nullptr;
-//    if (!root.success()) {
-//      throw "json parsing failed :( lit";
-//      }
 
         //Redis json parse
         redisData* pinData = new redisData;
@@ -112,10 +109,6 @@ namespace hackPSU {
         //Free up memory since parsing is complete
         delete response;
 
-//    if (!root.success()) {
-//      throw "json parsing failed :(";
-//      }
-
         //Redis json parse
         return root["status"] == "success";
     }
@@ -128,11 +121,7 @@ namespace hackPSU {
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-        Serial.println("SEND IT");
-        Serial.println(millis());
         Response* response = HTTP::POST(url, payload, headerCount, headers);
-        Serial.println("GOT IT");
-        Serial.println(millis());
 
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
@@ -157,9 +146,6 @@ namespace hackPSU {
           Serial.println("Failed: " + message);
           return false;
         }
-
-        Serial.println("DECODED IT");
-        Serial.println(millis());
 
         if(isRepeat){
           Serial.println("Already had food.");
