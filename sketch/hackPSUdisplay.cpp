@@ -1,8 +1,7 @@
 #include "hackPSUdisplay.h"
 
 namespace hackPSU {
-  Display::Display(Mode_e mode){
-    this->mode = mode;
+  Display::Display(Mode_e mode) : mode(mode){
     row = 0;
     data[0] = "";
     data[1] = "";
