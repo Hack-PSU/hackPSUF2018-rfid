@@ -34,7 +34,7 @@ namespace hackPSU {
     HTTPClient http;
     if (url.startsWith("https:")) {
       http.begin(url, fp);
-    }else{
+    } else {
       http.begin(url); //http Begin call
     }
     for (int i = 0; i<headerCount; i++){
