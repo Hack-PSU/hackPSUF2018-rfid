@@ -18,6 +18,9 @@ namespace hackPSU {
       constexpr static byte DEFAULT_KEY[KEY_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
       const byte* key;
       MFRC522 reader;
+
+      uint32_t getUID_noStop(unsigned long timeout);
+      
     public:
       Scanner(uint8_t ssPin, uint8_t rstPin, const byte* key);
       Scanner(uint8_t ssPin, uint8_t rstPin);
