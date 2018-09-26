@@ -31,6 +31,10 @@ namespace hackPSU {
       
   }
 
+  Display::~Display(){
+    delete lcd;
+  }
+
   void Display::print(char msg){
     data[row] += msg;
     if(mode == PROD || mode == DEV){

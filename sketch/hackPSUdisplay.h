@@ -18,6 +18,7 @@ namespace hackPSU {
 
     public:
       Display(Mode_e mode);
+      ~Display();
 
       /**
        * Description:
