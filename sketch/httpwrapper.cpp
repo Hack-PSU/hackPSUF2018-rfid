@@ -20,7 +20,7 @@ namespace hackPSU {
             Serial.println(HTTP::handleError(response->responseCode));
             Serial.println(response->errorMessage);
             //Free up memory since parsing is complete
-            delete response;
+            delete response; response = nullptr;
             return false;
         }
 
@@ -28,7 +28,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response;
+        delete response; response = nullptr;
 
         //Redis json parse
         String status = root["status"];
@@ -54,7 +54,7 @@ namespace hackPSU {
         if (response->responseCode < 0){
             Serial.print("Http request failed: ");
             Serial.println(HTTP::handleError(response->responseCode));
-            delete response;
+            delete response; response = nullptr;
             return false;
         }
 
@@ -64,7 +64,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response;
+        delete response; response = nullptr;
 
 
         if (String(root.get<char*>("status")) == "error")
@@ -99,7 +99,7 @@ namespace hackPSU {
             Serial.print("Http request failed: ");
             Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
-            delete response;
+            delete response; response = nullptr;
             return false;
         }
 
@@ -107,7 +107,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response;
+        delete response; response = nullptr;
 
         //Redis json parse
         return root["status"] == "success";
@@ -127,7 +127,7 @@ namespace hackPSU {
             Serial.print("Http request failed: ");
             Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
-            delete response;
+            delete response; response = nullptr;
             return false;
         }
 
@@ -135,7 +135,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response;
+        delete response; response = nullptr;
 
         //Redis json parse
         String message = root.get<String>("message"); //Should message also be returned to display why user was not allowed in?
@@ -161,13 +161,13 @@ namespace hackPSU {
 
         if (response->responseCode < 0) {
             Serial.println("GET REQUEST FAIL");
-            delete response;
+            delete response; response = nullptr;
             return nullptr;
         }
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-        delete response;
+        delete response; response = nullptr;
         len = root["length"]; // TODO: this value
         Location *locations = new Location[len];
 
