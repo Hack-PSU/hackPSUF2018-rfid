@@ -3,10 +3,16 @@
 //TODO Get rid of DynamicJsonBuffer for StaticJsonBuffer as it will fragment memory
 //https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
 namespace hackPSU {
+
+    HTTPImpl::HTTPImpl(String host) : apiKey(""){
+      redisHost = "https://" + host;
+    }
+
+    
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
-        String url = "https://"+redisHost+"/auth/scanner/register";
+        String url = redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -42,7 +48,7 @@ namespace hackPSU {
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
-        String url = "https://"+redisHost+"/tabs/getpin";
+        String url = redisHost+"/tabs/getpin";
         Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -86,7 +92,7 @@ namespace hackPSU {
 
     bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
-        String url = "https://"+redisHost+"/tabs/setup";
+        String url = redisHost+"/tabs/setup";
         String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -116,7 +122,7 @@ namespace hackPSU {
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
 
 
-        String url = "https://"+redisHost+"/tabs/add";
+        String url = redisHost+"/tabs/add";
         String payload = "{\"location\":\""+locationId+"\" ,\"id\":"+rfidTag+", \"apikey\":\""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -156,7 +162,7 @@ namespace hackPSU {
     }
 
     Location* HTTPImpl::getLocations(int &len){
-        String url = "https://"+redisHost+"/tabs/active-locations";
+        String url = redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
 
         if (response->responseCode < 0) {

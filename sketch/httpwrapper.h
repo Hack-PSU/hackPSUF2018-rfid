@@ -22,10 +22,10 @@ namespace hackPSU {
     private:
       String redisHost, apiKey;
     public:
-
+      
       bool getAPIKey();
       
-      HTTPImpl(String host): redisHost(host), apiKey("") {}
+      HTTPImpl(String host);
 
       /*
         Use case: The first time the user gives us their pin during regisration and we need this information
