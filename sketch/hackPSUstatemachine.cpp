@@ -35,7 +35,6 @@ Box::~Box() {
   delete keypad;
   delete http;
   delete display;
-  Serial.println("Deleted all Box members");
 }
 
 void Box::cycle(void) {
@@ -253,7 +252,6 @@ void Box::scan() {
       }
       char lid_buffer[10] = {0};
       char uid_buffer[10] = {0};
-      Serial.println(uid);
       if (uid != last_scan) {
         if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10))) {
           display->print("Allow", 1);
@@ -425,8 +423,6 @@ void Box::duplicate() {
     display->clear(1);
     return;
   }
-
-  Serial.println(String((char*)read_buffer));
 
   display->clear();
   if (String((char*)read_buffer) == String(MASTER_KEY)) {

@@ -80,10 +80,8 @@ namespace hackPSU {
       http.begin(url); //http Begin call
     }
 
-    Serial.println("HEAD");
     for (int i = 0; i<headerCount; i++){
       Headers header = headers[i];
-      Serial.println(header.headerKey + ":" + header.headerValue);
       http.addHeader(header.headerKey,header.headerValue);
     }/* end for loop*/
 

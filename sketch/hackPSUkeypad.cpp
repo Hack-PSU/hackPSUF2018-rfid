@@ -33,7 +33,6 @@ namespace hackPSU{
       else if( tmp > 450 ) key = keys[1][3-i];  // The actual value fluxuates minimally so there is room
       else if( tmp > 320 ) key = keys[2][3-i];  // for this behavior
       else if( tmp > 50)   key = keys[3][3-i];
-      //Serial.println(String(tmp) + " - " + key);
     }
     clearSR(); // reset shift registor after every read
     return key;
@@ -63,14 +62,10 @@ namespace hackPSU{
   char Keypad::getUniqueKey(unsigned long timeout){
     unsigned long start = millis();
     char val = getKeyPress(1, timeout);  // 500 ms timeout
-    Serial.println("Key pressed: " + val);
     if(val != 'z'){
-      Serial.print(val);
       while( getKeyPress(1, start + timeout - millis()) == val && start + timeout > millis() ) { // check every 50ms
-        Serial.print('.');
         delay(50);
       }
-      Serial.print('\n');
     }
     return(start + timeout < millis() ? 't' : val);
   }
@@ -98,7 +93,6 @@ namespace hackPSU{
       }
     }
     if( start + timeout < millis() ){
-      Serial.println("Timeout in getPin");
       return "timeout";
     } else {
       return pin;

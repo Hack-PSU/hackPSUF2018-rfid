@@ -17,14 +17,9 @@ namespace hackPSU {
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
 
-        Serial.println(payload);
         Response* response = HTTP::POST(url, payload, headerCount, headers);
-        Serial.println(response->payload);
 
         if (response->responseCode < 0){
-            Serial.print("Http request failed: ");
-            Serial.println(HTTP::handleError(response->responseCode));
-            Serial.println(response->errorMessage);
             //Free up memory since parsing is complete
             delete response; response = nullptr;
             return nullptr;
@@ -38,18 +33,15 @@ namespace hackPSU {
 
         //Redis json parse
         String status = root["status"];
-        Serial.println(status);
         String message = root["message"];  //Should message also be returned to display why user was not allowed in?
         JsonObject& data = root.get<JsonObject>("data");
         apiKey = data.get<String>("apikey");
-        Serial.println(apiKey);
         //The following is based on assumptions and should be checked
         return (status == "success");
     }
 
     redisData* HTTPImpl::getDataFromPin(String pin){
         String url = redisHost+"/tabs/getpin";
-        Serial.println(url);
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
         Headers headers [] = { { "Content-Type", "application/json" } };
@@ -58,13 +50,9 @@ namespace hackPSU {
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
         if (response->responseCode < 0){
-            Serial.print("Http request failed: ");
-            Serial.println(HTTP::handleError(response->responseCode));
             delete response; response = nullptr;
             return nullptr;
         }
-
-        Serial.println(response->payload);
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
@@ -99,11 +87,7 @@ namespace hackPSU {
 
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
-        Serial.println(response->payload);
-
         if (response->responseCode < 0){
-            Serial.print("Http request failed: ");
-            Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
             delete response; response = nullptr;
             return nullptr;
@@ -130,8 +114,6 @@ namespace hackPSU {
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
         if (response->responseCode < 0){
-            Serial.print("Http request failed: ");
-            Serial.println(HTTP::handleError(response->responseCode));
             //Free up memory since parsing is complete
             delete response; response = nullptr;
             return nullptr;
@@ -149,12 +131,10 @@ namespace hackPSU {
         bool isRepeat = data.get<bool>("isRepeat");
         //data.get<char*>("name"); use if interested in displaying it down the road
         if (root.get<String>("status") != "success"){
-          Serial.println("Failed: " + message);
           return nullptr;
         }
 
         if(isRepeat){
-          Serial.println("Already had food.");
           return nullptr;
         }
 
@@ -166,7 +146,6 @@ namespace hackPSU {
         Response* response = HTTP::GET(url);
 
         if (response->responseCode < 0) {
-            Serial.println("GET REQUEST FAIL");
             delete response; response = nullptr;
             return nullptr;
         }
