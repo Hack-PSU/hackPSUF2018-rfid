@@ -62,7 +62,7 @@ namespace hackPSU {
       }
     }
     if(mode == DEV || mode == HEADLESS) {
-      Serial.println(msg);
+      Serial.println(msg + " - " + row);
     }
   }
 
