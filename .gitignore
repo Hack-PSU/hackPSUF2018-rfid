@@ -1,6 +1,11 @@
 #Libraries
 lib/
 
+#LaTeX garbage
+manual/manual.aux
+manual/manual.syntex.gz
+manual/manual.toc
+
 # Prerequisites
 *.d
 
