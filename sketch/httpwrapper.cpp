@@ -8,7 +8,7 @@ namespace hackPSU {
       redisHost = "https://" + host;
     }
 
-    
+
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
@@ -25,7 +25,7 @@ namespace hackPSU {
             return nullptr;
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -54,7 +54,7 @@ namespace hackPSU {
             return nullptr;
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -93,7 +93,7 @@ namespace hackPSU {
             return nullptr;
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -119,7 +119,7 @@ namespace hackPSU {
             return nullptr;
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
