@@ -13,55 +13,54 @@ namespace hackPSU {
 
   Scanner::Scanner(uint8_t ssPin, uint8_t rstPin) : Scanner(ssPin, rstPin, Scanner::DEFAULT_KEY) {}
 
-  uint32_t Scanner::getUID_noStop(unsigned long timeout){
+  uint32_t Scanner::getUID(void){
     byte data[4];
     uint32_t* uid;
-    unsigned long time = millis();
 
     //Wait for new card and yield to coroutines while waiting
     while(!this->reader.PICC_IsNewCardPresent()){
       yield();
-      if ((millis() - timeout > time) && timeout) {
-        //timeout
-        this->reader.PICC_HaltA();
-        return 0;
-      }
     }
 
     //Wait for card with data and yield to coroutines while waiting
     while(!this->reader.PICC_ReadCardSerial()){
       yield();
-      if ((millis() - timeout > time) && timeout) {
-        //timeout
-        this->reader.PICC_HaltA();
-        return 0;
-      }
     }
     
     //Copy into local buffer
     for(uint8_t i = 0; i < 4; i++){
       data[i] = reader.uid.uidByte[i];
     }
+    //Free reader resources
+    this->reader.PICC_HaltA();
 
     uid = (uint32_t*)data;
 
     return *uid;
   }
 
-
-  uint32_t Scanner::getUID(unsigned long timeout){
-
-    uint32_t uid = this->getUID_noStop(timeout);
-    //Free reader resources
-    this->reader.PICC_HaltA();
-    return uid;
-    
-  }
-
-  bool Scanner::getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
+  void Scanner::getData(byte* buffer, byte size, byte blockAddr){
 
     MFRC522::StatusCode status;
-    uint32_t uid = this->getUID_noStop(timeout);
+    byte data[4];
+    uint32_t* uid;
+
+    //Wait for new card and yield to coroutines while waiting
+    while(!this->reader.PICC_IsNewCardPresent()){
+      yield();
+    }
+
+    //Wait for card with data and yield to coroutines while waiting
+    while(!this->reader.PICC_ReadCardSerial()){
+      yield();
+    }
+
+    //Copy into local buffer
+    for(uint8_t i = 0; i < 4; i++){
+      data[i] = reader.uid.uidByte[i];
+    }
+
+    uid = (uint32_t*)data;
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)
@@ -82,10 +81,28 @@ namespace hackPSU {
     reader.PCD_StopCrypto1();
   }
 
-  bool Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
+  void Scanner::setData(byte* buffer, byte size, byte blockAddr){
 
     MFRC522::StatusCode status;
-    uint32_t uid = this->getUID_noStop(timeout);
+    byte data[4];
+    uint32_t* uid;
+
+    //Wait for new card and yield to coroutines while waiting
+    while(!this->reader.PICC_IsNewCardPresent()){
+      yield();
+    }
+
+    //Wait for card with data and yield to coroutines while waiting
+    while(!this->reader.PICC_ReadCardSerial()){
+      yield();
+    }
+
+    //Copy into local buffer
+    for(uint8_t i = 0; i < 4; i++){
+      data[i] = reader.uid.uidByte[i];
+    }
+
+    uid = (uint32_t*)data;
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)
@@ -105,5 +122,6 @@ namespace hackPSU {
     // Stop encryption on PCD
     reader.PCD_StopCrypto1();
   }
+  
 
 }

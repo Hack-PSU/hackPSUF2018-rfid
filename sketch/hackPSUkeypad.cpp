@@ -10,10 +10,11 @@ namespace hackPSU{
     delay(space / 2);
   }
 
-  Keypad::Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG){
+  Keypad::Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, Display* display){
     pin = KPD_SRC;
     clk = KPD_CLK;
     sig = KPD_SIG;
+    this->display = display;
     pinMode(clk, OUTPUT);
     pinMode(sig, OUTPUT);
     pinMode(pin, INPUT);
@@ -32,7 +33,6 @@ namespace hackPSU{
       else if( tmp > 450 ) key = keys[1][3-i];  // The actual value fluxuates minimally so there is room
       else if( tmp > 320 ) key = keys[2][3-i];  // for this behavior
       else if( tmp > 50)   key = keys[3][3-i];
-      //Serial.println(String(tmp) + " - " + key);
     }
     clearSR(); // reset shift registor after every read
     return key;
@@ -62,14 +62,10 @@ namespace hackPSU{
   char Keypad::getUniqueKey(unsigned long timeout){
     unsigned long start = millis();
     char val = getKeyPress(1, timeout);  // 500 ms timeout
-    Serial.println("Key pressed: " + val);
     if(val != 'z'){
-      Serial.print(val);
       while( getKeyPress(1, start + timeout - millis()) == val && start + timeout > millis() ) { // check every 50ms
-        Serial.print('.');
         delay(50);
       }
-      Serial.print('\n');
     }
     return(start + timeout < millis() ? 't' : val);
   }
@@ -80,21 +76,23 @@ namespace hackPSU{
     for(int i = 0; i < maxLen && start + timeout > millis(); i++){
       char key = getUniqueKey(start + timeout - millis());
       if(key == clr){
-        Display::clear();
+        display->backspace(pin.length());
         pin = "";
         i = 0;
       } else if( key == submit) {
         return pin;
-      } else if( key != 't' && key != 'z') {
-        Display::print(key);
+      } else if ( key >= 'A' && key <= 'D'){
+        return String(key);
+      }else if( key != 't' && key != 'z') {
+        display->print(key);
         pin += key;
         start = millis(); // timeout is from the last pressed key
       } else {
         i--;
+        yield();
       }
     }
     if( start + timeout < millis() ){
-      Serial.println("Timeout in getPin");
       return "timeout";
     } else {
       return pin;
