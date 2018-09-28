@@ -1,4 +1,5 @@
 #include "httpwrapper.h"
+#include <cstring>
 
 //TODO Get rid of DynamicJsonBuffer for StaticJsonBuffer as it will fragment memory
 //https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
@@ -8,7 +9,7 @@ namespace hackPSU {
       redisHost = "https://" + host;
     }
 
-    
+
     bool HTTPImpl::getAPIKey(){
 
         //TODO MAKE DAT ONE SECURE BOI
@@ -30,7 +31,7 @@ namespace hackPSU {
         }
         // TODO: Handle the case when response code is non-200
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -65,7 +66,7 @@ namespace hackPSU {
             return nullptr;     //for return type redisData
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -107,8 +108,8 @@ namespace hackPSU {
             response = nullptr;
             return nullptr;
         }
-        // TODO: Do something with root else get rid of it
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
         // TODO: Do something with root else get rid of it
         bool success = (response->responseCode == 200);
@@ -139,7 +140,7 @@ namespace hackPSU {
             return nullptr;
         }
 
-        DynamicJsonBuffer jsonBuffer(response->payload.length());
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -150,7 +151,7 @@ namespace hackPSU {
         JsonObject& data = root.get<JsonObject>("data");
         bool isRepeat = data.get<bool>("isRepeat");
         //data.get<char*>("name"); use if interested in displaying it down the road
-        if (root.get<String>("status") != "success"){
+        if (strncmp(root.get<char *>("status"), "success", 7)){
           return nullptr;
         }
 

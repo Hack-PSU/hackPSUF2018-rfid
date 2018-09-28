@@ -2,7 +2,6 @@
 
 namespace hackPSU{
 
-#define MENU_STATES 5
 
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   // Create class objects
@@ -42,34 +41,31 @@ void Box::cycle(void) {
   switch (state) {
     case LOCK:
       lock();
-      break;
+      return;
     case MENU:
       menu();
-      break;
+      return;
     case DUPLICATE:
       duplicate();
-      break;
+      return;
     case WIFI:
       wifi();
-      break;
+      return;
     case LOCATION:
       location();
-      break;
+      return;
     case CHECKIN:
       checkin();
-      break;
+      return;
     case SCAN:
       scan();
-      break;
+      return;
     default:
       state = LOCK;
-      break;
+      return;
   }
 }
 
-/*
-  
-*/
 void Box::lock(){
 
     #ifdef SECURE_BOX
