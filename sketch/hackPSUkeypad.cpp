@@ -33,7 +33,6 @@ namespace hackPSU{
       else if( tmp > 450 ) key = keys[1][3-i];  // The actual value fluxuates minimally so there is room
       else if( tmp > 320 ) key = keys[2][3-i];  // for this behavior
       else if( tmp > 50)   key = keys[3][3-i];
-      //Serial.println(String(tmp) + " - " + key);
     }
     clearSR(); // reset shift registor after every read
     return key;
@@ -77,12 +76,14 @@ namespace hackPSU{
     for(int i = 0; i < maxLen && start + timeout > millis(); i++){
       char key = getUniqueKey(start + timeout - millis());
       if(key == clr){
-        display->clear();
+        display->backspace(pin.length());
         pin = "";
         i = 0;
       } else if( key == submit) {
         return pin;
-      } else if( key != 't' && key != 'z') {
+      } else if ( key >= 'A' && key <= 'D'){
+        return String(key);
+      }else if( key != 't' && key != 'z') {
         display->print(key);
         pin += key;
         start = millis(); // timeout is from the last pressed key

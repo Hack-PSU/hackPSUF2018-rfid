@@ -1,8 +1,7 @@
 #include "hackPSUdisplay.h"
 
 namespace hackPSU {
-  Display::Display(Mode_e mode){
-    this->mode = mode;
+  Display::Display(Mode_e mode) : mode(mode){
     row = 0;
     data[0] = "";
     data[1] = "";
@@ -25,10 +24,14 @@ namespace hackPSU {
       lcd->setCursor(0,0);
     }
     if(mode == DEV || mode == HEADLESS) {
-      Serial.begin(9600);
+      Serial.begin(BAUD_RATE);
       Serial.println("Started serial communication");
     }
       
+  }
+
+  Display::~Display(){
+    delete lcd;
   }
 
   void Display::print(char msg){
@@ -59,7 +62,7 @@ namespace hackPSU {
       }
     }
     if(mode == DEV || mode == HEADLESS) {
-      Serial.println(msg);
+      Serial.println(msg + " - " + row);
     }
   }
 
@@ -79,6 +82,8 @@ namespace hackPSU {
   }
 
   void Display::clear(){
+    data[0] = "";
+    data[1] = "";
     if(mode != HEADLESS) {
       lcd->clear();
     }
@@ -90,5 +95,16 @@ namespace hackPSU {
       lcd->print("                ");
       lcd->setCursor(0, row);
     }
+    data[row] = "";
+  }
+
+  void Display::backspace(int num){
+    int pos = data[row].length() - num;
+    lcd->setCursor(pos, row);
+    for(int i = 0; i < num; i++){
+      lcd->print(' ');
+    }
+    lcd->setCursor(pos, row);
+    data[row] = data[row].substring(0, pos);
   }
 };
