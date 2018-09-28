@@ -1,4 +1,5 @@
 #include "httpwrapper.h"
+#include <cstring>
 
 //TODO Get rid of DynamicJsonBuffer for StaticJsonBuffer as it will fragment memory
 //https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
@@ -130,7 +131,7 @@ namespace hackPSU {
         JsonObject& data = root.get<JsonObject>("data");
         bool isRepeat = data.get<bool>("isRepeat");
         //data.get<char*>("name"); use if interested in displaying it down the road
-        if (root.get<String>("status") != "success"){
+        if (strncmp(root.get<char *>("status"), "success", 7)){
           return nullptr;
         }
 
