@@ -41,6 +41,7 @@ namespace hackPSU{
       Location* location_list;
       int num_locations;
       int location_state;
+      String location_name;
       
       State_e state;
       uint32_t lid; // Location id
@@ -92,6 +93,7 @@ namespace hackPSU{
        *    INIT - on menu selection or invalid state
        */
       void menu();
+      void menu_cleanup();
 
       /**
        * Description:
@@ -108,18 +110,19 @@ namespace hackPSU{
        *    MENU - on 'D' press
        */
       void location();
+      void location_cleanup();
 
       /**
        * Description:
-       *   Scan members into location after location is set
+       *    Scan members into location after location is set
        * 
        * Controls:
        *    B Back button
        *    D Locks device
        *   
        * State transistions:
-       *   MENU - on 'B' press
-       *   LOCK - on 'D' press
+       *    MENU - on 'B' press
+       *    LOCK - on 'D' press
        */
       void scan();
 
@@ -127,9 +130,12 @@ namespace hackPSU{
        * Description:
        *    Handle check-in process which will include band association
        *    
-       * Controls
-       *   B back button
-       *   D lock device
+       * Controls:
+       *    # confirm
+       *    * reject
+       *    C scroll LCD
+       *    D lock device
+       * 
        * 
        * 
        * State transitions:
