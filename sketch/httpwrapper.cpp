@@ -89,7 +89,6 @@ namespace hackPSU {
 
     bool HTTPImpl::getAPIKey(){
 
-        //TODO MAKE DAT ONE SECURE BOI
         String url = redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
         int headerCount = 1;
@@ -99,7 +98,7 @@ namespace hackPSU {
 
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
-            delete response; response = nullptr;
+            delete response;
             return nullptr;
         }
 
@@ -107,7 +106,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response; response = nullptr;
+        delete response; // response = nullptr;
 
         //Redis json parse
         String status = root["status"];
@@ -133,7 +132,7 @@ namespace hackPSU {
             return nullptr;
         }
         Serial.println(response->payload);
-        StaticJsonBuffer<600> jsonBuffer;
+        StaticJsonBuffer<500> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
@@ -170,7 +169,7 @@ namespace hackPSU {
 
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
-            delete response; response = nullptr;
+            delete response;
             return nullptr;
         }
 
@@ -178,7 +177,7 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response; response = nullptr;
+        delete response;// response = nullptr;
 
         //Redis json parse
         return root["status"] == "success";
@@ -196,8 +195,8 @@ namespace hackPSU {
 
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
-            delete response; response = nullptr;
-            return nullptr;
+            delete response;
+            return false;
         }
 
         StaticJsonBuffer<500> jsonBuffer;
@@ -207,19 +206,15 @@ namespace hackPSU {
         delete response; response = nullptr;
 
         //Redis json parse
-        String message = root.get<String>("message"); //Should message also be returned to display why user was not allowed in?
+        // String message = root.get<String>("message"); // Use if needed
         JsonObject& data = root.get<JsonObject>("data");
         bool isRepeat = data.get<bool>("isRepeat");
         //data.get<char*>("name"); use if interested in displaying it down the road
         if (strncmp(root.get<char *>("status"), "success", 7)){
-          return nullptr;
+          return false;
         }
 
-        if(isRepeat){
-          return nullptr;
-        }
-
-        return true;
+        return !isRepeat;
     }
 
     Location* HTTPImpl::getLocations(int &len){
@@ -227,13 +222,13 @@ namespace hackPSU {
         Response* response = HTTP::GET(url);
 
         if (response->responseCode < 0) {
-            delete response; response = nullptr;
+            delete response;
             return nullptr;
         }
 
         DynamicJsonBuffer jsonBuffer(response->payload.length());
         JsonObject& root = jsonBuffer.parseObject(response->payload);
-        delete response; response = nullptr;
+        delete response;// response = nullptr;
         len = root["length"]; // TODO: this value
         Location *locations = new Location[len];
 
@@ -241,8 +236,5 @@ namespace hackPSU {
             locations[i] = {.name = root["locations"][i]["location_name"], .id = root["locations"][i]["uid"]};
         }
         return locations;
-
     }
-
-
 }
