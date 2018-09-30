@@ -207,7 +207,7 @@ void Box::location(){
       
       if(num_locations > 0){
         display->print("A:UP, B:DOWN", 0);
-        display->print(location_list[location_state].name, 1);
+        display->print(location_list[location_state].name.c_str(), 1);
       } else {
         display->print("No locations found", 1);
         delete location_list;
@@ -310,6 +310,7 @@ void Box::checkin() {
 
   if (keyPress ==  '*'){ // if not expected person
     delete data;
+    data = nullptr;
     return;
   }
 
@@ -323,6 +324,8 @@ void Box::checkin() {
       display->print("Scanner timeout", 1);
       delay(1000);
       display->clear(1);
+      delete data;
+      data = nullptr;
       return;
     }
     if (!http->assignRfidToUser(String(uid), pin)){
@@ -344,6 +347,7 @@ void Box::checkin() {
   while(keypad->getUniqueKey(1000) != 't');
 
   delete data;
+  data = nullptr;
 }
 
 void Box::wifi() {

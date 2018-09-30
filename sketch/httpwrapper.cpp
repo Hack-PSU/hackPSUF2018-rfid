@@ -75,6 +75,13 @@ namespace hackPSU {
         pinData->diet = data.get<char*>("diet");
         pinData->counter = data.get<char*>("counter");
         pinData->numScans = data.get<char*>("numScans");
+        Serial.println(pinData->uid);
+        Serial.println(pinData->pin);
+        Serial.println(pinData->name);
+        Serial.println(pinData->shirtSize);
+        Serial.println(pinData->diet);
+        Serial.println(pinData->counter);
+        Serial.println(pinData->numScans);
 
         return pinData;
     }
