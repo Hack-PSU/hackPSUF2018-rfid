@@ -35,7 +35,7 @@ namespace hackPSU {
   }
 
   void Display::print(char msg){
-    data[row] += msg;
+    data[row] += String(msg);
     if(mode == PROD || mode == DEV){
       if(data[row].length() > 16){
         clear(row);
@@ -50,8 +50,8 @@ namespace hackPSU {
     }
   }
   
-  void Display::print(String msg){
-    data[row] += msg;
+  void Display::print(const char *msg){
+    data[row] += String(msg);
     if(mode == PROD || mode == DEV){
       if(data[row].length() > 16){
         clear(row);
@@ -62,12 +62,14 @@ namespace hackPSU {
       }
     }
     if(mode == DEV || mode == HEADLESS) {
-      Serial.println(msg + " - " + row);
+      Serial.println(String(msg) + " - " + row);
     }
   }
 
-  void Display::print(String msg, int row){
-    if(msg != data[row]){
+  void Display::print(const char *msg, int row){
+    if(strncmp(msg,data[row].c_str(), 16)){
+      Serial.println(msg);
+      Serial.println(data[row]);
       if(mode == PROD || mode == DEV){
         clear(row);
         lcd->setCursor(0, row);
@@ -76,7 +78,7 @@ namespace hackPSU {
       if(mode == DEV || mode == HEADLESS) {
         Serial.println(msg);
       }
-      data[row] = msg;
+      data[row] = String(msg);
       this->row = row;
     }
   }

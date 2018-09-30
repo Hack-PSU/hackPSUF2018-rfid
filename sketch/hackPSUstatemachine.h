@@ -16,22 +16,24 @@
 #define GOLDEN_KEY 0xC0DEBABE
 #define SECURE_BOX
 
-// RFID Pins
-#define RFID_RST 2          // SDD2 Configurable, see typical pin layout above
-#define RFID_SS  15         // SDD3 Configurable, see typical pin layout above
+// RFID Pins (SPI pins)
+#define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
+#define RFID_SS  D8         // SDD3 Configurable, see typical pin layout above
 
 // LCD Pins (I2C pins)
-#define LCD_SCL  5
-#define LCD_SDA  4
+#define LCD_SCL  D1
+#define LCD_SDA  D2         
 
 // Keypad pins
 #define KPD_SRC  A0
 #define KPD_CLK  D0
 #define KPD_SIG  D3
 
+#define MENU_STATES 5
+
 namespace hackPSU{
 
-  typedef enum State {LOCK, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
@@ -39,6 +41,7 @@ namespace hackPSU{
       Location* location_list;
       int num_locations;
       int location_state;
+      String location_name;
       
       State_e state;
       uint32_t lid; // Location id
@@ -48,11 +51,11 @@ namespace hackPSU{
 
       uint8_t menu_state;
 
-
       Scanner*  scanner;
       Keypad*   keypad;
       HTTPImpl* http;
       Display*  display;
+
       /**
        * Description:
        *    Box is locked until a RFID tag is scanned with the secret key in the right location
@@ -76,6 +79,11 @@ namespace hackPSU{
        *       * Duplicates the master granting access to other people
        *    5) Lock device
        *       * Locks the device again until master tag is scanned
+       * 
+       * Controls:
+       *   Numbers select menu item (for ease)
+       *   # selects current item
+       *  
        *      
        *  State transitions:
        *    LOCATION - on menu selection
@@ -85,24 +93,36 @@ namespace hackPSU{
        *    INIT - on menu selection or invalid state
        */
       void menu();
+      void menu_cleanup();
 
       /**
        * Description:
        *    Set the location of the box
+       * 
+       * Controls:
+       *    # selects current item
+       *    A/B up and down
+       *    C scrolls the LCD
+       *    D returns to the menu
        *    
        * State transitions:
        *    SCAN - on selection of location
        *    MENU - on 'D' press
        */
       void location();
+      void location_cleanup();
 
       /**
        * Description:
-       *   Scan members into location
+       *    Scan members into location after location is set
+       * 
+       * Controls:
+       *    B Back button
+       *    D Locks device
        *   
        * State transistions:
-       *   MENU - on 'B' press
-       *   LOCK - on 'D' press
+       *    MENU - on 'B' press
+       *    LOCK - on 'D' press
        */
       void scan();
 
@@ -110,6 +130,14 @@ namespace hackPSU{
        * Description:
        *    Handle check-in process which will include band association
        *    
+       * Controls:
+       *    # confirm
+       *    * reject
+       *    C scroll LCD
+       *    D lock device
+       * 
+       * 
+       * 
        * State transitions:
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
@@ -147,4 +175,3 @@ namespace hackPSU{
       void cycle();
   };
 }
-
