@@ -528,7 +528,6 @@ void Box::getuid(){
       return;
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);
-      
       if(uid){
         itoa(uid, read_buffer+2, 16);
         display->print(read_buffer, 1);
