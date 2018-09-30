@@ -61,8 +61,12 @@ namespace hackPSU {
   RfidState Scanner::getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
-    bool retval = GOOD;
+    RfidState retval = GOOD_RF;
     uint32_t uid = this->getUID_noStop(timeout);
+    if(uid == 0) {
+      retval = TIMEOUT;
+      goto cleanup_read;
+    }
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)
@@ -86,11 +90,16 @@ namespace hackPSU {
     return retval;
   }
 
-  bool Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
+  RfidState Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
-    bool retval = GOOD;
+    RfidState retval = GOOD_RF;
     uint32_t uid = this->getUID_noStop(timeout);
+
+    if(uid == 0) {
+      retval = TIMEOUT;
+      goto cleanup_write;
+    }
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)

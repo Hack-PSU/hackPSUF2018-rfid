@@ -13,7 +13,7 @@
 
 namespace hackPSU {
 
-  typedef enum {GOOD, CRYPTO_FAIL, WRIET_FAIL, READ_FAIL, TIMEOUT}, RfidState;
+  typedef enum {GOOD_RF, CRYPTO_FAIL, WRITE_FAIL, READ_FAIL, TIMEOUT} RfidState;
 
   class Scanner{
     private:
