@@ -12,7 +12,7 @@
 #endif
 
 namespace hackPSU{
-  constexpr char* REDIS  = "c-98-235-90-5.hsd1.pa.comcast.net:3000";
+  constexpr char* REDIS  = "10.0.0.206:3000";
   constexpr char* SSID   = "The Promised LAN";
   constexpr char* PASSWD = "fuzzyink";
   // SHA1 fingerprint of the certificate

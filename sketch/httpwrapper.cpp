@@ -5,6 +5,83 @@
 //https://arduinojson.org/v5/faq/how-to-reduce-memory-usage/
 namespace hackPSU {
 
+    // DO NOT USE IDEALLY
+    RedisData::RedisData() {
+        uid = "";
+        pin = "";
+        uid = "";
+        pin = "";
+        name = "";
+        shirtSize = "";
+        diet = "";
+        counter = "";
+        numScans = "";
+    }
+
+    RedisData::RedisData(
+        const char *uid,
+        const char *pin,
+        const char *name,
+        const char *shirtSize,
+        const char *diet,
+        const char *counter,
+        const char *numScans
+    ) {
+        if (uid != nullptr) {
+            this->uid = new char [strlen(uid)];
+            strcpy(this->uid, uid);
+        } else {
+            this->uid = "";
+        }
+        if (pin != nullptr) {
+            this->pin = new char [strlen(pin)];
+            strcpy(this->pin, pin);
+        } else {
+            this->pin = "";
+        }
+        if (name != nullptr) {
+            this->name = new char [strlen(name)];
+            strcpy(this->name, name);
+        } else {
+            this->name = "";
+        }
+        if (shirtSize != nullptr) {
+            this->shirtSize = new char [strlen(shirtSize)];
+            strcpy(this->shirtSize, shirtSize);
+        } else {
+            this->shirtSize = "";
+        }
+        if (diet != nullptr) {
+            this->diet = new char [strlen(diet)];
+            strcpy(this->diet, diet);
+        } else {
+            this->diet = "";
+        }
+        if (counter != nullptr) {
+            this->counter = new char [strlen(counter)];
+            strcpy(this->counter, counter);
+        } else {
+            this->counter = "";
+        }
+        if (numScans != nullptr) {
+            this->numScans = new char [strlen(numScans)];
+            strcpy(this->numScans, numScans);
+        } else {
+            this->numScans = "";
+        }
+    }
+
+    RedisData::~RedisData() {
+        delete uid;
+        delete pin;
+        delete name;
+        delete shirtSize;
+        delete diet;
+        delete counter;
+        delete numScans;
+    }
+
+
     HTTPImpl::HTTPImpl(String host) : apiKey(""){
       redisHost = "https://" + host;
     }
@@ -41,7 +118,7 @@ namespace hackPSU {
         return (status == "success");
     }
 
-    redisData* HTTPImpl::getDataFromPin(String pin){
+    RedisData* HTTPImpl::getDataFromPin(String pin){
         String url = redisHost+"/tabs/getpin";
         String payload = "{\"pin\":"+pin+", \"apikey\": \""+apiKey+"\"}";
         int headerCount = 1;
@@ -51,37 +128,33 @@ namespace hackPSU {
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
         if (response->responseCode < 0){
-            delete response; response = nullptr;
+            delete response;
+            response = nullptr;
             return nullptr;
         }
-
-        StaticJsonBuffer<500> jsonBuffer;
+        Serial.println(response->payload);
+        StaticJsonBuffer<600> jsonBuffer;
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
         delete response; response = nullptr;
 
 
-        if (String(root.get<char*>("status")) == "error")
+        if (String(root.get<char*>("status")) == "error") {
           return nullptr;
+        }
 
-        //Redis json parse
-        redisData* pinData = new redisData;
+        // Redis json parse
         JsonObject& data = root.get<JsonObject>("data");
-        pinData->uid = data.get<char*>("uid");
-        pinData->pin = data.get<char*>("pin");
-        pinData->name = data.get<char*>("name");
-        pinData->shirtSize = data.get<char*>("shirtSize");
-        pinData->diet = data.get<char*>("diet");
-        pinData->counter = data.get<char*>("counter");
-        pinData->numScans = data.get<char*>("numScans");
-        Serial.println(pinData->uid);
-        Serial.println(pinData->pin);
-        Serial.println(pinData->name);
-        Serial.println(pinData->shirtSize);
-        Serial.println(pinData->diet);
-        Serial.println(pinData->counter);
-        Serial.println(pinData->numScans);
+        RedisData* pinData = new RedisData(
+            data.get<char*>("uid"),
+            data.get<char*>("pin"),
+            data.get<char*>("name"),
+            data.get<char*>("shirtSize"),
+            data.get<char*>("diet"),
+            data.get<char*>("counter"),
+            data.get<char*>("numScans")
+        );
 
         return pinData;
     }
