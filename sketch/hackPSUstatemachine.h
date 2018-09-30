@@ -14,7 +14,7 @@
 
 
 #define GOLDEN_KEY 0xC0DEBABE
-#define SECURE_BOX
+//#define SECURE_BOX
 
 // RFID Pins (SPI pins)
 #define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
@@ -29,11 +29,11 @@
 #define KPD_CLK  D0
 #define KPD_SIG  D3
 
-#define MENU_STATES 6
+#define MENU_STATES 7
 
 namespace hackPSU{
 
-  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN, GETUID} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
@@ -169,6 +169,11 @@ namespace hackPSU{
        *    Revoks master status of wristband
        */
       void zeroize();
+
+      /**
+       * 
+       */
+       void getuid();
 
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);

@@ -65,6 +65,9 @@ void Box::cycle(void) {
     case SCAN:
       scan();
       return;
+    case GETUID:
+      getuid();
+      return;
     default:
       state = LOCK;
       return;
@@ -111,6 +114,9 @@ void Box::menu() {
       display->print("Zeroize", 1);
       break;
     case 5:
+      display->print("Show UID", 1);
+      break;
+    case 6:
       display->print("Lock", 1);
       break;
     default:
@@ -152,6 +158,9 @@ void Box::menu() {
       state = ZEROIZE;
       menu_cleanup();    
     case '6':
+      state = GETUID;
+      menu_cleanup();
+    case '7':
       state = LOCK;
       menu_cleanup();
       break;
@@ -173,6 +182,9 @@ void Box::menu() {
           state = ZEROIZE;
           break;
         case 5:
+          state = GETUID;
+          break;
+        case 6:
           state = LOCK;
           break;
         default:
@@ -502,4 +514,28 @@ void Box::zeroize() {
       }
   }
 }
+
+void Box::getuid(){
+  display->print("D:LOCK", 0);
+  display->print("Scan for UID", 1);
+
+  uint32_t uid;
+  char read_buffer[READ_BUFFER+2] = "0x";
+
+  switch(keypad->getUniqueKey(2000)){
+    case 'D':
+      state = LOCK;
+      return;
+    default:
+      uid = scanner->getUID(SCAN_TIMEOUT);
+      
+      if(uid){
+        itoa(uid, read_buffer+2, 16);
+        display->print(read_buffer, 1);
+        while(keypad->getUniqueKey(5000) == 't');
+      }
+  }
+}
+
+
 }
