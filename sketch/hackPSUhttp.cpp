@@ -4,16 +4,40 @@
 
 namespace hackPSU {
   String HTTP::handleError(int httpCode){
-    const char* errorString []= {"success","HTTPC_ERROR_CONNECTION_REFUSED","HTTPC_ERROR_SEND_HEADER_FAILED","HTTPC_ERROR_SEND_PAYLOAD_FAILED", "HTTPC_ERROR_NOT_CONNECTED"};
-
-    return errorString[(httpCode*(-1))];
+    switch(httpCode){
+      // List of known/common http codes:
+      case 200: return "Success";
+      case -1:  return "HTTPC_ERROR_CONNECTION_REFUSED";
+      case -2:  return "HTTPC_ERROR_SEND_HEADER_FAILED";
+      case -3:  return "HTTPC_ERROR_SEND_PAYLOAD_FAILED";
+      case -4:  return "HTTPC_ERROR_NOT_CONNECTED";
+      case -5:  return "HTTPC_ERROR_CONNECTION_LOST";
+      case -6:  return "HTTPC_ERROR_NO_STREAM";
+      case -7:  return "HTTPC_ERROR_NO_HTTP_SERVER";
+      case -8:  return "HTTPC_ERROR_TOO_LESS_RAM";
+      case -9:  return "HTTPC_ERROR_ENCODING";
+      case -10: return "HTTPC_ERROR_STREAM_WRITE";
+      case -11: return "HTTPC_ERROR_READ_TIMEOUT";
+      default:
+        if(httpCode >= 500) return "Server error";
+        if(httpCode >= 400) return "Client error";
+        if(httpCode >= 200) return "Misc. Success";
+        if(httpCode >= 300) return "Redirection";
+        if(httpCode >= 100) return "Info response";
+        return "Unknown code";
+    }
   }
-
-  Response* HTTP::GET(String url, int count, Headers headers[]){
+  //TODO: Refactor all of this so that you pass in host, port and uri to make more extensible
+  // There is an httpclient function that helps HTTPClient::begin(String host, uint16_t port, String uri, bool https, String httpsFingerprint)
+  
+  Response* HTTP::GET(String url, int headerCount, Headers headers[]){
     HTTPClient http;
-    http.begin(url); //http Begin call
-
-    for (int i = 0; i<count; i++){
+    if (url.startsWith("https:")) {
+      http.begin(url, fp);
+    } else {
+      http.begin(url); //http Begin call
+    }
+    for (int i = 0; i<headerCount; i++){
       Headers header = headers[i];
       http.addHeader(header.headerKey,header.headerValue);
     } /*end for loop*/
@@ -24,19 +48,23 @@ namespace hackPSU {
     responseInfo->payload = http.getString();
     responseInfo->responseCode = httpCode;
     responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
-    
+
     http.end();
     return responseInfo;
   }/* end HTTP::GET*/
 
   Response* HTTP::GET(String url){
     HTTPClient http;
-    http.begin(url); //http Begin call
+    if (url.startsWith("https:")) {
+      http.begin(url, fp);
+    }else{
+      http.begin(url); //http Begin call
+    }
 
     int httpCode = http.GET(); //GET call
     Response* responseInfo = new Response;
 
-    responseInfo->payload = http.getString(); 
+    responseInfo->payload = http.getString();
     responseInfo->responseCode = httpCode;
     responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
@@ -44,11 +72,15 @@ namespace hackPSU {
     return responseInfo;
   }/* end HTTP::GET*/
 
-  Response* HTTP::POST(String url, String payload, int count, Headers headers[]){
+  Response* HTTP::POST(String url, String payload, int headerCount, Headers headers[]){
     HTTPClient http;
-    http.begin(url); //http Begin call
+    if (url.startsWith("https:")) {
+      http.begin(url, fp);
+    }else{
+      http.begin(url); //http Begin call
+    }
 
-    for (int i = 0; i<count; i++){
+    for (int i = 0; i<headerCount; i++){
       Headers header = headers[i];
       http.addHeader(header.headerKey,header.headerValue);
     }/* end for loop*/
@@ -58,7 +90,7 @@ namespace hackPSU {
     Response* responseInfo = new Response;
 
 
-    responseInfo->payload = http.getString(); 		
+    responseInfo->payload = http.getString();
     responseInfo->responseCode = httpCode;
     responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
@@ -68,12 +100,16 @@ namespace hackPSU {
 
   Response* HTTP::POST(String url, String payload){
       HTTPClient http;
-      http.begin(url); //http Begin call
-  
+      if (url.startsWith("https:")) {
+        http.begin(url, fp);
+      }else{
+        http.begin(url); //http Begin call
+      }
+
       int httpCode = http.POST(payload);
       Response* responseInfo = new Response;
-  
-      responseInfo->payload = http.getString(); 	
+
+      responseInfo->payload = http.getString();
       responseInfo->responseCode = httpCode;
       responseInfo->errorMessage = handleError(httpCode);  //httpCode comes in negative
 
