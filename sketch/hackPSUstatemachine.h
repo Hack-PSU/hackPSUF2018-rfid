@@ -29,11 +29,11 @@
 #define KPD_CLK  D0
 #define KPD_SIG  D3
 
-#define MENU_STATES 5
+#define MENU_STATES 6
 
 namespace hackPSU{
 
-  typedef enum {LOCK, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
@@ -163,7 +163,12 @@ namespace hackPSU{
        *   LOCK - on 'D' press
        */
       void duplicate();  
-      
+
+      /**
+       * Description:
+       *    Revoks master status of wristband
+       */
+      void zeroize();
 
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);

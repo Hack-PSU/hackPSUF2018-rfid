@@ -59,6 +59,9 @@ void Box::cycle(void) {
     case CHECKIN:
       checkin();
       return;
+    case ZEROIZE:
+      zeroize();
+      return;
     case SCAN:
       scan();
       return;
@@ -105,6 +108,9 @@ void Box::menu() {
       display->print("Clone Master", 1);
       break;
     case 4:
+      display->print("Zeroize", 1);
+      break;
+    case 5:
       display->print("Lock", 1);
       break;
     default:
@@ -123,9 +129,8 @@ void Box::menu() {
       menu_state %= MENU_STATES;
       break;
     case 'D':
-      menu_state = 0;
+      menu_cleanup();
       state = LOCK;
-      display->clear();
       break;
     case '1':
       state = LOCATION;
@@ -144,6 +149,9 @@ void Box::menu() {
       menu_cleanup();
       break;
     case '5':
+      state = ZEROIZE;
+      menu_cleanup();    
+    case '6':
       state = LOCK;
       menu_cleanup();
       break;
@@ -162,6 +170,9 @@ void Box::menu() {
           state = DUPLICATE;
           break;
         case 4: 
+          state = ZEROIZE;
+          break;
+        case 5:
           state = LOCK;
           break;
         default:
@@ -327,6 +338,11 @@ void Box::checkin() {
       case '#': // Name validated
         validated = true;
         break;
+      case 'A':
+      case 'B':
+        if (data != nullptr) delete data;
+        display->clear();
+        return;
     }
     if(validated){
       display->print("Scan wristband", 0);
@@ -440,5 +456,50 @@ void Box::duplicate() {
   }
 }
 
+void Box::zeroize() {
+  RfidState lastState = GOOD_RF;
+  display->print("D:LOCK", 0);
+  display->print("Scan Target", 1);
 
+  byte write_buffer[WRITE_BUFFER] = {0};
+  byte read_buffer[READ_BUFFER] = {0};
+
+  switch(keypad->getUniqueKey(2000)){
+    case 'D':
+      state = LOCK;
+      display->clear();
+      break;
+    default:
+      switch(scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
+        case GOOD_RF:
+          display->print("Target zeroized", 0);
+          display->print("Rescan target", 1);
+          while((lastState = scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)) == TIMEOUT){
+            yield();
+          }
+          switch(lastState){
+              case READ_FAIL:
+                display->print("Read Failure!", 1);
+                break;
+              case CRYPTO_FAIL:
+                display->print("Crypo Failure!", 1);
+               break;
+              case GOOD_RF:
+                if (String((char*)read_buffer) == String((char*)read_buffer)) {
+                  display->print("Write success!", 1);
+                } else {
+                  display->print("Write failure!", 1);
+                }
+                delay(1000);
+                break;
+            }
+          break;
+        case WRITE_FAIL:
+          display->print("Write Failure!", 1);
+          break;
+        case CRYPTO_FAIL:
+          display->print("Crypto Failure!", 1);
+      }
+  }
+}
 }
