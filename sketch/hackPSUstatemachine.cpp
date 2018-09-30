@@ -207,7 +207,8 @@ void Box::location(){
       }
       
       if(num_locations > 0){
-        display->print(location_list[location_state].name, 1);
+        display->print("A:UP, B:DOWN", 0);
+        display->print(location_list[location_state].name.c_str(), 1);
       } else {
         display->print("No locations found", 1);
         delay(2000);
@@ -263,7 +264,7 @@ void Box::checkin() {
   display->print("*:CLEAR #:SUBMIT", 0);
 
   String pin;
-  redisData* data = nullptr;
+  RedisData* data = nullptr;
   char keypress;
   uint32_t uid;
 
@@ -298,44 +299,43 @@ void Box::checkin() {
     return;
   }
 
-  Serial.print("name: ");
-  Serial.println(data->name);
-  Serial.print("shirtSize: ");
-  Serial.println(data->shirtSize);
-
   display->print("Validate name:", 0);
   display->print(data->name, 1);
   
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
+  bool validated = false;
   do{
     switch(keypress){
       case '*': // Wrong person
-        delete data;
-        return;
+        if( !validated){
+          if (data != nullptr) delete data;
+          return;
+        }
+        break;
       case 'D':
-        delete data;
+        if (data != nullptr) delete data;
         state = LOCK;
         display->clear();
         return;
       case 'C':
         // TODO: display->scroll();
-        keypress = keypad->getUniqueKey(5000);
         break;
       case '#': // Name validated
-        display->print("Scan wristband", 0);
-        display->clear(1);
-        uid = scanner->getUID(SCAN_TIMEOUT);
-        if( uid && !http->assignRfidToUser(String(uid), pin)) {
-          display->print("Scrap wristband!", 1);
-          uid = 0;
-          delay(2000);
-        } 
-        break;
-      default:
-        keypress = keypad->getUniqueKey(5000);
+        validated = true;
         break;
     }
+    if(validated){
+      display->print("Scan wristband", 0);
+      display->clear(1);
+      uid = scanner->getUID(SCAN_TIMEOUT);
+      if( uid && !http->assignRfidToUser(String(uid), pin)) {
+        display->print("Scrap wristband!", 1);
+        uid = 0;
+        delay(2000);
+      } 
+    }
+    keypress = keypad->getUniqueKey(1200);
   } while (!uid);
 
   display->print("Shirt Size: ", 0);
@@ -347,6 +347,7 @@ void Box::checkin() {
   while(keypad->getUniqueKey(5000) == 't');
 
   delete data;
+  data = nullptr;
 }
 
 void Box::wifi() {
@@ -390,15 +391,16 @@ void Box::wifi() {
 }
 
 void Box::duplicate() {
-  display->print("B: BACK", 0);
+  display->print("D:LOCK", 0);
   display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
   byte read_buffer[READ_BUFFER] = {0};
 
-  switch(keypad->getUniqueKey(100)){
+  switch(keypad->getUniqueKey(1000)){
     case 'D':
       state = LOCK;
+      display->clear();
       break;
     default:
       if(!scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
@@ -414,7 +416,7 @@ void Box::duplicate() {
       } else {
         display->print("Write failure!", 1);
       }
-      delay(1000);
+      delay(2000);
   }
 }
 
