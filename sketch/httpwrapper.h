@@ -8,15 +8,17 @@
 #include "hackPSUconfig.h"
 
 namespace hackPSU {
-  typedef struct redisData{
-    const char* uid;
-    const char* pin;
-    const char* name;
-    const char* shirtSize;
-    const char* diet;
-    const char* counter;
-    const char* numScans;
-  } redisData;
+  class RedisData{
+    public:
+      const char* uid;
+      const char* pin;
+      const char* name;
+      const char* shirtSize;
+      const char* diet;
+      const char* counter;
+      const char* numScans;
+     RedisData()
+  }
 
   class HTTPImpl{
     private:

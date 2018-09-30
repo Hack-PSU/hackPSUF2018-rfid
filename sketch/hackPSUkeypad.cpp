@@ -38,7 +38,6 @@ namespace hackPSU{
     return key;
   }
 
-  #define SPACE 5
   char Keypad::getKeyPress(int stable, unsigned long timeout) {
     char val;
     unsigned long start = millis();
@@ -56,18 +55,18 @@ namespace hackPSU{
       }  
       delay(SPACE);
     }
-    return('z');
+    return('t');
   }
 
   char Keypad::getUniqueKey(unsigned long timeout){
     unsigned long start = millis();
     char val = getKeyPress(1, timeout);  // 500 ms timeout
-    if(val != 'z'){
+    if(val != 't'){
       while( getKeyPress(1, start + timeout - millis()) == val && start + timeout > millis() ) { // check every 50ms
         delay(50);
       }
     }
-    return(start + timeout < millis() ? 't' : val);
+    return (start + timeout < millis() ? 't' : val);
   }
 
   String Keypad::getPin(int maxLen, const char clr, const char submit, int timeout){
@@ -83,7 +82,7 @@ namespace hackPSU{
         return pin;
       } else if ( key >= 'A' && key <= 'D'){
         return String(key);
-      }else if( key != 't' && key != 'z') {
+      }else if( key != 't') {
         display->print(key);
         pin += key;
         start = millis(); // timeout is from the last pressed key
