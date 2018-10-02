@@ -13,6 +13,8 @@
 
 namespace hackPSU {
 
+  typedef enum {GOOD_RF, CRYPTO_FAIL, WRITE_FAIL, READ_FAIL, TIMEOUT} RfidState;
+
   class Scanner{
     private:
       constexpr static byte DEFAULT_KEY[KEY_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -27,8 +29,8 @@ namespace hackPSU {
 
       //Timeout is negated if timeout==0
       uint32_t getUID(unsigned long timeout);
-      bool getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout);      
-      bool setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout); 
+      RfidState getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout);      
+      RfidState setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout); 
 
   };
 

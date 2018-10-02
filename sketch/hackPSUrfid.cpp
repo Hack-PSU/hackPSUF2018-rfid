@@ -58,20 +58,27 @@ namespace hackPSU {
     
   }
 
-  bool Scanner::getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
+  RfidState Scanner::getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
+    RfidState retval = GOOD_RF;
     uint32_t uid = this->getUID_noStop(timeout);
+    if(uid == 0) {
+      retval = TIMEOUT;
+      goto cleanup_read;
+    }
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)
       key_mf.keyByte[i] = key[i];
 
     if (reader.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 7, &key_mf, &(reader.uid)) != MFRC522::STATUS_OK) {
+      retval = CRYPTO_FAIL;
       goto cleanup_read;
     }
 
     if ((status = reader.MIFARE_Read(blockAddr, buffer, &size)) != MFRC522::STATUS_OK) {
+      retval = READ_FAIL;
       goto cleanup_read;
     }
 
@@ -80,22 +87,31 @@ namespace hackPSU {
     reader.PICC_HaltA();
     // Stop encryption on PCD
     reader.PCD_StopCrypto1();
+    return retval;
   }
 
-  bool Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
+  RfidState Scanner::setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout){
 
     MFRC522::StatusCode status;
+    RfidState retval = GOOD_RF;
     uint32_t uid = this->getUID_noStop(timeout);
+
+    if(uid == 0) {
+      retval = TIMEOUT;
+      goto cleanup_write;
+    }
 
     MFRC522::MIFARE_Key key_mf;
     for (int i = 0; i < KEY_LEN; i++)
       key_mf.keyByte[i] = key[i];
 
     if (reader.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, 7, &key_mf, &(reader.uid)) != MFRC522::STATUS_OK) {
+      retval = CRYPTO_FAIL;
       goto cleanup_write;
     }
 
     if ((status = reader.MIFARE_Write(blockAddr, buffer, size)) != MFRC522::STATUS_OK) {
+      retval = WRITE_FAIL;
       goto cleanup_write;
     }
 
@@ -104,6 +120,7 @@ namespace hackPSU {
     reader.PICC_HaltA();
     // Stop encryption on PCD
     reader.PCD_StopCrypto1();
+    return retval;
   }
 
 }

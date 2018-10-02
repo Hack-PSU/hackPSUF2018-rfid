@@ -9,7 +9,7 @@
 
 namespace hackPSU {
   typedef enum {SUCCESS, FAIL, TIMEOUT, REDIS_DOWN} api_response;
-
+  
   class RedisData {
     public:
       char* uid;

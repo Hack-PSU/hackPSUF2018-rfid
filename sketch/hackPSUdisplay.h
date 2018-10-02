@@ -24,7 +24,7 @@ namespace hackPSU {
        * Description:
        *    Prints msg starting at the current location of the cursor
        */
-      void print(String msg);
+      void print(const char *msg);
 
       /**
        * Description:
@@ -37,7 +37,7 @@ namespace hackPSU {
        *    Clears the specified row then prints msg on that row leaving the cursor at the end of the string.
        *    If msg is currently displayed on the specified row, it will not be displayed.
        */
-      void print(String msg, int row);
+      void print(const char *msg, int row);
 
       /**
        * Description:

@@ -1,12 +1,14 @@
 #pragma once
 
-#include "hackPSUdisplay.h"
-
 #include <Arduino.h>
 #include<ESP8266WiFi.h>
 
+#include "hackPSUdisplay.h"
+
+#define READ_PERIOD 4    // setup period before each keypad read
+#define SPACE 5
+
 namespace hackPSU{
-  #define READ_PERIOD 4    // setup period before each keypad read
   
   class Keypad{
     private:
@@ -19,6 +21,16 @@ namespace hackPSU{
       void pulse(bool data, int space = 2);
 
       void clearSR() { shiftOut(sig, clk, MSBFIRST, B00000000); };
+
+      /**
+       * INPUT:
+       *  none
+       *  
+       * OUTPUT: 
+       *  either key pressed or 'x' if no key pressed
+       */
+      char readKeypad();
+      
     public:
 
       /**
@@ -33,15 +45,6 @@ namespace hackPSU{
        *  
        */
       Keypad(int KPD_SRC, int KPD_CLK, int KPD_SIG, Display* display);
-
-      /**
-       * INPUT:
-       *  none
-       *  
-       * OUTPUT: 
-       *  either key pressed or 'x' if no key pressed
-       */
-      char readKeypad();
 
       /**
        * INPUT:

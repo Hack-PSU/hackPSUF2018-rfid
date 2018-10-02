@@ -14,7 +14,7 @@
 
 
 #define GOLDEN_KEY 0xC0DEBABE
-#define SECURE_BOX
+//#define SECURE_BOX
 
 // RFID Pins (SPI pins)
 #define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
@@ -29,11 +29,11 @@
 #define KPD_CLK  D0
 #define KPD_SIG  D3
 
-#define MENU_STATES 5
+#define MENU_STATES 7
 
 namespace hackPSU{
 
-  typedef enum {LOCK, MENU, DUPLICATE, WIFI, LOCATION, CHECKIN, SCAN} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN, GETUID} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
@@ -41,6 +41,7 @@ namespace hackPSU{
       Location* location_list;
       int num_locations;
       int location_state;
+      String location_name;
       
       State_e state;
       uint32_t lid; // Location id
@@ -92,6 +93,7 @@ namespace hackPSU{
        *    INIT - on menu selection or invalid state
        */
       void menu();
+      void menu_cleanup();
 
       /**
        * Description:
@@ -108,18 +110,19 @@ namespace hackPSU{
        *    MENU - on 'D' press
        */
       void location();
+      void location_cleanup();
 
       /**
        * Description:
-       *   Scan members into location after location is set
+       *    Scan members into location after location is set
        * 
        * Controls:
        *    B Back button
        *    D Locks device
        *   
        * State transistions:
-       *   MENU - on 'B' press
-       *   LOCK - on 'D' press
+       *    MENU - on 'B' press
+       *    LOCK - on 'D' press
        */
       void scan();
 
@@ -127,9 +130,12 @@ namespace hackPSU{
        * Description:
        *    Handle check-in process which will include band association
        *    
-       * Controls
-       *   B back button
-       *   D lock device
+       * Controls:
+       *    # confirm
+       *    * reject
+       *    C scroll LCD
+       *    D lock device
+       * 
        * 
        * 
        * State transitions:
@@ -157,7 +163,17 @@ namespace hackPSU{
        *   LOCK - on 'D' press
        */
       void duplicate();  
-      
+
+      /**
+       * Description:
+       *    Revoks master status of wristband
+       */
+      void zeroize();
+
+      /**
+       * 
+       */
+       void getuid();
 
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
@@ -169,4 +185,3 @@ namespace hackPSU{
       void cycle();
   };
 }
-
