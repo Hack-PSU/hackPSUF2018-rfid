@@ -54,6 +54,11 @@ namespace hackPSU {
        */
 
       void print(char msg, Custom_char symbol);
+
+      /**
+       * Description:
+       *    Prints a menu character followed by a colon, symbol, and space
+       */
        
       void scroll();
 
