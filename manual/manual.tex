@@ -2,6 +2,8 @@
 
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
 
 \title{HackPSU RFID Scanner Box User Manual}
 \date{\today}
@@ -14,6 +16,43 @@
 This document serves as the reference manual for the HackPSU RFID scanner box.  This manual does not detail the implementation of the device; the intention of this document is to provide a user with the necessary information to operate the scanner and to troubleshoot some basic problems. 
 
 \tableofcontents
+
+\section{QuickStart Guide}
+\subsection{First Time Setup}
+In the configuration header:
+\begin{itemize}
+	\item Disable SECURE\_BOOT by commenting the define out
+	\item Change the MASTER\_KEY value to any string of 16 bytes or fewer.
+	\item Change the SSID value to your WiFi network name
+	\item Change the PASSWD value to your WiFi network password.  
+	\item Change the REDIS value to your local cache server IP address and port.  Do not include any protocol information
+	\item Compile and upload the sketch to the box
+	\item Write the MASTER\_KEY to a wristband using the duplicate state
+	\item Enable SECURE\_BOOT by uncommenting the define
+	\item Recompile and upload the sketch to the box
+	\item The box is now ready and you now have a master wristband
+\end{itemize}
+\subsection{Check-in}
+\begin{itemize}
+	\item Unlock the box with a master wristband
+	\item Use the menu to navigate to the check-in state, then press '\#' to begin
+	\item The check-in process will now begin
+	\item Enter the registrant's pin using the keypad, then press '\#' to submit or '*' to clear.
+	\item Confirm the registrant's name using the '\#' or press '*' if the name is incorrect
+	\item Scan a wristband to assign it to the user, if told to scrap the wristband, please discard it
+	\item The registrant's shirt size is now displayed on the screen, give them the correct shirt size and confirm photo consent
+	\item Press any key to check-in another registrant
+\end{itemize}
+\subsection{Event Scanning}
+\begin{itemize}
+	\item Select the "Locate \& Scan" state from the menu using the '\#' key
+	\item The box will fetch a list of active locations; this may take a few seconds
+	\item Use the menu of locations to select your event location and press '\#' to begin scanning
+	\item Event scanning will now begin
+	\item Have each entrant scan their wristband at the top of the scanner above the LCD.  
+	\item The LCD will then display "Allow" or "Deny"
+	\item The scan state will now loop
+\end{itemize}
 
 \section{RFID Devices}
 This scanner uses the MFRC522 RFID transceiver unit. The present implementation is intended for use with MIFARE compatible RFID devices.  This decision was made to simplify the implementation of the scanning functionality.  Other devices may be compatible, but may not work.  It is suggested that each operator have a wristband with a valid UID and the MASTER\_KEY from the configuration to unlock the box to aid in debugging possible issues.
