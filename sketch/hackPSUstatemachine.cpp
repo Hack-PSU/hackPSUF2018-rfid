@@ -157,9 +157,11 @@ void Box::menu() {
     case '5':
       state = ZEROIZE;
       menu_cleanup();    
+      break;
     case '6':
       state = GETUID;
       menu_cleanup();
+      break;
     case '7':
       state = LOCK;
       menu_cleanup();
