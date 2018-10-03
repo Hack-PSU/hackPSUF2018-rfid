@@ -90,6 +90,12 @@ There are two reasons that the box may not scan an RFID Tag.  The most likely re
 
 \subsection{Long Scan Times}
 If scan times are taking a long time, the likely culprit is a bad RFID signal or a long RTT on the connection to the cache server.  A bad RFID signal may be caused by excess material between the wristband and the scanner of the box.  A long RTT can be caused by long network hops to the cache server or by network congestion.  To test RTT with your cache server, use the following "time\_total" feature in cURL. 
+\subsubsection{Causes}
+\begin{itemize}
+	\item Poor RFID Signal
+	\item Poor WiFi Signal
+	\item Long RTT to cache server
+\end{itemize}
 
 \subsection{Failure to Boot}
 A failure to boot generally means that the network configuration is incorrect.  Double check the network SSID and password are correct.  If they are correct, the LCD should indicate that the network connection succeeded.  The next blocking call will be to get an API key from the cache server.  This call will fail if the cache server is misconfigured, or if the scanner is misconfigured.  On the scanner side, check that the address is correct and does not have "http://" or "https://" prepended to the hostname.  Also validate that the port on the server is correct.  The next point of failure will be in the SSL certificate fingerprint or if HTTPS is not implemented on the server, the implementation for the API wrapper must be changed to use HTTP instead of HTTPS.  \\
