@@ -1,20 +1,22 @@
 \documentclass{article}
 
 \usepackage{graphicx}
+\usepackage{hyperref}
 
 \title{HackPSU RFID Scanner Box User Manual}
 \date{\today}
+\author{ \href{mailto:technology@hackpsu.org}{HackPSU Technology Team}}
 
 \begin{document}
 \maketitle
 
 \section*{Introduction}
-This document serves as the reference manual for the HackPSU RFID scanner box.  This manual does not detail the implementation of the device; the intention of this document is to provide a user with the necessary information to operate the scanner and to troubleshoot some basic problems.
+This document serves as the reference manual for the HackPSU RFID scanner box.  This manual does not detail the implementation of the device; the intention of this document is to provide a user with the necessary information to operate the scanner and to troubleshoot some basic problems. 
 
 \tableofcontents
 
 \section{RFID Devices}
-This scanner uses the MFRC522 RFID transceiver unit. The present implementation is intended for use with MIFARE compatible RFID devices.  This decision was made to simplify the implementation of the scanning functionality.  Other devices may be compatible, but may not work.  
+This scanner uses the MFRC522 RFID transceiver unit. The present implementation is intended for use with MIFARE compatible RFID devices.  This decision was made to simplify the implementation of the scanning functionality.  Other devices may be compatible, but may not work.  It is suggested that each operator have a wristband with a valid UID and the MASTER\_KEY from the configuration to unlock the box to aid in debugging possible issues.
 
 \section{Keypad Controls}
 The keypad behaves like a normal numeric keypad in most cases; however, the nonnumerical characters have special functions listed below.  
@@ -82,6 +84,9 @@ The configuration for the device must be done prior to deployment.  All configur
 \end{itemize}
 
 \section{Troubleshooting}
+
+\subsection{Failure to Scan an RFID Tag}
+There are two reasons that the box may not scan an RFID Tag.  The most likely reason is that the given band was already scanned.  The scanner is stately and will prevent the same band from being scanned twice in a row.  This is done to prevent multiple unintentional scans, but may result in the scanner being soft locked.  To unlock the scanner, simply scan another wristband or enter the locked state.  It is suggested that each operator have a band with the MASTER\_KEY written to it to unlock the box from the locked state and to free the scanner from a soft lock.  
 
 \subsection{Long Scan Times}
 If scan times are taking a long time, the likely culprit is a bad RFID signal or a long RTT on the connection to the cache server.  A bad RFID signal may be caused by excess material between the wristband and the scanner of the box.  A long RTT can be caused by long network hops to the cache server or by network congestion.  To test RTT with your cache server, use the following "time\_total" feature in cURL. 
