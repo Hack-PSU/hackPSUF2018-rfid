@@ -14,7 +14,7 @@
 
 
 #define GOLDEN_KEY 0xC0DEBABE
-//#define SECURE_BOX
+#define SECURE_BOX
 
 // RFID Pins (SPI pins)
 #define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
