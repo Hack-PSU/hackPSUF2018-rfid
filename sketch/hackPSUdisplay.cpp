@@ -25,9 +25,14 @@ namespace hackPSU {
         }
       }
 
+      for(Menu m : menu){
+        m.symbol = NONE;
+        m.key = '\0';
+      }
+
       //creating custom characters:
       uint8_t check[8] = {0x0,0x1,0x3,0x16,0x1c,0x8,0x0};
-      uint8_t clear[8] = {0x0,0x1b,0xe,0x4,0xe,0x1b,0x0};
+      uint8_t erase[8] = {0x0,0x1b,0xe,0x4,0xe,0x1b,0x0};
       uint8_t upArrow[8] = {0x0, 0x4, 0xe, 0x1f, 0x4, 0x4, 0x4, 0x0};
       uint8_t downArrow[8] = {0x0, 0x4, 0x4, 0x4, 0x1f, 0xe, 0x4, 0x0};
       uint8_t backArrow[8] = {0x0, 0x4, 0x8, 0x1f, 0x9, 0x5, 0x0, 0x0};
@@ -37,7 +42,7 @@ namespace hackPSU {
       lcd->createChar(CHECK, check);
       lcd->createChar(UP, upArrow);
       lcd->createChar(DOWN, downArrow);
-      lcd->createChar(CLEAR, clear);
+      lcd->createChar(CLEAR, erase);
       lcd->createChar(BACK, backArrow);
       lcd->createChar(LOCK, lock);
       lcd->createChar(SCROLL, scroll);
@@ -119,42 +124,80 @@ namespace hackPSU {
     }
   }
 
-  void Display::print(char msg, Custom_char symbol){
-    if(mode == PROD || mode == DEV) {
-      lcd->print(String(msg));
-      lcd->print(":");
-      lcd->write(symbol);
-      lcd->print(" ");
+  void Display::print(char key1, Custom_char symbol1, char key2, Custom_char symbol2, char key3, Custom_char symbol3, char key4, Custom_char symbol4){
+    if(mode == HEADLESS){
+      return;
     }
-    if(mode == DEV || mode == HEADLESS) {
-        Serial.println(String(msg) + ": " + String(symbol));
+    if(menu[0].symbol != symbol1 || (menu[0].key != key1 && symbol1 != NONE)) {
+      menu[0].symbol = symbol1;
+      menu[0].key = key1;
+      lcd->home();
+      print(menu[0]);
+      data[0] = "";
+    }
+    if(menu[1].symbol != symbol2 || (menu[1].key != key2 && symbol2 != NONE)) {
+      menu[1].symbol = symbol2;
+      menu[1].key = key2;
+      lcd->setCursor(4, 0);
+      print(menu[1]);
+      data[0] = "";
+    }
+    if(menu[2].symbol != symbol3 || (menu[2].key != key3 && symbol3 != NONE)) {
+      menu[2].symbol = symbol3;
+      menu[2].key = key3;
+      lcd->setCursor(8, 0);
+      print(menu[2]);
+      data[0] = "";
+    }
+    if(menu[3].symbol != symbol4 || (menu[3].key != key4 && symbol4 != NONE)) {
+      menu[3].symbol = symbol4;
+      menu[3].key = key4;
+      lcd->setCursor(12, 0);
+      print(menu[3]);
+      data[0] = "";
+    }
+  }
+  
+  void Display::print(Menu control){
+    if(mode == HEADLESS){
+      return;
     }
     
+    if(control.symbol == NONE){
+      lcd->print("    ");
+      return;
+    }
+    lcd->print(String(control.key));
+    lcd->print(":");
+    lcd->write(control.symbol);
+    lcd->print(" ");
   }
 
   void Display::scroll(){
-    if(data[row].length() > 16) {
-       Serial.println("Started scrolling");
-       for (int i = 0; i<=data[row].length(); i++) {
+    String temp = data[row];
+    temp += "    ";
+    
+    if(temp.length() > 16) {
+       for (int i = 0; i<=temp.length(); i++) {
           lcd->setCursor(0, row);
-          if(i == data[row].length()) {
-            lcd->print(data[row].substring(0, 15));
-            Serial.println("Finished Scrolling ");
+          if(i == temp.length()) {
+            lcd->print(temp.substring(0, 16));
           }
-          else if(i + 15 >= data[row].length()) {
-            lcd->print(data[row].substring(i) + 
-                       data[row].substring(0, (i+15)-data[row].length()));
+          else if(i + 15 >= temp.length()) {
+            lcd->print(temp.substring(i) + 
+                       temp.substring(0, (i+16)-temp.length()));
           } 
           else {
-            lcd->print(data[row].substring(i, i+15));
+            lcd->print(temp.substring(i, i+16));
           }
+
+          
           //pause 1 second every 17 scrolls left
-          if((i+1)%17 == 0) {
-            delay(1000);
-            Serial.println("Scrolled ");
+          if((i+16 < data[row].length() && (i+1)%17 == 0) || i + 16 == data[row].length()) {
+            delay(1500);
           }
           else {
-            delay(150);
+            delay(100);
           }
        }
     }
@@ -165,6 +208,7 @@ namespace hackPSU {
     data[1] = "";
     if(mode != HEADLESS) {
       lcd->clear();
+      lcd->home();
     }
   }
 

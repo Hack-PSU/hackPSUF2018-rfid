@@ -9,14 +9,22 @@
 namespace hackPSU {
 
   typedef enum {PROD, DEV, HEADLESS} Mode_e;
-  typedef enum {CHECK, UP, DOWN, CLEAR, BACK, LOCK, SCROLL} Custom_char;
+  typedef enum {CHECK, UP, DOWN, CLEAR, BACK, LOCK, SCROLL, NONE} Custom_char;
+  struct Menu{
+    char key;
+    Custom_char symbol;
+  };
   class Display{
     private:
       Mode_e mode;
       LiquidCrystal_I2C* lcd;
       String data[2];
+      Menu menu[4];
       int row;
       bool scrolled;
+      
+      void print(Custom_char symbol);
+      void print(Menu control);
 
     public:
       Display(Mode_e mode);
@@ -41,30 +49,23 @@ namespace hackPSU {
        */
       void print(String msg, int row);
 
-      /**
-       * Description:
-       *    Clears all contents of the LCD and returns the cursor to (0, 0)
-       */
-
-      void print(Custom_char symbol);
 
       /**
        * Description:
-       *    Prints the custom character at the current location of the cursor
+       *    Prints a menu
        */
 
-      void print(char msg, Custom_char symbol);
-
-      /**
-       * Description:
-       *    Prints a menu character followed by a colon, symbol, and space
-       */
-       
-      void scroll();
-
+      void print(char key1, Custom_char symbol1, char key2, Custom_char symbol2, char key3, Custom_char symbol3, char key4, Custom_char symbol4);
+      
       /**
        * Description:
        *    Scrolls contents of the LCD
+       */ 
+      void scroll();
+
+       /**
+       * Description:
+       *    Clears all contents of the LCD and returns the cursor to (0, 0)
        */
       void clear();
 

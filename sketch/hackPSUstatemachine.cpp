@@ -95,7 +95,7 @@ void Box::lock(){
 }
 
 void Box::menu() {
-  display->print("A:UP, B:DOWN", 0);
+  display->print('A', UP, 'B', DOWN, '#', CHECK, 'D', LOCK);
 
   switch(menu_state){
     case 0:
@@ -201,7 +201,7 @@ void Box::menu_cleanup(){
 }
 
 void Box::location(){
-  display->print("A:UP, B:DOWN", 0);
+  display->print('#', CHECK, 'B', DOWN, 'C', SCROLL, 'D', BACK);
   
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
@@ -213,7 +213,7 @@ void Box::location(){
       location_state = (num_locations + location_state - 1) % num_locations;
       return;
     case 'C':
-       // TODO display->scroll();
+       display->scroll();
        return;
     case 'D':
       location_cleanup();
@@ -233,11 +233,12 @@ void Box::location(){
       }
       
       if(num_locations > 0){
-        display->print("A:UP, B:DOWN", 0);
+        display->print('A', UP, 'B', DOWN, '', NONE, '', NONE);
         display->print(location_list[location_state].name.c_str(), 1);
       } else {
         display->print("No locations found", 1);
         delay(2000);
+        state = MENU;
         location_cleanup();
       }
   }
@@ -287,7 +288,7 @@ void Box::scan() {
  * Second half is associating registrant to wristband  
  */
 void Box::checkin() {
-  display->print("*:CLEAR #:SUBMIT", 0);
+  display->print('*',CLEAR, '#', SUBMIT, '', NONE, 'D', LOCK);
 
   String pin;
   RedisData* data = nullptr;
@@ -383,7 +384,7 @@ void Box::checkin() {
 
 void Box::wifi() {
   
-  display->print("B: RETURN", 0);
+  display->print('B', RETURN, '', NONE, '', NONE, 'D', LOCK);
   switch(keypad->getUniqueKey(500)){
     case 'B':
       state = MENU;
@@ -423,7 +424,7 @@ void Box::wifi() {
 
 void Box::duplicate() {
   RfidState lastState = GOOD_RF;
-  display->print("D:LOCK", 0);
+  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
   display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
@@ -470,7 +471,7 @@ void Box::duplicate() {
 
 void Box::zeroize() {
   RfidState lastState = GOOD_RF;
-  display->print("D:LOCK", 0);
+  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
   display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = {0};
@@ -516,7 +517,7 @@ void Box::zeroize() {
 }
 
 void Box::getuid(){
-  display->print("D:LOCK", 0);
+  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
   display->print("Scan for UID", 1);
 
   uint32_t uid;
