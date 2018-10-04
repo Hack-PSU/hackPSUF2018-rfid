@@ -9,7 +9,7 @@
 namespace hackPSU {
 
   typedef enum {PROD, DEV, HEADLESS} Mode_e;
-  typedef enum {CHECK, UP, DOWN, CLEAR, BACK, LOCK, SCROLL, NONE} Custom_char;
+  typedef enum {CHECK_C, UP_C, DOWN_C, CLEAR_C, BACK_C, LOCK_C, SCROLL_C, NONE_C} Custom_char;
   struct Menu{
     char key;
     Custom_char symbol;
@@ -81,5 +81,4 @@ namespace hackPSU {
        */
       void backspace(int num);
   };
-
 }

@@ -95,7 +95,7 @@ void Box::lock(){
 }
 
 void Box::menu() {
-  display->print('A', UP, 'B', DOWN, '#', CHECK, 'D', LOCK);
+  display->print('A', UP_C, 'B', DOWN_C, '#', CHECK_C, 'D', LOCK_C);
 
   switch(menu_state){
     case 0:
@@ -156,10 +156,12 @@ void Box::menu() {
       break;
     case '5':
       state = ZEROIZE;
-      menu_cleanup();    
+      menu_cleanup();
+      break;    
     case '6':
       state = GETUID;
       menu_cleanup();
+      break;    
     case '7':
       state = LOCK;
       menu_cleanup();
@@ -201,7 +203,7 @@ void Box::menu_cleanup(){
 }
 
 void Box::location(){
-  display->print('#', CHECK, 'B', DOWN, 'C', SCROLL, 'D', BACK);
+  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
   
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
@@ -233,7 +235,6 @@ void Box::location(){
       }
       
       if(num_locations > 0){
-        display->print('A', UP, 'B', DOWN, '', NONE, '', NONE);
         display->print(location_list[location_state].name.c_str(), 1);
       } else {
         display->print("No locations found", 1);
@@ -249,15 +250,18 @@ void Box::location_cleanup(){
     delete location_list;
     location_list = nullptr;
   }
+  num_locations = 0;
   location_state = 0;
   display->clear();
 }
 
 void Box::scan() {
+  display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+    
   uint32_t uid = 0;
   char lid_buffer[10] = {0};
   char uid_buffer[10] = {0};
-  display->print("Scan wristband", 0);
+  display->print("Scan wristband", 1);
 
   char input = keypad->getUniqueKey(1500);
   switch (input) {
@@ -278,7 +282,6 @@ void Box::scan() {
         }
         delay(750);
         last_scan = uid;
-        display->clear(1);
       }
   }
 }
@@ -288,7 +291,7 @@ void Box::scan() {
  * Second half is associating registrant to wristband  
  */
 void Box::checkin() {
-  display->print('*',CLEAR, '#', SUBMIT, '', NONE, 'D', LOCK);
+  display->print('*',CLEAR_C, '#', CHECK_C, 'C', SCROLL_C, 'D', LOCK_C);
 
   String pin;
   RedisData* data = nullptr;
@@ -336,17 +339,17 @@ void Box::checkin() {
     switch(keypress){
       case '*': // Wrong person
         if( !validated){
-          if (data != nullptr) delete data;
+          delete data;
           return;
         }
         break;
       case 'D':
-        if (data != nullptr) delete data;
+        delete data;
         state = LOCK;
         display->clear();
         return;
       case 'C':
-        // TODO: display->scroll();
+        display->scroll();
         break;
       case '#': // Name validated
         validated = true;
@@ -379,12 +382,11 @@ void Box::checkin() {
   while(keypad->getUniqueKey(5000) == 't');
 
   delete data;
-  data = nullptr;
 }
 
 void Box::wifi() {
   
-  display->print('B', RETURN, '', NONE, '', NONE, 'D', LOCK);
+  display->print('B', BACK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   switch(keypad->getUniqueKey(500)){
     case 'B':
       state = MENU;
@@ -424,7 +426,7 @@ void Box::wifi() {
 
 void Box::duplicate() {
   RfidState lastState = GOOD_RF;
-  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
+  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
@@ -471,7 +473,7 @@ void Box::duplicate() {
 
 void Box::zeroize() {
   RfidState lastState = GOOD_RF;
-  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
+  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = {0};
@@ -517,7 +519,7 @@ void Box::zeroize() {
 }
 
 void Box::getuid(){
-  display->print('', NONE, '', NONE, '', NONE, 'D', LOCK);
+  display->print('#', CHECK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   display->print("Scan for UID", 1);
 
   uint32_t uid;
@@ -526,6 +528,7 @@ void Box::getuid(){
   switch(keypad->getUniqueKey(2000)){
     case 'D':
       state = LOCK;
+      display->clear();
       return;
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);

@@ -25,8 +25,8 @@ namespace hackPSU {
         }
       }
 
-      for(Menu m : menu){
-        m.symbol = NONE;
+      for(Menu &m : menu){
+        m.symbol = NONE_C;
         m.key = '\0';
       }
 
@@ -39,16 +39,23 @@ namespace hackPSU {
       uint8_t lock[8] = {0xe, 0xa, 0x1f, 0x11, 0x1b, 0x1b, 0x1f, 0x0};
       uint8_t scroll[8] = {0x2, 0x1f, 0x2, 0x0, 0x8, 0x1f, 0x8, 0x0};
       
-      lcd->createChar(CHECK, check);
-      lcd->createChar(UP, upArrow);
-      lcd->createChar(DOWN, downArrow);
-      lcd->createChar(CLEAR, erase);
-      lcd->createChar(BACK, backArrow);
-      lcd->createChar(LOCK, lock);
-      lcd->createChar(SCROLL, scroll);
-      
       lcd->init();
       lcd->clear();
+      
+      lcd->createChar(CHECK_C, check);
+      lcd->home();
+      lcd->createChar(UP_C, upArrow);
+      lcd->home();
+      lcd->createChar(DOWN_C, downArrow);
+      lcd->home();
+      lcd->createChar(CLEAR_C, erase);
+      lcd->home();
+      lcd->createChar(BACK_C, backArrow);
+      lcd->home();
+      lcd->createChar(LOCK_C, lock);
+      lcd->home();
+      lcd->createChar(SCROLL_C, scroll);
+      
       lcd->backlight();
       lcd->home();//custom characters only work with lcd->home for some reason
     }
@@ -119,42 +126,41 @@ namespace hackPSU {
     if(mode == PROD || mode == DEV) {
       lcd->write(symbol);
     }
-    if(mode == DEV || mode == HEADLESS) {
-        Serial.println("Printed symbol: " + String(symbol));
-    }
   }
 
   void Display::print(char key1, Custom_char symbol1, char key2, Custom_char symbol2, char key3, Custom_char symbol3, char key4, Custom_char symbol4){
     if(mode == HEADLESS){
       return;
     }
-    if(menu[0].symbol != symbol1 || (menu[0].key != key1 && symbol1 != NONE)) {
+    bool changed = false;
+    if(menu[0].symbol != symbol1 || (menu[0].key != key1 && menu[0].symbol != NONE_C)) {
       menu[0].symbol = symbol1;
       menu[0].key = key1;
-      lcd->home();
-      print(menu[0]);
-      data[0] = "";
+      changed = true;
     }
-    if(menu[1].symbol != symbol2 || (menu[1].key != key2 && symbol2 != NONE)) {
+    if(menu[1].symbol != symbol2 || (menu[1].key != key2 && menu[1].symbol != NONE_C)) {
       menu[1].symbol = symbol2;
       menu[1].key = key2;
-      lcd->setCursor(4, 0);
-      print(menu[1]);
-      data[0] = "";
+      changed = true;
     }
-    if(menu[2].symbol != symbol3 || (menu[2].key != key3 && symbol3 != NONE)) {
+    if(menu[2].symbol != symbol3 || (menu[2].key != key3 && menu[2].symbol != NONE_C)) {
       menu[2].symbol = symbol3;
       menu[2].key = key3;
-      lcd->setCursor(8, 0);
-      print(menu[2]);
-      data[0] = "";
+      changed = true;
     }
-    if(menu[3].symbol != symbol4 || (menu[3].key != key4 && symbol4 != NONE)) {
+    if(menu[3].symbol != symbol4 || (menu[3].key != key4 && menu[3].symbol != NONE_C)) {
       menu[3].symbol = symbol4;
       menu[3].key = key4;
-      lcd->setCursor(12, 0);
-      print(menu[3]);
-      data[0] = "";
+      changed = true;
+    }
+
+    if(changed){
+      lcd->home();
+      lcd->print("                ");
+      lcd->home();
+      for(const Menu &m: menu){
+        print(m);
+      }
     }
   }
   
@@ -163,7 +169,7 @@ namespace hackPSU {
       return;
     }
     
-    if(control.symbol == NONE){
+    if(control.symbol == NONE_C){
       lcd->print("    ");
       return;
     }
@@ -208,6 +214,10 @@ namespace hackPSU {
     data[1] = "";
     if(mode != HEADLESS) {
       lcd->clear();
+      for(Menu &m : menu){
+        m.symbol = NONE_C;
+        m.key = '\0';
+      }
       lcd->home();
     }
   }
@@ -217,9 +227,12 @@ namespace hackPSU {
       lcd->setCursor(0, row);
       lcd->print("                ");
       lcd->setCursor(0, row);
-    }
-    if(row == 0) {
-      lcd->home();
+      if(row == 0) {
+        for(Menu &m : menu){
+          m.symbol = NONE_C;
+          m.key = '\0';
+        }
+      }
     }
     data[row] = "";
   }
