@@ -61,7 +61,7 @@ namespace hackPSU {
     }
 
     if(mode == DEV || mode == HEADLESS) {
-      Serial.begin(9600);
+      Serial.begin(BAUD_RATE);
       Serial.println("Started serial communication");
     }
       
@@ -247,3 +247,7 @@ namespace hackPSU {
     data[row] = data[row].substring(0, pos);
   }
 };
+
+#ifdef printByte(args)
+#undef printByte(args)
+#endif 

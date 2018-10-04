@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 
-//#include "hackPSUconfig.h"
+#include "hackPSUconfig.h"
 
 namespace hackPSU {
 
@@ -52,14 +52,16 @@ namespace hackPSU {
 
       /**
        * Description:
-       *    Prints a menu
+       *    Takes 4 sets of char's and Custom_char's to display the menu across a 16 column LCD display.  If the Custom_char is NONE_C, 
+       *    then the character doesn't matter (can use \0 or ' ' etc.).  If any one of these values change from the previous menu state, 
+       *    the entire menu will be reprinted with 4 spaces in any position of NONE_C.
        */
 
       void print(char key1, Custom_char symbol1, char key2, Custom_char symbol2, char key3, Custom_char symbol3, char key4, Custom_char symbol4);
       
       /**
        * Description:
-       *    Scrolls contents of the LCD
+       *    Scrolls contents of the LCD to the end then returns the display to what it was before.
        */ 
       void scroll();
 

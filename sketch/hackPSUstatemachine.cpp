@@ -122,6 +122,7 @@ void Box::menu() {
     default:
       menu_state = 0;
       state = LOCK;
+      display->clear();
       return;
   }
 
@@ -267,9 +268,11 @@ void Box::scan() {
   switch (input) {
     case 'C':
       last_scan = 0; // reset last_scan
+      break;
     case 'D':
       last_scan = 0;
       state = LOCK;
+      display->clear();
       return;
     //Normal behavior = scan band
     default:
@@ -308,7 +311,7 @@ void Box::checkin() {
     case 'C': 
       display->print("Invalid command", 1);
       delay(1000);
-      break;
+      return;
     case '\0':
       display->print("Invalid pin", 1);
       delay(1000);
@@ -354,11 +357,6 @@ void Box::checkin() {
       case '#': // Name validated
         validated = true;
         break;
-      case 'A':
-      case 'B':
-        if (data != nullptr) delete data;
-        display->clear();
-        return;
     }
     if(validated){
       display->print("Scan wristband", 0);
@@ -374,7 +372,7 @@ void Box::checkin() {
   } while (!uid);
 
   display->print("Shirt Size: ", 0);
-  display->print(data->shirtSize);  // TODO: Get shirt size correctly
+  display->print(data->shirtSize);
 
   display->print("Photo consent?",1);
 
@@ -382,6 +380,7 @@ void Box::checkin() {
   while(keypad->getUniqueKey(5000) == 't');
 
   delete data;
+  display->clear();
 }
 
 void Box::wifi() {
@@ -391,10 +390,12 @@ void Box::wifi() {
     case 'B':
       state = MENU;
       strength = UNDEFINED;
+      display->clear();
       break;
     case 'D':
       state = LOCK;
       strength = UNDEFINED;
+      display->clear();
       break;
     default:
       int32_t rssi;
