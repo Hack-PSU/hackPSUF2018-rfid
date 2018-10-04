@@ -156,7 +156,7 @@ void Box::menu() {
       menu_cleanup();
       break;
     case '5':
-      state = ZEROIZE;
+      state =
       menu_cleanup();
       break;    
     case '6':
