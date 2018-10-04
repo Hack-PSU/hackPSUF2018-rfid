@@ -8,7 +8,9 @@
 #include "hackPSUconfig.h"
 
 namespace hackPSU {
-  typedef enum {SUCCESS, FAIL, TIMEOUT, REDIS_DOWN} api_response;
+  namespace responses{
+    typedef enum {SUCCESS, FAIL, TIMEOUT, REDIS_DOWN} api_response;
+  }
  
   class RedisData {
     public:
@@ -37,7 +39,7 @@ namespace hackPSU {
       String redisHost, apiKey;
     public:
       
-      api_response getAPIKey();
+      responses::api_response getAPIKey();
       
       HTTPImpl(String host);
 
@@ -54,7 +56,7 @@ namespace hackPSU {
         Parameters: String userId, String userBandId
         Returns: success or fail
      */
-      api_response assignRfidToUser(String rfidCode, String pin);
+      responses::api_response assignRfidToUser(String rfidCode, String pin);
 
       /*
         Use case: When the user is trying to scan into a workshop/event or food

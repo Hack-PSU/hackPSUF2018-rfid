@@ -86,7 +86,7 @@ namespace hackPSU {
       redisHost = "https://" + host;
     }
     
-    api_response HTTPImpl::getAPIKey(){
+    responses::api_response HTTPImpl::getAPIKey(){
 
         String url = redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
@@ -99,21 +99,21 @@ namespace hackPSU {
         switch(response->responseCode){
             case 401:
                 delete response;  
-                return FAIL;
+                return responses::FAIL;
             case 200: 
                 break;
             case 500: 
                 delete response;  
-                return TIMEOUT;
+                return responses::TIMEOUT;
             default:
                 delete response;  
-                return REDIS_DOWN;
+                return responses::REDIS_DOWN;
         }
 
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
             delete response;
-            return nullptr;
+            return responses::FAIL; // TODO: break these out
         }
 
         StaticJsonBuffer<500> jsonBuffer;
@@ -129,7 +129,7 @@ namespace hackPSU {
         apiKey = data.get<String>("apikey");
 
         //The following is based on assumptions and should be checked
-        return (status == "success")? SUCCESS: FAIL;
+        return responses::SUCCESS;
     }
 
     RedisData* HTTPImpl::getDataFromPin(String pin){
@@ -174,7 +174,7 @@ namespace hackPSU {
         return pinData;
     }
 
-    api_response HTTPImpl::assignRfidToUser(String rfidCode, String pin){
+    responses::api_response HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
         String url = redisHost+"/tabs/setup";
         String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
@@ -196,28 +196,28 @@ namespace hackPSU {
             case 404:
             case 409:
                 delete response;  
-                return FAIL;
+                return responses::FAIL;
             case 200: 
                 break;
             case 500: 
                 delete response;  
-                return TIMEOUT;
+                return responses::TIMEOUT;
             default:
                 delete response;  
-                return REDIS_DOWN;
+                return responses::REDIS_DOWN;
         }
 
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
             delete response;
-            return FAIL;
+            return responses::FAIL;
         }
 
         //Free up memory since parsing is complete
         delete response;// response = nullptr;
 
         //Redis json parse
-        return SUCCESS;
+        return responses::SUCCESS;
     }
 
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
