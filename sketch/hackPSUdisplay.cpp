@@ -25,7 +25,7 @@ namespace hackPSU {
         }
       }
 
-      for(Menu &m : menu){
+      for(Menu_item &m : menu){
         m.symbol = NONE_C;
         m.key = '\0';
       }
@@ -158,13 +158,13 @@ namespace hackPSU {
       lcd->home();
       lcd->print("                ");
       lcd->home();
-      for(const Menu &m: menu){
+      for(const Menu_item &m: menu){
         print(m);
       }
     }
   }
   
-  void Display::print(Menu control){
+  void Display::print(Menu_item control){
     if(mode == HEADLESS){
       return;
     }
@@ -214,7 +214,7 @@ namespace hackPSU {
     data[1] = "";
     if(mode != HEADLESS) {
       lcd->clear();
-      for(Menu &m : menu){
+      for(Menu_item &m : menu){
         m.symbol = NONE_C;
         m.key = '\0';
       }
@@ -228,7 +228,7 @@ namespace hackPSU {
       lcd->print("                ");
       lcd->setCursor(0, row);
       if(row == 0) {
-        for(Menu &m : menu){
+        for(Menu_item &m : menu){
           m.symbol = NONE_C;
           m.key = '\0';
         }

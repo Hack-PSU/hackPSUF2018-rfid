@@ -10,7 +10,7 @@ namespace hackPSU {
 
   typedef enum {PROD, DEV, HEADLESS} Mode_e;
   typedef enum {CHECK_C, UP_C, DOWN_C, CLEAR_C, BACK_C, LOCK_C, SCROLL_C, NONE_C} Custom_char;
-  struct Menu{
+  struct Menu_item{
     char key;
     Custom_char symbol;
   };
@@ -19,12 +19,12 @@ namespace hackPSU {
       Mode_e mode;
       LiquidCrystal_I2C* lcd;
       String data[2];
-      Menu menu[4];
+      Menu_item menu[4];
       int row;
       bool scrolled;
       
       void print(Custom_char symbol);
-      void print(Menu control);
+      void print(Menu_item control);
 
     public:
       Display(Mode_e mode);
