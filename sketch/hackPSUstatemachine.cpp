@@ -367,7 +367,7 @@ void Box::checkin() {
           case responses::SUCCESS:
             break;
           case responses::FAIL:
-            display->print("Mulit-assignment",1);
+            display->print("Multi-assignment",1);
             delay(2000);
             uid = 0;
             break;
