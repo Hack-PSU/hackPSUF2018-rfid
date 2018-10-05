@@ -85,9 +85,8 @@ namespace hackPSU {
     HTTPImpl::HTTPImpl(String host) : apiKey(""){
       redisHost = "https://" + host;
     }
-
-
-    bool HTTPImpl::getAPIKey(){
+    
+    responses::api_response HTTPImpl::getAPIKey(){
 
         String url = redisHost+"/auth/scanner/register";
         String payload = "{\"pin\":\""+String(MASTER_KEY)+"\"}";
@@ -96,10 +95,25 @@ namespace hackPSU {
 
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
+
+        switch(response->responseCode){
+            case 401:
+                delete response;  
+                return responses::FAIL;
+            case 200: 
+                break;
+            case 500: 
+                delete response;  
+                return responses::TIMEOUT;
+            default:
+                delete response;  
+                return responses::REDIS_DOWN;
+        }
+
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
             delete response;
-            return nullptr;
+            return responses::FAIL; // TODO: break these out
         }
 
         StaticJsonBuffer<500> jsonBuffer;
@@ -113,8 +127,9 @@ namespace hackPSU {
         String message = root["message"];  //Should message also be returned to display why user was not allowed in?
         JsonObject& data = root.get<JsonObject>("data");
         apiKey = data.get<String>("apikey");
+
         //The following is based on assumptions and should be checked
-        return (status == "success");
+        return responses::SUCCESS;
     }
 
     RedisData* HTTPImpl::getDataFromPin(String pin){
@@ -126,7 +141,7 @@ namespace hackPSU {
 
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
-        if (response->responseCode < 0){
+        if (response->responseCode != 200){
             delete response;
             response = nullptr;
             return nullptr;
@@ -136,7 +151,8 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response; response = nullptr;
+        delete response; 
+        response = nullptr;
 
 
         if (String(root.get<char*>("status")) == "error") {
@@ -158,7 +174,7 @@ namespace hackPSU {
         return pinData;
     }
 
-    bool HTTPImpl::assignRfidToUser(String rfidCode, String pin){
+    responses::api_response HTTPImpl::assignRfidToUser(String rfidCode, String pin){
 
         String url = redisHost+"/tabs/setup";
         String payload = "{\"id\":\""+rfidCode+"\", \"pin\":"+pin+", \"apikey\":\""+apiKey+"\"}";
@@ -167,20 +183,41 @@ namespace hackPSU {
 
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
+        //404 means pin already registered
+        //409 means uid is reused (scrap wrist band)
+        //switch case for these with default as call handle error and print 
+    
+
+        // StaticJsonBuffer<500> jsonBuffer;
+        // JsonObject& root = jsonBuffer.parseObject(response->payload);
+
+        switch(response->responseCode){
+            case 401:
+            case 404:
+            case 409:
+                delete response;  
+                return responses::FAIL;
+            case 200: 
+                break;
+            case 500: 
+                delete response;  
+                return responses::TIMEOUT;
+            default:
+                delete response;  
+                return responses::REDIS_DOWN;
+        }
+
         if (response->responseCode < 0){
             //Free up memory since parsing is complete
             delete response;
-            return nullptr;
+            return responses::FAIL;
         }
-
-        StaticJsonBuffer<500> jsonBuffer;
-        JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
         delete response;// response = nullptr;
 
         //Redis json parse
-        return root["status"] == "success";
+        return responses::SUCCESS;
     }
 
     bool HTTPImpl::entryScan(String locationId, String rfidTag){
@@ -193,7 +230,7 @@ namespace hackPSU {
 
         Response* response = HTTP::POST(url, payload, headerCount, headers);
 
-        if (response->responseCode < 0){
+        if (response->responseCode != 200){
             //Free up memory since parsing is complete
             delete response;
             return false;
@@ -203,7 +240,8 @@ namespace hackPSU {
         JsonObject& root = jsonBuffer.parseObject(response->payload);
 
         //Free up memory since parsing is complete
-        delete response; response = nullptr;
+        delete response; 
+        response = nullptr;
 
         //Redis json parse
         // String message = root.get<String>("message"); // Use if needed
@@ -221,7 +259,7 @@ namespace hackPSU {
         String url = redisHost+"/tabs/active-locations";
         Response* response = HTTP::GET(url);
 
-        if (response->responseCode < 0) {
+        if (response->responseCode != 200) {
             delete response;
             return nullptr;
         }

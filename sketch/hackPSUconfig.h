@@ -2,11 +2,26 @@
 #define CONFIG__H
 
 #define MASTER_KEY "GET_REKT"
+#define GOLDEN_KEY 0xC0DEBABE
 #define SCAN_TIMEOUT 1200
 #define BAUD_RATE 9600
+#define SECURE_BOX
+
+// RFID Pins (SPI pins)
+#define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
+#define RFID_SS  D8         // SDD3 Configurable, see typical pin layout above
+
+// LCD Pins (I2C pins)
+#define LCD_SCL  D1
+#define LCD_SDA  D2         
+
+// Keypad pins
+#define KPD_SRC  A0
+#define KPD_CLK  D0
+#define KPD_SIG  D3
 
 //Uncomment this line if the SSID & PASSWDS fields are correct
-//#define WIFI_CONSTS
+#define WIFI_CONSTS
 #ifndef WIFI_CONSTS
 #error Wifi constants must be updated
 #endif

@@ -12,23 +12,6 @@
 #include "hackPSUrfid.h"
 #include "hackPSUconfig.h"
 
-
-#define GOLDEN_KEY 0xC0DEBABE
-#define SECURE_BOX
-
-// RFID Pins (SPI pins)
-#define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
-#define RFID_SS  D8         // SDD3 Configurable, see typical pin layout above
-
-// LCD Pins (I2C pins)
-#define LCD_SCL  D1
-#define LCD_SDA  D2         
-
-// Keypad pins
-#define KPD_SRC  A0
-#define KPD_CLK  D0
-#define KPD_SIG  D3
-
 #define MENU_STATES 7
 
 namespace hackPSU{

@@ -25,7 +25,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
 
-  while(!http->getAPIKey()){
+  while(http->getAPIKey() != responses::SUCCESS){
     yield();
   }
   display->clear();
@@ -362,11 +362,27 @@ void Box::checkin() {
       display->print("Scan wristband", 0);
       display->clear(1);
       uid = scanner->getUID(SCAN_TIMEOUT);
-      if( uid && !http->assignRfidToUser(String(uid), pin)) {
-        display->print("Scrap wristband!", 1);
-        uid = 0;
-        delay(2000);
-      } 
+      if(uid){
+        switch(http->assignRfidToUser(String(uid), pin)){
+          case responses::SUCCESS:
+            break;
+          case responses::FAIL:
+            display->print("Multi-assignment",1);
+            delay(2000);
+            uid = 0;
+            break;
+          case responses::TIMEOUT:
+          case responses::REDIS_DOWN:
+            if( WiFi.status() == WL_CONNECTED) {
+              display->print("Redis Error", 1);
+            } else {
+              display->print("Network Error", 1);
+            }
+            delay(2000);
+            uid = 0;
+            break;
+        } 
+      }
     }
     keypress = keypad->getUniqueKey(1200);
   } while (!uid);
@@ -540,6 +556,4 @@ void Box::getuid(){
       }
   }
 }
-
-
 }
