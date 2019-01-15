@@ -63,24 +63,32 @@ namespace hackPSU {
        * Description:
        *    Scrolls contents of the LCD to the end then returns the display to what it was before.
        */ 
+      #ifdef LCD
       void scroll();
+      #endif
 
        /**
        * Description:
        *    Clears all contents of the LCD and returns the cursor to (0, 0)
        */
+      #ifdef LCD
       void clear();
+      #endif
 
       /**
        * Description:
        *    Clears the requested row then sets the cursor to the beginning of that row
        */
+      #ifdef LCD
       void clear(int row);
+      #endif
 
       /**
        * Description:
        *    Clears the last <num> characters and moved the cursor back to the new end of the string
        */
+      #ifdef LCD
       void backspace(int num);
+      #endif
   };
 }

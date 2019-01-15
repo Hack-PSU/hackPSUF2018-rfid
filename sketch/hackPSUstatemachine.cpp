@@ -6,9 +6,9 @@ namespace hackPSU{
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   // Create class objects
   scanner = new Scanner(RFID_SS, RFID_RST);
-  http =    new HTTPImpl(redis_addr);
   display = new Display(mode);
-  keypad =  new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
+  http    = new WiFi();
+  keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
   // Set default values
   menu_state = 0;
@@ -18,14 +18,13 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   last_scan = 0;
 
   display->print("WiFi connecting", 0);
-  WiFi.begin(ssid, password);
   while(WiFi.status() != WL_CONNECTED) 
     yield();
 
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
 
-  while(http->getAPIKey() != responses::SUCCESS){
+  while(http->getAPIKey() != SUCCESS){
     yield();
   }
   display->clear();
@@ -231,7 +230,22 @@ void Box::location(){
     default:
       if (location_list == nullptr) {
         display->print("Updating list", 1);
-        location_list = http->getLocations(num_locations);
+        #if defined(STATIC)
+        StaticJsonBuffer<JSON_OBJECT_SIZE(5)> bf_location;
+        #elif defined(DYNAMIC)
+        DynamicJsonBuffer bf_location;
+        #endif
+        JsonObject& locations = createObject();
+        locations.createNestedArray("locations");
+
+        http->getLocations(locations);
+
+        num_locations = locations["locations"].size;
+        locations_list = new Location[nu.num_locations];
+        int count = 0;
+        for(JsonPair& p: locations["locations"]){
+          location_list[count++] = {.name = p.value["location_name"].as<String>(), .id = p.value.["uid"].as<uint32_t>()};
+        }
         location_state = 0;
       }
       
@@ -278,7 +292,15 @@ void Box::scan() {
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
-        if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10))) {
+        #if defined(STATIC)
+        StaticJsonBuffer<JSON_OBJECT_SIZE(2)> bf_scan;
+        #elif defined(DYNAMIC)
+        DynamicJsonBuffer bf_scan;
+        #endif
+        JsonObject& scanData = bf_scan.createObject();
+        scanData.set("isRepeat", false);
+        scanData.set("status", "something");
+        if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10), scanData)) {
           display->print("Allow", 1);
         } else {
           display->print("Deny", 1);
@@ -297,9 +319,9 @@ void Box::checkin() {
   display->print('*',CLEAR_C, '#', CHECK_C, 'C', SCROLL_C, 'D', LOCK_C);
 
   String pin;
-  RedisData* data = nullptr;
   char keypress;
   uint32_t uid;
+  API::Response responseCode;
 
   display->print("Enter pin: ", 1);
   pin = keypad->getPin(6, '*', '#', 10000);
@@ -325,15 +347,28 @@ void Box::checkin() {
       return;
   }
 
-  data = http->getDataFromPin(pin);
-  if (data == nullptr){
+  #if defined(STATIC)
+  StaticJsonBuffer<JSON_OBJECT_SIZE(5)> bf_checkin;
+  #elif defined (DYNAMIC)
+  DynamicJsonBuffer bf_checkin;
+  #endif
+  JsonObject& checkin = bf_checkin.createObject();
+  checkin.set("name","");
+  checkin.set("uid", "");
+  checkin.set("shirtSize", "");
+  checkin.set("diet", "");
+  checkin.set("counter", "");
+  checkin.set("numScans", "");
+
+  responseCode = http->getDataFromPin(pin, checkin);
+  if (responseCode != SUCCESS){
     display->print("Invalid pin", 1);
     delay(2000);
     return;
   }
 
   display->print("Validate name:", 0);
-  display->print(data->name, 1);
+  display->print(checkin["name"].as<String>(), 1);
   
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
@@ -363,16 +398,24 @@ void Box::checkin() {
       display->clear(1);
       uid = scanner->getUID(SCAN_TIMEOUT);
       if(uid){
-        switch(http->assignRfidToUser(String(uid), pin)){
-          case responses::SUCCESS:
+        #if defined(STATIC)
+        StaticJsonBuffer<JSON_OBJECT_SIZE(1)> bf_assign;
+        #elif defined(DYNAMIC)
+        DynamicJsonBuffer bf_assign;
+        #endif
+
+        JsonObject& assign = bf_assign.createObject();
+
+        switch(http->assignRfidToUser(String(uid), pin, assign)){
+          case SUCCESS:
             break;
-          case responses::FAIL:
+          case FAIL:
             display->print("Multi-assignment",1);
             delay(2000);
             uid = 0;
             break;
-          case responses::TIMEOUT:
-          case responses::REDIS_DOWN:
+          case TIMEOUT:
+          case REDIS_DOWN:
             if( WiFi.status() == WL_CONNECTED) {
               display->print("Redis Error", 1);
             } else {
@@ -388,7 +431,7 @@ void Box::checkin() {
   } while (!uid);
 
   display->print("Shirt Size: ", 0);
-  display->print(data->shirtSize);
+  display->print(checkin["shirtSize"].as<String>());
 
   display->print("Photo consent?",1);
 

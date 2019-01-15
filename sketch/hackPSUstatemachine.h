@@ -6,7 +6,7 @@
 #include<stdlib.h>
 #include<ESP8266WiFi.h>
 
-#include "httpwrapper.h"
+#include "hackPSUwifi.h"
 #include "hackPSUkeypad.h"
 #include "hackPSUdisplay.h"
 #include "hackPSUrfid.h"
@@ -36,7 +36,7 @@ namespace hackPSU{
 
       Scanner*  scanner;
       Keypad*   keypad;
-      HTTPImpl* http;
+      WiFi*     http;
       Display*  display;
 
       /**
