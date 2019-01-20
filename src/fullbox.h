@@ -7,12 +7,11 @@
 #include<ESP8266WiFi.h>
 #include<Arduino.h>
 
-//#include "hackPSUwifi.h"
-#include "hackPSUkeypad.h"
-#include "hackPSUdisplay.h"
-#include "hackPSUrfid.h"
-#include "config.h"
-#include "network.h"
+#include <network.h>
+#include <keypad.h>
+#include <display.h>
+#include <rfid.h>
+#include <config.h>
 
 #define MENU_STATES 7
 

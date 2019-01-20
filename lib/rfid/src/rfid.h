@@ -4,7 +4,7 @@
 #include <MFRC522.h>
 #include <SPI.h>
 
-#include "config.h"
+#include <config.h>
 
 #define KEY_LEN 6
 #define READ_BUFFER 32

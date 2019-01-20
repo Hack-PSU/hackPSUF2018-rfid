@@ -1,4 +1,4 @@
-#include "hackPSUstatemachine.h"
+#include "fullbox.h"
 
 namespace hackPSU{
 
@@ -7,7 +7,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   // Create class objects
   scanner = new Scanner(RFID_SS, RFID_RST);
   display = new Display(mode);
-  http    = new Network("httpbin.org");
+  http    = new Network("");
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
   // Set default values
@@ -237,8 +237,7 @@ void Box::location(){
         locations.createNestedArray("locations");
 
         //http->getLocations(locations);
-        #error Handle Getting locations
-
+        //#error Handle getLocations
         JsonArray& locs = locations["locations"];
 
         num_locations = locations["locations"].size();
@@ -302,7 +301,7 @@ void Box::scan() {
         } else {
           display->print("Deny", 1);
         }*/
-        #error Handle entryScan
+        //#error Handle entryScan
         delay(750);
         last_scan = uid;
       }
@@ -353,13 +352,13 @@ void Box::checkin() {
   checkin.set("counter", "");
   checkin.set("numScans", "");
 
-  //responseCode = http->getDataFromPin(pin, checkin);
-  #error Handle getDataFromPin
+  /*responseCode = http->getDataFromPin(pin, checkin);
   if (responseCode != API::SUCCESS){
     display->print("Invalid pin", 1);
     delay(2000);
     return;
-  }
+  }*/
+  //#error Handle getDataFromPin
 
   display->print("Validate name:", 0);
   display->print(checkin["name"].as<String>(), 1);
@@ -390,33 +389,20 @@ void Box::checkin() {
       display->clear(1);
       uid = scanner->getUID(SCAN_TIMEOUT);
       if(uid){
-<<<<<<< HEAD
-        switch(http->assignRfidToUser(String(uid), pin)){
-          case responses::SUCCESS:
-            break;
-          case responses::FAIL:
-=======
         MAKE_BUFFER(1, 0) bf_assign;
 
         JsonObject& assign = bf_assign.createObject();
 
-        #error Handle assignRfidToUser
         /*switch(http->assignRfidToUser(String(uid), pin, assign)){
           case API::SUCCESS:
             break;
           case API::FAIL:
->>>>>>> matt/http_combine
             display->print("Multi-assignment",1);
             delay(2000);
             uid = 0;
             break;
-<<<<<<< HEAD
-          case responses::TIMEOUT:
-          case responses::REDIS_DOWN:
-=======
           case API::TIMEOUT:
           case API::REDIS_DOWN:
->>>>>>> matt/http_combine
             if( WiFi.status() == WL_CONNECTED) {
               display->print("Redis Error", 1);
             } else {
@@ -425,11 +411,8 @@ void Box::checkin() {
             delay(2000);
             uid = 0;
             break;
-<<<<<<< HEAD
-        } 
-=======
         } */
->>>>>>> matt/http_combine
+        //#error Handle assignRfidToUser
       }
     }
     keypress = keypad->getUniqueKey(1200);

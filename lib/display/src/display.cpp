@@ -1,4 +1,4 @@
-#include "hackPSUdisplay.h"
+#include <display.h>
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #define printByte(args)  write(args);
@@ -12,7 +12,7 @@ namespace hackPSU {
     data[0] = "";
     data[1] = "";
     
-    #ifdef LCD {
+    #ifdef LCD
       const uint8_t I2C_ADDRESSES[] = {0x27, 0x3f}; // list of possible addresses the LCD can have
       Wire.begin(/*SDA, SCL*/);
       for(uint8_t i : I2C_ADDRESSES){
@@ -60,7 +60,7 @@ namespace hackPSU {
       
       lcd->backlight();
       lcd->home();//custom characters only work with lcd->home for some reason
-    }
+    
     #endif // ifdef LCD
 
     #ifdef SERIAL_EN
@@ -76,7 +76,7 @@ namespace hackPSU {
 
   void Display::print(char msg){
     data[row] += msg;
-    #ifdef LCD {
+    #ifdef LCD
       if(data[row].length() > 16){
         clear(row);
         lcd->setCursor(0, row);
@@ -84,7 +84,6 @@ namespace hackPSU {
       } else {
         lcd->print(msg);
       }
-    }
     #endif // ifdef LCD
 
     #ifdef SERIAL_EN
@@ -195,7 +194,7 @@ namespace hackPSU {
       temp += "    ";
       
       if(temp.length() > 16) {
-        for (int i = 0; i<=temp.length(); i++) {
+        for (unsigned int i = 0; i<=temp.length(); i++) {
             lcd->setCursor(0, row);
             if(i == temp.length()) {
               lcd->print(temp.substring(0, 16));
@@ -260,6 +259,6 @@ namespace hackPSU {
   }
 };
 
-#ifdef printByte(args)
-#undef printByte(args)
+#ifdef printByte
+#undef printByte
 #endif 

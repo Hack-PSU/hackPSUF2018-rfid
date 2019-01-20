@@ -1,6 +1,3 @@
-#Libraries
-lib/
-
 #LaTeX garbage
 manual/manual.aux
 manual/manual.syntex.gz
@@ -62,3 +59,5 @@ dkms.conf
 # External libraries
 lib/*.DS_Store
 .DS_Store
+.pioenvs
+.piolibdeps
