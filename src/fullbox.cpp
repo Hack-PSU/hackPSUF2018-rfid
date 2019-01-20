@@ -1,4 +1,4 @@
-#include "hackPSUstatemachine.h"
+#include "fullbox.h"
 
 namespace hackPSU{
 
@@ -7,7 +7,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   // Create class objects
   scanner = new Scanner(RFID_SS, RFID_RST);
   display = new Display(mode);
-  http    = new Network("httpbin.org");
+  http    = new Network("");
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
   // Set default values
@@ -237,8 +237,7 @@ void Box::location(){
         locations.createNestedArray("locations");
 
         //http->getLocations(locations);
-        #error Handle Getting locations
-
+        //#error Handle getLocations
         JsonArray& locs = locations["locations"];
 
         num_locations = locations["locations"].size();
@@ -302,7 +301,7 @@ void Box::scan() {
         } else {
           display->print("Deny", 1);
         }*/
-        #error Handle entryScan
+        //#error Handle entryScan
         delay(750);
         last_scan = uid;
       }
@@ -353,13 +352,13 @@ void Box::checkin() {
   checkin.set("counter", "");
   checkin.set("numScans", "");
 
-  //responseCode = http->getDataFromPin(pin, checkin);
-  #error Handle getDataFromPin
+  /*responseCode = http->getDataFromPin(pin, checkin);
   if (responseCode != API::SUCCESS){
     display->print("Invalid pin", 1);
     delay(2000);
     return;
-  }
+  }*/
+  //#error Handle getDataFromPin
 
   display->print("Validate name:", 0);
   display->print(checkin["name"].as<String>(), 1);
@@ -394,7 +393,6 @@ void Box::checkin() {
 
         JsonObject& assign = bf_assign.createObject();
 
-        #error Handle assignRfidToUser
         /*switch(http->assignRfidToUser(String(uid), pin, assign)){
           case API::SUCCESS:
             break;
@@ -414,6 +412,7 @@ void Box::checkin() {
             uid = 0;
             break;
         } */
+        //#error Handle assignRfidToUser
       }
     }
     keypress = keypad->getUniqueKey(1200);

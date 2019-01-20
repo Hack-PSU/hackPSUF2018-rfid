@@ -2,6 +2,8 @@
 #define CONFIG__H
 
 #define MASTER_KEY "GET_REKT"
+#define API_VERSION "v1.0"
+
 #define SCAN_TIMEOUT 1200
 #define BAUD_RATE 9600
 //#define SECURE_BOX
@@ -22,25 +24,36 @@
 //Uncomment this line if the SSID & PASSWDS fields are correct
 //#define WIFI_CONSTS
 #ifndef WIFI_CONSTS
-#error Wifi constants must be updated
+//#error Wifi constants must be updated
 #endif
 
-#define LCD
-#define SERIAL
+#define LCD_EN
+#define SERIAL_EN
 
 #define STATIC
-// #define DYNAMIC
+//#define DYNAMIC
+
+#if defined(STATIC) && defined(DYNAMIC) || !defined(STATIC) && !defined(DYNAMIC)
+  #error Cannot have both STATIC and DYNAMIC buffers
+#endif
+
+#if defined(STATIC)
+  #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
+#elif defined(DYNAMIC) 
+  #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
+#endif 
+
+constexpr char* SSID   = (char*)"";
+constexpr char* PASSWD = (char*)"";
 
 namespace hackPSU{
-  #define  HTTPS true
-  #define  PORT  443
+  //#define  HTTPS
 
-  constexpr char* HOST   = "";
-  constexpr char* SSID   = "";
-  constexpr char* PASSWD = "";
+  #define HOST "";
+
   
   // SHA1 fingerprint of the certificate
-  #if HTTPS
+  #ifdef HTTPS
     constexpr uint8_t FP[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
   #endif
 

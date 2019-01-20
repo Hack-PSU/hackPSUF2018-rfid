@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 
-#include "config.h"
+#include <config.h>
 
 namespace hackPSU {
 

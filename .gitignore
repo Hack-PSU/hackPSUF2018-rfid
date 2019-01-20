@@ -1,6 +1,3 @@
-#Libraries
-lib/
-
 # Prerequisites
 *.d
 
@@ -57,3 +54,5 @@ dkms.conf
 # External libraries
 lib/*.DS_Store
 .DS_Store
+.pioenvs
+.piolibdeps
