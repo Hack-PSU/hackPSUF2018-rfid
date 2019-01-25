@@ -8,10 +8,26 @@
 
 // Preform checks for used macros
 #ifndef API_VERSION
-#error API verision not specified
-#elif !defined(MASTER_KEY)
-#error Master key not specified
+#error Macro, API_VERSION, not set
 #endif
+
+#ifndef MASTER_KEY
+#error Macro, MASTER_KEY, not set
+#endif
+
+#ifndef NETWORK_PASSWORD
+#error Macro, NETWORK_PASSWORD, not set
+#endif
+
+#ifndef NETWORK_SSID
+#error Macro, NETWORK_SSID, not set
+#endif
+
+#if defined(DYNAMIC_BUFFER)
+  #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
+#else
+  #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
+#endif 
 
 namespace hackPSU {
 
@@ -78,51 +94,53 @@ namespace hackPSU {
 
 
   /**
-   * This class handles specific requests
+   * Only one Request per HTTP request
    * */
-  class Request{
-  friend class Network;
-  private:
-    MAKE_BUFFER(5, 0) bf_header;
-    MAKE_BUFFER(15, 0) bf_payload;
 
-    String url;
-    API::Method method;
-    HTTPClient http;
-    Response* response;
-
-    JsonObject& header;
-    JsonObject& payload;
-    String host;
-
-    bool parse(JsonObject& data, JsonObject& form);
-
-  public:
-    Request(API::Method method, String host, String route = "/");
-    ~Request();
-    bool addPayload(String key, String value);
-    bool addHeader(String key, String value);
-
-    Response* getResponse() { return response; }
-
-    Response* commit();
-
-    bool parse(JsonObject& form);
-
-  };
 
   class Network{
     public:
-
       Network(String host);
-      Request* createRequest(API::Method method, String route);
+      void beginRequest(API::Method method, String route);
 
-      Response* commitRequest();
-      Response* commitRequest(JsonObject& form); // include call to parse
+      Response* completeRequest();
+
+      bool addPayload(String key, String value);
+      bool addHeader(String key, String value);
 
       API::Response getApiKey();
 
     private:
+      class Request{
+      friend class Network;
+      private:
+        MAKE_BUFFER(5, 0) bf_header;
+        MAKE_BUFFER(15, 0) bf_payload;
+
+        String url;
+        API::Method method;
+        HTTPClient http;
+        Response* response;
+
+        JsonObject& header;
+        JsonObject& payload;
+        String host;
+
+        bool parse(JsonObject& data, JsonObject& form);
+
+      public:
+        Request(API::Method method, String host, String route = "/");
+        ~Request();
+        bool addPayload(String key, String value);
+        bool addHeader(String key, String value);
+
+        Response* getResponse() { return response; }
+
+        Response* commit();
+
+        bool parse(JsonObject& form);
+
+      };
       Request* req;
       String apiKey;
       String host;

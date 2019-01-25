@@ -5,7 +5,7 @@
 namespace hackPSU {
 
   //___________________________________________________________________ Request
-  Request::Request(API::Method method, String host, String route) : 
+  Network::Request::Request(API::Method method, String host, String route) : 
       header(bf_header.createObject()), 
       payload(bf_payload.createObject()),
       method(method)
@@ -19,23 +19,23 @@ namespace hackPSU {
 
     addHeader("Content-Type", "application/json");
     // addHeader("mac", WiFi.macAddress());
-    addPayload("version", API_VERSION);
+    //addPayload("version", API_VERSION);
 
     response = new Response();
   }
 
-  Request::~Request(){
+  Network::Request::~Request(){
     delete response;
   }
 
-  bool Request::addPayload(String key, String value){
+  bool Network::Request::addPayload(String key, String value){
     return payload.set(key, value);
   }
-  bool Request::addHeader(String key, String value){
+  bool Network::Request::addHeader(String key, String value){
     return header.set(key, value);
   }
 
-  Response* Request::commit() {
+  Response* Network::Request::commit() {
     // Begin HTTP request
     #ifdef HTTPS
       //http.begin(HOST, PORT, url, true, FP);
@@ -63,7 +63,7 @@ namespace hackPSU {
     return response;
   }
 
-  bool Request::parse(JsonObject& data, JsonObject& form){
+  bool Network::Request::parse(JsonObject& data, JsonObject& form){
     /*
     for (const JsonPair& pair : form) {
       if(data.containsKey(pair.key)){
@@ -105,51 +105,40 @@ namespace hackPSU {
 
   Network::Network(String host): host(host) {
     req = nullptr;
-    WiFi.begin(SSID, PASSWD);
+    WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
+  }
+  bool Network::addPayload(String key, String value){
+    return req->addPayload(key, value);
+  }
+  bool Network::addHeader(String key, String value){
+    return req->addHeader(key, value);
   }
 
-  Request* Network::createRequest(API::Method method, String route){
-    if(req != nullptr) delete req;
+
+  void Network::beginRequest(API::Method method, String route){
     req = new Request(method, host, route);
-    return req;
   }
 
-  Response* Network::commitRequest(){
+  Response* Network::completeRequest(){
     if( req == nullptr) return nullptr;
 
     return req->commit();
   }
 
-  Response* Network::commitRequest(JsonObject& form){
-    if( req == nullptr) return nullptr;
-
-
-    Response* res = req->commit();
-
-    MAKE_BUFFER(50, 50) bf_result;
-    JsonObject& result = bf_result.parseObject(res->payload);
-
-    req->parse(form);
-    return res;
-  }
-
   API::Response Network::getApiKey() {
-    Request* req = new Request(API::POST, "/auth/scanner/register");
-    req -> payload.set("pin",String(MASTER_KEY));
-    req -> payload.set("version", API_VERSION);
+    beginRequest(API::POST, "/auth/scanner/register");
+    addPayload("pin",String("change_me"));
+    //addPayload("version", API_VERSION);
 
     Response* registerScanner = req->commit();
 
     API::Response res;
     if(registerScanner->code == 200){
-      MAKE_BUFFER(25, 25) bf_data;
-      JsonObject& data = bf_data.parseObject(registerScanner->payload);
+      MAKE_BUFFER(75, 25) bf_data;
+      JsonObject& body = bf_data.parseObject(registerScanner->payload);
 
-
-      apiKey = data.get<String>("apikey");
-
-      res = data.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
-
+      apiKey = body["data"]["apikey"].as<String>();
+      res = apiKey == "" ? API::FAIL : API::SUCCESS;
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }

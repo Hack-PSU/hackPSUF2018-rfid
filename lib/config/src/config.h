@@ -6,7 +6,7 @@
 
 #define SCAN_TIMEOUT 1200
 #define BAUD_RATE 9600
-//#define SECURE_BOX
+#define SECURE_BOX
 
 // RFID Pins (SPI pins)
 #define RFID_RST D4         // SDD2 Configurable, see typical pin layout above
@@ -43,14 +43,9 @@
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
 #endif 
 
-constexpr char* SSID   = (char*)"";
-constexpr char* PASSWD = (char*)"";
 
 namespace hackPSU{
   //#define  HTTPS
-
-  #define HOST "";
-
   
   // SHA1 fingerprint of the certificate
   #ifdef HTTPS
