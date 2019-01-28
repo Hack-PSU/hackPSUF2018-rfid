@@ -30,17 +30,10 @@
 #define LCD_EN
 #define SERIAL_EN
 
-#define STATIC
-//#define DYNAMIC
-
-#if defined(STATIC) && defined(DYNAMIC) || !defined(STATIC) && !defined(DYNAMIC)
-  #error Cannot have both STATIC and DYNAMIC buffers
-#endif
-
-#if defined(STATIC)
-  #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
-#elif defined(DYNAMIC) 
+#if defined(DYNAMIC_BUFFER)
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
+#else
+  #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
 #endif 
 
 

@@ -4,6 +4,12 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
+#if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+#endif
+
 #include <config.h>
 
 // Preform checks for used macros
@@ -22,6 +28,11 @@
 #ifndef NETWORK_SSID
 #error Macro, NETWORK_SSID, not set
 #endif
+
+#if !defined(OTA_PASSWORD) && !defined(OTA_PASSWORD_HASH)
+#warning OTA uploads not enabled, define OTA_PASSWORD and OTA_PASSWORD_HASH to allow OTA uplaoding.
+#endif
+
 
 #if defined(DYNAMIC_BUFFER)
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
@@ -108,6 +119,11 @@ namespace hackPSU {
       bool addPayload(String key, String value);
       bool addHeader(String key, String value);
 
+      #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
+      void enableOTA();
+      void handleOTA();
+      #endif
+
       API::Response getApiKey();
 
     private:
@@ -144,5 +160,6 @@ namespace hackPSU {
       Request* req;
       String apiKey;
       String host;
+      char* hostname;
   };
 }

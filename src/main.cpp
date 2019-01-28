@@ -20,15 +20,17 @@ void setup(){
   Serial.println("WiFi connecting");
   while(WiFi.status() != WL_CONNECTED) 
     yield();
-  Serial.printf("WiFi connected to %s\n", "matthew");
   if(http->getApiKey() == hackPSU::API::SUCCESS){
-    Serial.println("Successful acquiring API key");
+    Serial.println("Successfully acquired API key");
   } else {
     Serial.println("Failed acquiring API key");
   }
+
+  http->enableOTA();
+  Serial.println("Begin OTA");
 }
 void loop(){
-  ;
+  http->handleOTA();
 }
 /*/
 Box* box;
