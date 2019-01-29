@@ -9,7 +9,7 @@ REDIS=$(hostname -I | awk '{print $1}' | sed "s/\n//g")
 if [[ -z "$PASSWD" ]]; then
 	if [[ -f hackpsu.config ]]; then
 		echo "No password set, using config file..." >&2
-		cat hackpsu.config
+		cat hackpsu.config | sed '/;/d'
 	else
 		echo "Invalid password, please manually define password" >&2
 		exit -1
