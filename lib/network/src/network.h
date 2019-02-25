@@ -124,7 +124,6 @@ namespace hackPSU {
       void handleOTA();
       #endif
 
-      API::Response getApiKey();
 
     private:
       class Request{
@@ -161,5 +160,7 @@ namespace hackPSU {
       String apiKey;
       String host;
       char* hostname;
+
+      API::Response getApiKey();
   };
 }
