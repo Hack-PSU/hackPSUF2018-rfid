@@ -10,11 +10,15 @@ namespace hackPSU {
       payload(bf_payload.createObject()),
       method(method)
   {
+    Serial.println("Building Request");
+    Serial.println(host);
+    Serial.println(route);
+    Serial.println(host + route);
     // Set the base URL for the request
     #ifdef HTTPS
       url = "https://" + host + route;
     #else
-      url = "http://"  + host + route;
+      url = "http://" + host + route;
     #endif
     Serial.print("THE URL is: ");
     Serial.println(url);
@@ -205,8 +209,8 @@ namespace hackPSU {
     //if(req != nullptr) delete req;
     //Request* req = new Request(API::POST, host, "/rfid/getpin");
     //Request* req = createRequest(API::POST, "/rfid/assign");
-    String route = "/rfid/assign";
-    Request* req = createRequest(API::POST, route);
+    //String route = "/rfid/assign";
+    Request* req = createRequest(API::POST, "/rfid/assign");
     req -> payload.set("pin", String(pin));
     req -> payload.set("wid", wid);
     req -> payload.set("apikey", apiKey);
