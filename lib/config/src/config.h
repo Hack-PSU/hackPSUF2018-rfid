@@ -14,7 +14,7 @@
 
 // LCD Pins (I2C pins)
 #define LCD_SCL  D1
-#define LCD_SDA  D2         
+#define LCD_SDA  D2
 
 // Keypad pins
 #define KPD_SRC  A0
@@ -39,9 +39,9 @@
 
 #if defined(STATIC)
   #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
-#elif defined(DYNAMIC) 
+#elif defined(DYNAMIC)
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
-#endif 
+#endif
 
 constexpr char* SSID   = (char*)"";
 constexpr char* PASSWD = (char*)"";
@@ -51,8 +51,9 @@ namespace hackPSU{
 
   #define HOST "";
 
-  
-  // SHA1 fingerprint of the certificate
+
+  // SHA1 fingerprint of the certificate 
+
   #ifdef HTTPS
     constexpr uint8_t FP[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
   #endif

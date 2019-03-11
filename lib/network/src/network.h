@@ -50,7 +50,7 @@ namespace hackPSU {
         default:
           if(code >= 500) return "Server error - " + String(code);
           if(code >= 400) return "Client error - " + String(code);
-          if(code >= 300) return "Redirectio - n" + String(code);
+          if(code >= 300) return "Redirection - " + String(code);
           if(code >= 200) return "Success - " + String(code);
           if(code >= 100) return "Informational response - " + String(code);
           return "Unknown code - " + String(code);
@@ -60,11 +60,11 @@ namespace hackPSU {
       switch(code){
         case 401:
         case 404:
-        case 409: 
+        case 409:
             return API::FAIL;
-        case 200: 
+        case 200:
             return API::SUCCESS;
-        case 500: 
+        case 500:
             return API::TIMEOUT;
         default:
             return API::REDIS_DOWN;
@@ -120,7 +120,9 @@ namespace hackPSU {
       Response* commitRequest();
       Response* commitRequest(JsonObject& form); // include call to parse
 
-      API::Response getApiKey();
+      API::Response getApiKey(int pin);
+      String getDataFromPin(int pin);
+      String assignUserWID(int pin, String wid);
 
     private:
       Request* req;
