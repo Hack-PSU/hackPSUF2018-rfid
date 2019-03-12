@@ -14,6 +14,18 @@
 #endif
 
 namespace hackPSU {
+  //TODO: move the User and Location structs to a better location where its accessible by all classes
+  typedef struct {
+    String name;
+    String shirtSize;
+    String diet;
+    int foodCounter;
+  } User;
+
+  /*typedef struct {
+    String name;
+    int id;
+  } Location;*/
 
   namespace API{
     typedef enum {
@@ -123,7 +135,8 @@ namespace hackPSU {
       API::Response getApiKey(int pin);
       String getDataFromPin(int pin);
       String assignUserWID(int pin, String wid);
-
+      String userInfoFromWID(String wid);
+      Location* getEvents();
     private:
       Request* req;
       String apiKey;

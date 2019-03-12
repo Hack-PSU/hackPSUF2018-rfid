@@ -42,15 +42,26 @@ namespace hackPSU {
   }
 
   Response* Request::commit() {
+    String builtURL = url;
     //Add payload to url if GET method
+    if(method == API::GET){
+      builtURL += "?";
+      for(JsonPair& p: payload){
+        builtURL += p.key;
+        builtURL += "=";
+        builtURL += p.value.as<char*>();
+        builtURL += "&";
+      }
+      builtURL.remove(builtURL.length()-1);
+    }
     // Begin HTTP request
     #ifdef HTTPS
       //http.begin(HOST, PORT, url, true, FP);
       Serial.println("WE DOING HTTPS");
-      Serial.println(url);
-      http.begin(url, FP);
+      Serial.println(builtURL);
+      http.begin(builtURL, FP);
     #else
-      http.begin(url);
+      http.begin(builtURL);
     #endif
     //Serial.println("1");
     // Set headers, if any, for request
@@ -243,13 +254,15 @@ namespace hackPSU {
     Serial.println("We are about to get info.");
     Response* registerScanner = req->commit();
     Serial.println("FINISHED COMMIT");
-    String message = "NULL";
+    String name = "NULL";
     API::Response res;
     if(registerScanner->code == 200){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
 
-      message = response.get<String>("message");
+      JsonObject& data = response.get<JsonObject>("data");
+
+      name = data.get<String>("name");
 
       res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
 
@@ -258,6 +271,38 @@ namespace hackPSU {
     }
     Serial.print("Response Code: ");
     Serial.println(res);
-    return message;
+    return name;
+  }
+  Location* Network::getEvents() {
+
+    Request* req = createRequest(API::GET, "/rfid/events");
+    Serial.println("We are about to get EVENTS.");
+    Response* registerScanner = req->commit();
+    Serial.println("FINISHED COMMIT");
+    String name = "NULL";
+    API::Response res;
+    if(registerScanner->code == 200){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      int length = response.get<int>("length");
+      JsonArray& jsonLoc = response.get<JsonArray>("locations");
+
+      Location *locations = new Location[length];
+
+      for(int i = 0; i < length; i++){
+        locations[i] = {.name = jsonLoc[i]["event_title"], .id = jsonLoc[i]["event_location"]};
+      }
+
+
+      res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
+      Serial.print("Response Code: ");
+      Serial.println(res);
+      return locations;
+    } else {
+      res = static_cast<API::Response>(registerScanner->code);
+    }
+    Serial.print("Response Code: ");
+    Serial.println(res);
+    return nullptr;
   }
 }

@@ -42,6 +42,14 @@ void loop() {
     String message = net -> assignUserWID(512, wid);
     Serial.print("This is the message after assign: ");
     Serial.println(message);
+    message = net -> userInfoFromWID(wid);
+    Serial.print("This is the user with the RFID tag: ");
+    Serial.println(message);
+    Location *locations = net -> getEvents();
+    Serial.println("These are the locations: ");
+    for(int i=0; i < 5; i++){
+      Serial.println(locations[i].name);
+    }
     while(true){yield();}
   }
 }
