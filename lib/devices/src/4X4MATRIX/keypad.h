@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
-#include<ESP8266WiFi.h>
 
-#include <display.h>
+#include <HD44780/display.h>
 
 #define READ_PERIOD 4    // setup period before each keypad read
 #define SPACE 5

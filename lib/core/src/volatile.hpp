@@ -11,7 +11,7 @@ namespace hackPSU
     public:
         Volatile(char* name) : Pollable(name), Readable<Packet>::Readable(name) {}
         void poll(){
-            *this->data = this->read();
+            *(this->data) = this->read();
         }
 
     };

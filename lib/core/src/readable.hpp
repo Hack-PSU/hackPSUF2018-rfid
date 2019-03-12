@@ -14,10 +14,14 @@ namespace hackPSU
     friend class Controller;
     friend class Volatile<Packet>;
     public:
-        Readable(char* name):  Component(name) { 
+        Readable(char* name):  
+            Component(name)
+        { 
             data = new Packet();
         };
-        ~Readable() {}
+        ~Readable() {
+            delete data;
+        }
 
         virtual Packet read(){
             return scan();
@@ -28,7 +32,7 @@ namespace hackPSU
         }
 
     protected:
-        volatile Packet* data;
+        Packet* data;
         virtual Packet scan() = 0;  // This method is device specific
         
     };
