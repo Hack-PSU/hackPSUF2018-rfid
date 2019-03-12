@@ -36,8 +36,10 @@ void loop() {
     String name = net -> getDataFromPin(512);
     Serial.print("Name we got from Redis: ");
     Serial.println(name);
-
-    String message = net -> assignUserWID(512, "RFID");
+    String wid = "RFID";
+    Serial.print("THE WID IS: ");
+    Serial.println(wid);
+    String message = net -> assignUserWID(512, wid);
     Serial.print("This is the message after assign: ");
     Serial.println(message);
     while(true){yield();}

@@ -30,8 +30,8 @@
 #define LCD_EN
 #define SERIAL_EN
 
-#define STATIC
-//#define DYNAMIC
+//#define STATIC
+#define DYNAMIC
 
 #if defined(STATIC) && defined(DYNAMIC) || !defined(STATIC) && !defined(DYNAMIC)
   #error Cannot have both STATIC and DYNAMIC buffers
@@ -52,7 +52,7 @@ namespace hackPSU{
   #define HOST "";
 
 
-  // SHA1 fingerprint of the certificate 
+  // SHA1 fingerprint of the certificate
 
   #ifdef HTTPS
     constexpr uint8_t FP[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
