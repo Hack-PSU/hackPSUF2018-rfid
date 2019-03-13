@@ -218,6 +218,8 @@ namespace hackPSU {
       res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
     } else {
       res = static_cast<API::Response>(registerScanner->code);
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      message = response.get<String>("message");
     }
     #ifdef DEBUG
       Serial.print("Response Code: ");
@@ -226,18 +228,22 @@ namespace hackPSU {
     return message;
   }
 
-  String Network::userInfoFromWID(String wid) {
+  User Network::userInfoFromWID(String wid) {
     Request* req = createRequest(API::GET, "/rfid/user-info");
     req -> payload.set("wid", wid);
     req -> payload.set("apikey", apiKey);
     Response* registerScanner = req->commit();
-    String name = "NULL";
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
     API::Response res;
     if(registerScanner->code == 200){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
       JsonObject& data = response.get<JsonObject>("data");
-      name = data.get<String>("name");
+      user.name = data.get<String>("name");
+      user.shirtSize = data.get<String>("shirtSize");
+      user.diet = data.get<String>("diet");
+      user.allow = !(data.get<bool>("isRepeat"));
+
       res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
     } else {
       res = static_cast<API::Response>(registerScanner->code);
@@ -246,7 +252,7 @@ namespace hackPSU {
       Serial.print("Response Code: ");
       Serial.println(res);
     #endif
-    return name;
+    return user;
   }
 
   Locations Network::getEvents() {

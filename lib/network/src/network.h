@@ -124,7 +124,7 @@ namespace hackPSU {
       API::Response getApiKey(int pin);
       String getDataFromPin(int pin);
       String assignUserWID(int pin, String wid);
-      String userInfoFromWID(String wid);
+      User userInfoFromWID(String wid);
       Locations getEvents();
       User sendScan(String wid, int loc);
     private:
