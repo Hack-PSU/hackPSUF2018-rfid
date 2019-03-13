@@ -15,10 +15,6 @@
 
 namespace hackPSU {
 
-  /*typedef struct {
-    String name;
-    int id;
-  } Location;*/
 
   namespace API{
     typedef enum {

@@ -10,15 +10,19 @@ namespace hackPSU {
       payload(bf_payload.createObject()),
       method(method)
   {
-    //Serial.println(host + route);
+    #ifdef DEBUG
+      Serial.println(host + route);
+    #endif
     // Set the base URL for the request
     #ifdef HTTPS
       url = "https://" + host + route;
     #else
       url = "http://" + host + route;
     #endif
-    //Serial.print("THE URL is: ");
-    //Serial.println(url);
+    #ifdef DEBUG
+      Serial.print("THE URL is: ");
+      Serial.println(url);
+    #endif
     addHeader("Content-Type", "application/json");
     addHeader("macaddr", WiFi.macAddress());
     addPayload("version", API_VERSION);
@@ -114,10 +118,12 @@ namespace hackPSU {
   Network::Network(String host): host(host) {
     req = nullptr;
     //apiKey = "805bc162-7d21-40cc-bc9b-1e0722c3ff88";
-    Serial.print("The host is: ");
-    Serial.println(host);
-    Serial.println(NETWORK_SSID);
-    Serial.println(NETWORK_PASSWORD);
+    #ifdef DEBUG
+      Serial.print("The host is: ");
+      Serial.println(host);
+      Serial.println(NETWORK_SSID);
+      Serial.println(NETWORK_PASSWORD);
+    #endif
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
   }
 
@@ -161,7 +167,9 @@ namespace hackPSU {
 
       JsonObject& data = response.get<JsonObject>("data");
       apiKey = data.get<String>("apikey");
-      Serial.println(apiKey);
+      #ifdef DEBUG
+        Serial.println(apiKey);
+      #endif
       res = data.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
 
     } else {
@@ -188,8 +196,10 @@ namespace hackPSU {
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }
-    Serial.print("Response Code: ");
-    Serial.println(res);
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(res);
+    #endif
     return name;
   }
 
@@ -209,8 +219,10 @@ namespace hackPSU {
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }
-    Serial.print("Response Code: ");
-    Serial.println(res);
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(res);
+    #endif
     return message;
   }
 
@@ -230,8 +242,10 @@ namespace hackPSU {
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }
-    Serial.print("Response Code: ");
-    Serial.println(res);
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(res);
+    #endif
     return name;
   }
 
@@ -250,8 +264,10 @@ namespace hackPSU {
         locations[i] = {.name = jsonLoc[i]["event_title"], .id = jsonLoc[i]["event_location"]};
       }
       res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
-      Serial.print("Response Code: ");
-      Serial.println(res);
+      #ifdef DEBUG
+        Serial.print("Response Code: ");
+        Serial.println(res);
+      #endif
       Locations loc = {.data = locations, .length = length};
       return loc;
 
@@ -259,8 +275,10 @@ namespace hackPSU {
       res = static_cast<API::Response>(registerScanner->code);
     }
 
-    Serial.print("Response Code: ");
-    Serial.println(res);
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(res);
+    #endif
     Locations loc = {.data = nullptr, .length = 0};
     return loc;
   }
@@ -288,9 +306,11 @@ namespace hackPSU {
       res = static_cast<API::Response>(registerScanner->code);
     }
 
-    Serial.print("Response Code: ");
-    Serial.println(res);
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(res);
+    #endif
     return user;
   }
-  
+
 }
