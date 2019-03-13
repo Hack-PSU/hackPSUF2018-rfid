@@ -41,25 +41,18 @@ namespace hackPSU {
     return header.set(key, value);
   }
 
+  bool Request::addParameter(String key, String value){
+    parameter += (parameter.length() == 0 ? '?' : '&') + key + "=" + value;
+    return true;
+  }
+
   Response* Request::commit() {
-    String builtURL = url;
-    //Add payload to url if GET method
-    if(method == API::GET){
-      builtURL += "?";
-      for(JsonPair& p: payload){
-        builtURL += p.key;
-        builtURL += "=";
-        builtURL += p.value.as<char*>();
-        builtURL += "&";
-      }
-      builtURL.remove(builtURL.length()-1);
-    }
     // Begin HTTP request
     #ifdef HTTPS
       //http.begin(HOST, PORT, url, true, FP);
-      http.begin(builtURL, FP);
+      http.begin(url + parameter, FP);
     #else
-      http.begin(builtURL);
+      http.begin(url + parameter);
     #endif
     // Set headers, if any, for request
     for(JsonPair& p: header){
@@ -69,8 +62,7 @@ namespace hackPSU {
     int code;
     if(method == API::GET) {
       code = http.GET();
-    }
-    else if(method == API::POST) {
+    } else if(method == API::POST) {
       String pld = "";
       payload.printTo(pld);
       code = http.POST(pld);
@@ -161,8 +153,8 @@ namespace hackPSU {
 
   HTTPCode Network::getApiKey(int pin) {
     Request* req = createRequest(API::POST, "/auth/scanner/register");
-    req -> payload.set("pin",String(pin));
-    req -> payload.set("version", API_VERSION);
+    req->addPayload("pin",String(pin));
+    req->addPayload("version", API_VERSION);
 
     Response* registerScanner = req->commit();
 
@@ -183,9 +175,9 @@ namespace hackPSU {
 
   User Network::getDataFromPin(int pin) {
     Request* req = createRequest(API::POST, "/rfid/getpin");
-    req -> payload.set("pin", String(pin));
-    req -> payload.set("version", API_VERSION);
-    req -> payload.set("apikey", apiKey);
+    req->addPayload("pin", String(pin));
+    req->addPayload("version", API_VERSION);
+    req->addPayload("apikey", apiKey);
     Response* registerScanner = req->commit();
     User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
     if(bool(*registerScanner)){
@@ -207,9 +199,9 @@ namespace hackPSU {
 
   HTTPCode Network::assignUserWID(int pin, String wid) {
     Request* req = createRequest(API::POST, "/rfid/assign");
-    req -> payload.set("pin", String(pin));
-    req -> payload.set("wid", wid);
-    req -> payload.set("apikey", apiKey);
+    req->addPayload("pin", String(pin));
+    req->addPayload("wid", wid);
+    req->addPayload("apikey", apiKey);
     Response* registerScanner = req->commit();
     #ifdef DEBUG
       Serial.print("Response Code: ");
@@ -220,8 +212,8 @@ namespace hackPSU {
 
   User Network::userInfoFromWID(String wid) {
     Request* req = createRequest(API::GET, "/rfid/user-info");
-    req -> payload.set("wid", wid);
-    req -> payload.set("apikey", apiKey);
+    req->addParameter("wid", wid);
+    req->addParameter("apikey", apiKey);
     Response* registerScanner = req->commit();
     User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
     if(*registerScanner){
@@ -273,9 +265,9 @@ namespace hackPSU {
 
   User Network::sendScan(String wid, int loc) {
     Request* req = createRequest(API::POST, "/rfid/scan");
-    req -> payload.set("wid", wid);
-    req -> payload.set("location", String(loc));
-    req -> payload.set("apikey", apiKey);
+    req->addPayload("wid", wid);
+    req->addPayload("location", String(loc));
+    req->addPayload("apikey", apiKey);
     Response* registerScanner = req->commit();
     User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
     if(*registerScanner){

@@ -41,7 +41,7 @@ void loop() {
     return;
   }
   Serial.print("Message was: ");
-  Serial.println(String(resp));
+  Serial.println(resp.toString());
 
   // Get User data
   int userpin = getApiPin();
@@ -52,12 +52,7 @@ void loop() {
 
   // Setting wid of user to RFID
   String wid = "RFID";
-  HTTPCode message = net->assignUserWID(userpin, wid);
-  if(message){
-    Serial.println("Success");
-  }
-  Serial.print("Message was: ");
-  Serial.println(String(message));
+  Serial.print("Code: ");
 
   // Lookup user using new WID
   User widuser = net->userInfoFromWID(wid);

@@ -27,7 +27,7 @@ namespace hackPSU {
   public:
     HTTPCode(int code): code(code) {}
 
-    operator String() const{
+    String toString() {
       switch(code){
         // List of known/common http codes:
         case 200: return F("Success");
@@ -95,6 +95,7 @@ namespace hackPSU {
     JsonObject& header;
     JsonObject& payload;
     String host;
+    String parameter;
 
     bool parse(JsonObject& data, JsonObject& form);
 
@@ -103,10 +104,11 @@ namespace hackPSU {
     ~Request();
     bool addPayload(String key, String value);
     bool addHeader(String key, String value);
+    bool addParameter(String key, String value);
 
     Response* getResponse() { return response; }
 
-    Response* commit();
+    virtual Response* commit();
 
     bool parse(JsonObject& form);
 
