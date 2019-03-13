@@ -40,6 +40,8 @@ void loop() {
     Serial.println("Fetch API key failed");
     return;
   }
+  Serial.print("Message was: ");
+  Serial.println(String(resp));
 
   // Get User data
   int userpin = getApiPin();
@@ -54,6 +56,8 @@ void loop() {
   if(message){
     Serial.println("Success");
   }
+  Serial.print("Message was: ");
+  Serial.println(String(message));
 
   // Lookup user using new WID
   User widuser = net->userInfoFromWID(wid);
