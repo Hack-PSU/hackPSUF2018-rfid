@@ -18,12 +18,12 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   last_scan = 0;
 
   display->print("WiFi connecting", 0);
-  while(WiFi.status() != WL_CONNECTED) 
+  while(WiFi.status() != WL_CONNECTED)
     yield();
 
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
-  
+
   // TODO: check for OUTDATED return from getAPIKey
   while(http->getApiKey() != API::SUCCESS){
     yield();
@@ -82,7 +82,7 @@ void Box::lock(){
       byte buffer[READ_BUFFER] = {0};
       if(GOOD_RF != scanner->getData(buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT))
         return;
-  
+
       if(String(MASTER_KEY) == String((char*)buffer)){
         state = MENU;
         display->clear();
@@ -158,18 +158,18 @@ void Box::menu() {
     case '5':
       state = ZEROIZE;
       menu_cleanup();
-      break;    
+      break;
     case '6':
       state = GETUID;
       menu_cleanup();
-      break;    
+      break;
     case '7':
       state = LOCK;
       menu_cleanup();
       break;
     case '#':
       switch(menu_state){
-        case 0: 
+        case 0:
           state = LOCATION;
           break;
         case 1:
@@ -181,7 +181,7 @@ void Box::menu() {
         case 3:
           state = DUPLICATE;
           break;
-        case 4: 
+        case 4:
           state = ZEROIZE;
           break;
         case 5:
@@ -205,7 +205,7 @@ void Box::menu_cleanup(){
 
 void Box::location(){
   display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
-  
+
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
@@ -248,7 +248,7 @@ void Box::location(){
         }
         location_state = 0;
       }
-      
+
       if(num_locations > 0){
         display->print(location_list[location_state].name.c_str(), 1);
       } else {
@@ -272,7 +272,7 @@ void Box::location_cleanup(){
 
 void Box::scan() {
   display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-    
+
   uint32_t uid = 0;
   char lid_buffer[10] = {0};
   char uid_buffer[10] = {0};
@@ -309,8 +309,8 @@ void Box::scan() {
 }
 
 /**
- * First half is getting registrant's pin 
- * Second half is associating registrant to wristband  
+ * First half is getting registrant's pin
+ * Second half is associating registrant to wristband
  */
 void Box::checkin() {
   display->print('*',CLEAR_C, '#', CHECK_C, 'C', SCROLL_C, 'D', LOCK_C);
@@ -326,8 +326,8 @@ void Box::checkin() {
 //Character press
   switch(pin[0]){
     case 'A':
-    case 'B': 
-    case 'C': 
+    case 'B':
+    case 'C':
       display->print("Invalid command", 1);
       delay(1000);
       return;
@@ -362,7 +362,7 @@ void Box::checkin() {
 
   display->print("Validate name:", 0);
   display->print(checkin["name"].as<String>(), 1);
-  
+
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
   bool validated = false;
@@ -430,7 +430,7 @@ void Box::checkin() {
 }
 
 void Box::wifi() {
-  
+
   display->print('B', BACK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   switch(keypad->getUniqueKey(500)){
     case 'B':
@@ -449,9 +449,9 @@ void Box::wifi() {
         display->print("WiFi Disconnect", 1);
         return;
       }
-      
+
       rssi = WiFi.RSSI();
-    
+
       if(rssi > -50) {
         display->print("Excellent signal", 1);
         strength = EXCELLENT;

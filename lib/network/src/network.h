@@ -18,17 +18,15 @@ namespace hackPSU {
 
   namespace API{
     typedef enum {
-      SUCCESS, FAIL, TIMEOUT, REDIS_DOWN, OUTDATED
-    } Response;
-
-    typedef enum {
       GET, POST
     } Method;
   }
 
-  typedef struct Response {
-    String payload;
+  class HTTPCode{
+  private:
     int code;
+  public:
+    HTTPCode(int code): code(code) {}
 
     operator String() const{
       switch(code){
@@ -36,6 +34,8 @@ namespace hackPSU {
         case 200: return F("Success");
         case 401: return F("Unauthorized");
         case 404: return F("Not Found");
+        case 409: return F("Wristband Tag already opened");
+        case 417: return F("Resource lost");
         case 500: return F("Internal Server Error");
         case -1:  return F("HTTPC_ERROR_CONNECTION_REFUSED");
         case -2:  return F("HTTPC_ERROR_SEND_HEADER_FAILED");
@@ -57,24 +57,28 @@ namespace hackPSU {
           return "Unknown code - " + String(code);
       }
     }
-    operator API::Response() const{
-      switch(code){
-        case 401:
-        case 404:
-        case 409:
-            return API::FAIL;
-        case 200:
-            return API::SUCCESS;
-        case 500:
-            return API::TIMEOUT;
-        default:
-            return API::REDIS_DOWN;
-      }
+    operator int() const{
+      return code;
     }
-    operator bool() const {
-      return code >= 200 && code < 300;
+    operator bool() const{
+      return code >=200 && code < 300;
     }
-  } Response;
+
+  };
+
+  class Response{
+  public:
+    String payload;
+    HTTPCode code;
+
+    Response(String payload, int code): payload(payload), code(code) {}
+    
+    operator bool() const{
+      return bool(code);
+    }
+
+  };
+
 
 
 
