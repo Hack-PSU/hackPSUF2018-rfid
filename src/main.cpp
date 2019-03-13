@@ -1,4 +1,5 @@
 #include <network.h>
+#include <config.h>
 
 using namespace hackPSU;
 
@@ -14,49 +15,67 @@ void setup() {
   delay(2000);
   Serial.begin(9600);
   net = new Network(REDIS);
-  Serial.println("Hi");
+  
+  Serial.print("Trying to connect to ");
+  Serial.println(NETWORK_SSID);
+  Serial.println(NETWORK_PASSWORD);
+  Serial.println(REDIS);
+  while( WiFi.status() != WL_CONNECTED){
+    delay(2000);
+  }
+
+  Serial.println("Connected");
+
 }
 
 void loop() {
-  if ( WiFi.status() != WL_CONNECTED) {
-    Serial.print("Trying to connect to ");
-    Serial.println(NETWORK_SSID);
-    Serial.println(NETWORK_PASSWORD);
-    Serial.println(REDIS);
-    // wait 10 seconds for connection:
-    delay(2000);
-  }else{
-    Serial.println("Connected");
-    //while(true){yield();}
-    int pin = getApiPin();
-    API::Response resp = net -> getApiKey(pin);
-    Serial.println("made it here!");
-    Serial.println(String(resp));
-    //Serial.println(API::Response[resp]);
-    String name = net -> getDataFromPin(512);
-    Serial.print("Name we got from Redis: ");
-    Serial.println(name);
-    String wid = "RFID";
-    Serial.print("THE WID IS: ");
-    Serial.println(wid);
-    String message = net -> assignUserWID(512, wid);
-    Serial.print("This is the message after assign: ");
-    Serial.println(message);
-    message = net -> userInfoFromWID(wid);
-    Serial.print("This is the user with the RFID tag: ");
-    Serial.println(message);
-    Locations locations = net -> getEvents();
-    Serial.println("These are the locations: ");
-    Serial.println(locations.length);
-    for(int i=0; i < locations.length; i++){
-      Serial.println(locations.data[i].name);
-    }
-    User user = net -> sendScan(wid, 5);
-    Serial.println("This is the user we scanned in: ");
-    Serial.println(user.name);
-    Serial.println(user.shirtSize);
-    Serial.println(user.diet);
-    Serial.println(user.allow);
-    while(true){yield();}
+
+  int apipin = getApiPin();
+
+  // Get API key
+  HTTPCode resp = net->getApiKey(apipin);
+  if(resp) {
+    Serial.println("Fetch API key success");
+  } else {
+    Serial.println("Fetch API key failed");
+    return;
   }
+
+  // Get User data
+  int userpin = getApiPin();
+
+  User pinuser = net->getDataFromPin(userpin);
+  Serial.print("Name we got from Redis: ");
+  Serial.println(pinuser.name);
+
+  // Setting wid of user to RFID
+  String wid = "RFID";
+  HTTPCode message = net->assignUserWID(userpin, wid);
+  if(message){
+    Serial.println("Success");
+  }
+
+  // Lookup user using new WID
+  User widuser = net->userInfoFromWID(wid);
+  Serial.print("User name ");
+  Serial.println(widuser.name);
+
+  // Get locations
+  Locations locations = net->getEvents();
+  Serial.println("These are the locations: ");
+  Serial.println(locations.length);
+  for(int i=0; i < locations.length; i++){
+    Serial.println(locations.data[i].name);
+  }
+
+
+  User validation = net->sendScan(wid, 5);
+  Serial.println("This is the user we scanned in: ");
+  Serial.println(validation.name);
+  Serial.println(validation.shirtSize);
+  Serial.println(validation.diet);
+  Serial.println(validation.allow);
+
+  
+  while(true){yield();}
 }

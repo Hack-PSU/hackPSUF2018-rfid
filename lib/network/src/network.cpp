@@ -27,11 +27,11 @@ namespace hackPSU {
     addHeader("macaddr", WiFi.macAddress());
     addPayload("version", API_VERSION);
 
-    response = new Response();
+    response = nullptr;
   }
 
   Request::~Request(){
-    delete response;
+    if(response != nullptr) delete response;
   }
 
   bool Request::addPayload(String key, String value){
@@ -65,11 +65,17 @@ namespace hackPSU {
     for(JsonPair& p: header){
       http.addHeader(p.key, p.value.as<char*>());
     }
-    String pld = "";
-    payload.printTo(pld);
-    if(method == API::GET)       response->code = http.GET();
-    else if(method == API::POST) response->code = http.POST(pld);
-    response->payload = http.getString();
+
+    int code;
+    if(method == API::GET) {
+      code = http.GET();
+    }
+    else if(method == API::POST) {
+      String pld = "";
+      payload.printTo(pld);
+      code = http.POST(pld);
+    }
+    response = new Response(http.getString(),code);
     // Terminate HTTP request
     http.end();
     return response;
@@ -232,7 +238,7 @@ namespace hackPSU {
       Serial.print("Response Code: ");
       Serial.println(String(registerScanner->code));
     #endif
-    return registerScanner->code;
+    return user;
   }
 
   Locations Network::getEvents() {

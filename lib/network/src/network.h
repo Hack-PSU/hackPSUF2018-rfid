@@ -15,7 +15,6 @@
 
 namespace hackPSU {
 
-
   namespace API{
     typedef enum {
       GET, POST
@@ -79,9 +78,6 @@ namespace hackPSU {
 
   };
 
-
-
-
   /**
    * This class handles specific requests
    * */
@@ -125,9 +121,9 @@ namespace hackPSU {
       Response* commitRequest();
       Response* commitRequest(JsonObject& form); // include call to parse
 
-      API::Response getApiKey(int pin);
-      String getDataFromPin(int pin);
-      String assignUserWID(int pin, String wid);
+      HTTPCode getApiKey(int pin);
+      User getDataFromPin(int pin);
+      HTTPCode assignUserWID(int pin, String wid);
       User userInfoFromWID(String wid);
       Locations getEvents();
       User sendScan(String wid, int loc);
