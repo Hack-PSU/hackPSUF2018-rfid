@@ -45,11 +45,18 @@ void loop() {
     message = net -> userInfoFromWID(wid);
     Serial.print("This is the user with the RFID tag: ");
     Serial.println(message);
-    Location *locations = net -> getEvents();
+    Locations locations = net -> getEvents();
     Serial.println("These are the locations: ");
-    for(int i=0; i < 5; i++){
-      Serial.println(locations[i].name);
+    Serial.println(locations.length);
+    for(int i=0; i < locations.length; i++){
+      Serial.println(locations.data[i].name);
     }
+    User user = net -> sendScan(wid, 5);
+    Serial.println("This is the user we scanned in: ");
+    Serial.println(user.name);
+    Serial.println(user.shirtSize);
+    Serial.println(user.diet);
+    Serial.println(user.allow);
     while(true){yield();}
   }
 }

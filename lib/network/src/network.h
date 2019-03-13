@@ -14,13 +14,6 @@
 #endif
 
 namespace hackPSU {
-  //TODO: move the User and Location structs to a better location where its accessible by all classes
-  typedef struct {
-    String name;
-    String shirtSize;
-    String diet;
-    int foodCounter;
-  } User;
 
   /*typedef struct {
     String name;
@@ -136,7 +129,8 @@ namespace hackPSU {
       String getDataFromPin(int pin);
       String assignUserWID(int pin, String wid);
       String userInfoFromWID(String wid);
-      Location* getEvents();
+      Locations getEvents();
+      User sendScan(String wid, int loc);
     private:
       Request* req;
       String apiKey;

@@ -214,7 +214,8 @@ namespace hackPSU {
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }
-
+    Serial.print("Response Code: ");
+    Serial.println(res);
     return name;
   }
   String Network::assignUserWID(int pin, String wid) {
@@ -273,7 +274,7 @@ namespace hackPSU {
     Serial.println(res);
     return name;
   }
-  Location* Network::getEvents() {
+  Locations Network::getEvents() {
 
     Request* req = createRequest(API::GET, "/rfid/events");
     Serial.println("We are about to get EVENTS.");
@@ -297,12 +298,44 @@ namespace hackPSU {
       res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
       Serial.print("Response Code: ");
       Serial.println(res);
-      return locations;
+      Locations loc = {.data = locations, .length = length};
+      return loc;
     } else {
       res = static_cast<API::Response>(registerScanner->code);
     }
     Serial.print("Response Code: ");
     Serial.println(res);
-    return nullptr;
+    Locations loc = {.data = nullptr, .length = 0};
+    return loc;
+  }
+  User Network::sendScan(String wid, int loc) {
+
+    Request* req = createRequest(API::POST, "/rfid/scan");
+    Serial.println("We are about to send scan.");
+    req -> payload.set("wid", wid);
+    req -> payload.set("location", String(loc));
+    req -> payload.set("apikey", apiKey);
+    Response* registerScanner = req->commit();
+    Serial.println("FINISHED COMMIT");
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    API::Response res;
+    if(registerScanner->code == 200){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      JsonObject& data = response.get<JsonObject>("data");
+
+      user.name = data.get<String>("name");
+      user.shirtSize = data.get<String>("shirtSize");
+      user.diet = data.get<String>("diet");
+      user.allow = !(data.get<bool>("isRepeat"));
+
+      res = response.get<String>("version") == API_VERSION ? API::SUCCESS : API::OUTDATED;
+
+    } else {
+      res = static_cast<API::Response>(registerScanner->code);
+    }
+    Serial.print("Response Code: ");
+    Serial.println(res);
+    return user;
   }
 }
