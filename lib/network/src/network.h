@@ -119,6 +119,9 @@ namespace hackPSU {
       bool addPayload(String key, String value);
       bool addHeader(String key, String value);
 
+      API::Response getApiKey();
+
+      bool connected();
       #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
       void enableOTA();
       void handleOTA();
@@ -141,6 +144,8 @@ namespace hackPSU {
         JsonObject& payload;
         String host;
 
+        bool OTA_enabled;
+
         bool parse(JsonObject& data, JsonObject& form);
 
       public:
@@ -161,6 +166,5 @@ namespace hackPSU {
       String host;
       char* hostname;
 
-      API::Response getApiKey();
   };
 }

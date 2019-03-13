@@ -6,7 +6,8 @@ namespace hackPSU {
   Network::Request::Request(API::Method method, String host, String route) : 
       header(bf_header.createObject()), 
       payload(bf_payload.createObject()),
-      method(method)
+      method(method),
+      OTA_enabled(false)
   {
     // Set the base URL for the request
     #ifdef HTTPS
@@ -125,6 +126,10 @@ namespace hackPSU {
     return req->commit();
   }
 
+  bool Network::connected(){
+    return WiFi.status() == WL_CONNECTED;
+  }
+
   API::Response Network::getApiKey() {
     beginRequest(API::POST, "/auth/scanner/register");
     addPayload("pin",String("change_me"));
@@ -149,6 +154,8 @@ namespace hackPSU {
 
   #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
   void Network::enableOTA(){
+    if(OTA_enabled) { return; }
+
     ArduinoOTA.setPort(8266);
     ArduinoOTA.setHostname(hostname);
     ArduinoOTA.setPassword((char*)OTA_PASSWORD);
@@ -186,6 +193,7 @@ namespace hackPSU {
     });
 
     ArduinoOTA.begin();
+    OTA_enabled = true;
 
   }
   void Network::handleOTA(){
