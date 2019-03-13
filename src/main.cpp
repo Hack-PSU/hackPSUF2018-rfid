@@ -15,7 +15,7 @@ void setup() {
   delay(2000);
   Serial.begin(9600);
   net = new Network(REDIS);
-  
+
   Serial.print("Trying to connect to ");
   Serial.println(NETWORK_SSID);
   Serial.println(NETWORK_PASSWORD);
@@ -57,7 +57,7 @@ void loop() {
 
   // Lookup user using new WID
   User widuser = net->userInfoFromWID(wid);
-  Serial.print("User name ");
+  Serial.print("User name: ");
   Serial.println(widuser.name);
 
   // Get locations
@@ -76,6 +76,6 @@ void loop() {
   Serial.println(validation.diet);
   Serial.println(validation.allow);
 
-  
+
   while(true){yield();}
 }

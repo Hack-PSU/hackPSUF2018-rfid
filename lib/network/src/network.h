@@ -71,7 +71,7 @@ namespace hackPSU {
     HTTPCode code;
 
     Response(String payload, int code): payload(payload), code(code) {}
-    
+
     operator bool() const{
       return bool(code);
     }
