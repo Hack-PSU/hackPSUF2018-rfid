@@ -3,11 +3,10 @@
 namespace hackPSU {
 
   //___________________________________________________________________ Request
-  Network::Request::Request(API::Method method, String host, String route) : 
-      header(bf_header.createObject()), 
+  Network::Request::Request(API::Method method, String host, String route) :
+      header(bf_header.createObject()),
       payload(bf_payload.createObject()),
-      method(method),
-      OTA_enabled(false)
+      method(method)
   {
     // Set the base URL for the request
     #ifdef HTTPS
@@ -43,7 +42,7 @@ namespace hackPSU {
     #else
       http.begin(url);
     #endif
-    
+
     // Set headers, if any, for request
     for(JsonPair& p: header){
       http.addHeader(p.key, p.value.as<char*>());
@@ -51,7 +50,7 @@ namespace hackPSU {
 
     String pld = "";
     payload.printTo(pld);
-    
+
     if(method == API::GET)       response->code = http.GET();
     else if(method == API::POST) response->code = http.POST(pld);
 
@@ -71,7 +70,7 @@ namespace hackPSU {
         if(data.is<JsonObject>(pair.key)){
           form.createNestedObject(pair.key);
           if( !parse(data.get<JsonObject>(pair.key), form.get<JsonObject>(pair.key)) ) { return false; }
-          
+
         } else if(data.is<JsonArray>(pair.key)){
           // TODO: deep copy of form[pair.key]
           form.createNestedArray(pair.key);
@@ -103,11 +102,15 @@ namespace hackPSU {
 
   //___________________________________________________________________ Network
 
-  Network::Network(String host): host(host) {
+  Network::Network(String host):
+    host(host),
+    OTA_enabled(false)
+  {
     req = nullptr;
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     hostname = "hackpsu_scanner";
   }
+
   bool Network::addPayload(String key, String value){
     return req->addPayload(key, value);
   }

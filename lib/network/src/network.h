@@ -38,7 +38,7 @@
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
 #else
   #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
-#endif 
+#endif
 
 namespace hackPSU {
 
@@ -87,11 +87,11 @@ namespace hackPSU {
       switch(code){
         case 401:
         case 404:
-        case 409: 
+        case 409:
             return API::FAIL;
-        case 200: 
+        case 200:
             return API::SUCCESS;
-        case 500: 
+        case 500:
             return API::TIMEOUT;
         default:
             return API::REDIS_DOWN;
@@ -144,7 +144,6 @@ namespace hackPSU {
         JsonObject& payload;
         String host;
 
-        bool OTA_enabled;
 
         bool parse(JsonObject& data, JsonObject& form);
 
@@ -165,6 +164,7 @@ namespace hackPSU {
       String apiKey;
       String host;
       char* hostname;
+      bool OTA_enabled;
 
   };
 }

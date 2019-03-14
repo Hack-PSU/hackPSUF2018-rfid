@@ -11,15 +11,15 @@ namespace hackPSU {
     row = 0;
     data[0] = "";
     data[1] = "";
-    
-    #ifdef LCD
+
+    #ifdef LCD_EN
       const uint8_t I2C_ADDRESSES[] = {0x27, 0x3f}; // list of possible addresses the LCD can have
       Wire.begin(/*SDA, SCL*/);
       for(uint8_t i : I2C_ADDRESSES){
         Wire.beginTransmission(i);
         if(Wire.endTransmission() == 0){
           lcd = new LiquidCrystal_I2C(i, 16, 2);
-          #ifdef SERIAL
+          #ifdef SERIAL_EN
             Serial.print("I2C LCD found at 0x" + String(i < 16 ? "0":""));
             Serial.println(i, HEX);
           #endif // ifdef SERIAL
@@ -40,10 +40,10 @@ namespace hackPSU {
       uint8_t backArrow[8] = {0x0, 0x4, 0x8, 0x1f, 0x9, 0x5, 0x0, 0x0};
       uint8_t lock[8] = {0xe, 0xa, 0x1f, 0x11, 0x1b, 0x1b, 0x1f, 0x0};
       uint8_t scroll[8] = {0x2, 0x1f, 0x2, 0x0, 0x8, 0x1f, 0x8, 0x0};
-      
+
       lcd->init();
       lcd->clear();
-      
+
       lcd->createChar(CHECK_C, check);
       lcd->home();
       lcd->createChar(UP_C, upArrow);
@@ -57,17 +57,17 @@ namespace hackPSU {
       lcd->createChar(LOCK_C, lock);
       lcd->home();
       lcd->createChar(SCROLL_C, scroll);
-      
+
       lcd->backlight();
       lcd->home();//custom characters only work with lcd->home for some reason
-    
+
     #endif // ifdef LCD
 
     #ifdef SERIAL_EN
       Serial.begin(BAUD_RATE);
       Serial.println("Started serial communication");
     #endif // ifdef SERIAL_EN
-      
+
   }
 
   Display::~Display(){
@@ -90,7 +90,7 @@ namespace hackPSU {
       Serial.println(data[row]);
     #endif // ifdef SERIAL_EN
   }
-  
+
   void Display::print(String msg){
     data[row] += msg;
     #ifdef LCD_EN
@@ -102,7 +102,7 @@ namespace hackPSU {
         lcd->print(msg);
       }
     #endif // ifdef SERIAL_EN
-  
+
     #ifdef SERIAL_EN
       Serial.println(msg);
     #endif // ifdef SEIRAL_EN
@@ -170,7 +170,7 @@ namespace hackPSU {
       }
     #endif // ifndef LCD
   }
-  
+
   void Display::print(Menu_item control){
     #ifndef LCD_EN
       return;
@@ -192,7 +192,7 @@ namespace hackPSU {
     #else
       String temp = data[row];
       temp += "    ";
-      
+
       if(temp.length() > 16) {
         for (unsigned int i = 0; i<=temp.length(); i++) {
             lcd->setCursor(0, row);
@@ -200,14 +200,14 @@ namespace hackPSU {
               lcd->print(temp.substring(0, 16));
             }
             else if(i + 15 >= temp.length()) {
-              lcd->print(temp.substring(i) + 
+              lcd->print(temp.substring(i) +
                         temp.substring(0, (i+16)-temp.length()));
-            } 
+            }
             else {
               lcd->print(temp.substring(i, i+16));
             }
 
-            
+
             //pause 1 second every 17 scrolls left
             if((i+16 < data[row].length() && (i+1)%17 == 0) || i + 16 == data[row].length()) {
               delay(1500);
@@ -261,4 +261,4 @@ namespace hackPSU {
 
 #ifdef printByte
 #undef printByte
-#endif 
+#endif
