@@ -13,5 +13,5 @@ PASSWORD=${PASSWORD//\'/\\\'}
 HASH=$(echo $PASSWORD | md5sum | awk '{print $1}')
 
 
-echo "-DOTA_PASSWORD=\\\"$PASSWORD\\\""
-echo "-DOTA_PASSWORD_HASH=\\\"$HASH\\\""
+echo "-D OTA_PASSWORD=\\\"$PASSWORD\\\""
+echo "-D OTA_PASSWORD_HASH=\\\"$HASH\\\""

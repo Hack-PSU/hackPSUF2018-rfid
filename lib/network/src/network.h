@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
+#include <EEPROM.h>
 
 #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
 #include <ESP8266mDNS.h>

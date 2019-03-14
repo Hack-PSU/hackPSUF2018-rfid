@@ -91,6 +91,11 @@ namespace hackPSU {
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     String h = "hackpsu_scanner";
     h.toCharArray(hostname, 16);
+    char apibuff[36];
+    EEPROM.begin(36);
+    EEPROM.get(0, apibuff);
+    apiKey = String(apibuff);
+    Serial.println(apiKey);
   }
 
 
@@ -124,6 +129,11 @@ namespace hackPSU {
 
       JsonObject& data = response.get<JsonObject>("data");
       apiKey = data.get<String>("apikey");
+      char apibuff[36];
+      apiKey.toCharArray(apibuff, 36);
+      EEPROM.put(0, apibuff);
+      EEPROM.commit();
+      Serial.println(apibuff);
       #ifdef DEBUG
         Serial.println(apiKey);
       #endif
@@ -151,7 +161,7 @@ namespace hackPSU {
     }
     #ifdef DEBUG
       Serial.print("Response Code: ");
-      Serial.println(String(registerScanner->code));
+      Serial.println(registerScanner->code.toString());
     #endif
     return user;
   }
@@ -164,7 +174,7 @@ namespace hackPSU {
     Response* registerScanner = commit();
     #ifdef DEBUG
       Serial.print("Response Code: ");
-      Serial.println(String(registerScanner->code));
+      Serial.println(registerScanner->code.toString());
     #endif
     return registerScanner->code;
   }
@@ -180,9 +190,9 @@ namespace hackPSU {
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH) {
-        type = "sketch";
+          type = "sketch";
         } else { // U_SPIFFS
-        type = "filesystem";
+          type = "filesystem";
         }
 
         // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
@@ -235,7 +245,7 @@ namespace hackPSU {
     }
     #ifdef DEBUG
       Serial.print("Response Code: ");
-      Serial.println(String(registerScanner->code));
+      Serial.println(registerScanner->code.toString());
     #endif
     return user;
   }
@@ -260,7 +270,7 @@ namespace hackPSU {
       //TODO: clean this up
       #ifdef DEBUG
         Serial.print("Response Code: ");
-        Serial.println(String(registerScanner->code));
+        Serial.println(registerScanner->code.toString());
       #endif
       Locations loc = {.data = locations, .length = length};
       return loc;
@@ -269,7 +279,7 @@ namespace hackPSU {
 
     #ifdef DEBUG
       Serial.print("Response Code: ");
-      Serial.println(String(registerScanner->code));
+      Serial.println(registerScanner->code.toString());
     #endif
     Locations loc = {.data = nullptr, .length = 0};
     return loc;
@@ -296,7 +306,7 @@ namespace hackPSU {
 
     #ifdef DEBUG
       Serial.print("Response Code: ");
-      Serial.println(String(registerScanner->code));
+      Serial.println(registerScanner->code.toString());
     #endif
     return user;
   }
