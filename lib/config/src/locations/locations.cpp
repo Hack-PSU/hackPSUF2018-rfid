@@ -6,7 +6,6 @@ namespace hackPSU{
     Location::Location(String name, uint32_t id){
         this->name = name;
         this->id = id;
-        next = previous = nullptr;
     }
     Location::~Location(){
     }
@@ -19,15 +18,14 @@ namespace hackPSU{
     }
 
     Locations::~Locations(){
-        Serial.println("Deleting locations");
-        while(current != nullptr){
-            Serial.println("Deleting " + current->name);
+        while(length-- > 0) {
+        //for(int i = 0; i < length && current != nullptr; ++i){
+            Serial.println("Deleting Location: " + current->name);
             Location* tmp = current;
-            current->previous->next = current->next;
-            current = current->next;
+            next();
             delete tmp;
+            tmp = nullptr;
         }
-
     }
 
     void Locations::addLocation(Location loc){
@@ -43,24 +41,26 @@ namespace hackPSU{
             head->previous->next = insert;
             head->previous = insert;
         }
+        Serial.println("Successfully added location: "+ loc.name);
+        Serial.println("Current locatin: " + current->name);
     }
 
     int Locations::numLocations(){
         return length;
     }
 
-    Location Locations::getCurrent(){
-        return *current;
+    Location* Locations::getCurrent(){
+        return current;
     }
 
-    Location Locations::next(){
+    Location* Locations::next(){
         current = current->next;
-        return *current;
+        return current;
     }
 
-    Location Locations::previous(){
+    Location* Locations::previous(){
         current = current->previous;
-        return *current;
+        return current;
     }
 
 

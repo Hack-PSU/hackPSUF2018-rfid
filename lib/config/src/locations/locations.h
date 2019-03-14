@@ -23,9 +23,9 @@ namespace hackPSU{
         ~Locations();
         void addLocation(Location);
         int numLocations();
-        Location getCurrent();
-        Location next();
-        Location previous();
+        Location* getCurrent();
+        Location* next();
+        Location* previous();
     private:
         Location* current;
         Location* head;

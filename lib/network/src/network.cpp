@@ -91,7 +91,7 @@ namespace hackPSU {
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     String h = "hackpsu_scanner";
     h.toCharArray(hostname, 16);
-    
+
     // Get API key from memory
     char apibuff[36];
     EEPROM.begin(36);
@@ -126,7 +126,6 @@ namespace hackPSU {
 
     Response* registerScanner = commit();
 
-
     if(bool(*registerScanner)){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
@@ -145,7 +144,11 @@ namespace hackPSU {
         Serial.println(apibuff);
       #endif
 
+    } else {
+      Serial.println("Failed updating API key");
+      Serial.println(registerScanner->code.toString());
     }
+    Serial.println("Using apikey: " + apiKey);
     return registerScanner->code;
   }
 
@@ -262,33 +265,30 @@ namespace hackPSU {
     return req->commit();
   }
 
-  Locations Network::getEvents() {
+  Locations* Network::getEvents() {
     createRequest(API::GET, "/rfid/events");
     Response* registerScanner = commit();
-    Locations list;
+    Locations* list = new Locations();
     if(*registerScanner){
+      Serial.println("Received list");
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
       int length = response.get<int>("length");
+      //Serial.println("Found "+String(length)+" events");
       JsonArray& jsonLoc = response.get<JsonArray>("locations");
 
       for(int i = 0; i < length; i++){
+        //Serial.println("Adding evetn: " + String(jsonLoc[i]["event_title"].asString()));
         Location tmp(jsonLoc[i]["event_title"], jsonLoc[i]["event_location"]);
-        list.addLocation(tmp);
+        list->addLocation(tmp);
       }
-
-      //TODO: clean this up
-      #ifdef DEBUG
-        Location test("sample event", 5);
-        list.addLocation(test);
-        Serial.print("Response Code: ");
-        Serial.println(registerScanner->code.toString());
-      #endif
-      return list;
-
+    } else {
+      Serial.println("Failed");
     }
-
     #ifdef DEBUG
+      Location tmp("testing", 9);
+      list->addLocation(tmp);
+      Serial.println("Current item: " + list->getCurrent()->name);
       Serial.print("Response Code: ");
       Serial.println(registerScanner->code.toString());
     #endif

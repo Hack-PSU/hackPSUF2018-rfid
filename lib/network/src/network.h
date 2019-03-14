@@ -56,6 +56,7 @@ namespace hackPSU {
     HTTPCode(int code): code(code) {}
 
     String toString() {
+      Serial.print("HTTP code: " + String(code));
       switch(code){
         // List of known/common http codes:
         case 200: return F("Success");
@@ -133,7 +134,7 @@ namespace hackPSU {
       User getDataFromPin(int pin);
       HTTPCode assignUserWID(int pin, String wid);
       User userInfoFromWID(String wid);
-      Locations getEvents();
+      Locations* getEvents();
       User sendScan(String wid, int loc);
 
       Response* commit();

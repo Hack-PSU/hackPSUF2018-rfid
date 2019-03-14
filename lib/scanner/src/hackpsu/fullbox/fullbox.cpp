@@ -10,9 +10,9 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   http    = new Network(REDIS);
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
+  location_list = new Locations();
   // Set default values
   menu_state = 0;
-  location_state = 0;
   strength = UNDEFINED;
   state = LOCK;
   last_scan = 0;
@@ -24,9 +24,14 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
 
-  // TODO: check for OUTDATED return from getAPIKey
-  while(http->getApiKey(0)){
+  if(http->getApiKey(7331)){
     yield();
+    display->print("Enter pin: ", 0);
+    String pin = keypad->getPin(4, '*', '#', 10000);
+    http->getApiKey(pin.toInt());
+    yield();
+  } else {
+    Serial.println("Successfully got API key");
   }
   display->clear();
 }
@@ -92,6 +97,7 @@ void Box::lock(){
       delay(1000);
       state = MENU;
     #endif
+
 }
 
 void Box::menu() {
@@ -209,10 +215,10 @@ void Box::location(){
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      location_list.next();
+      location_list->next();
       return;
     case 'B':
-      location_list.previous();
+      location_list->previous();
       return;
     case 'C':
        display->scroll();
@@ -222,20 +228,24 @@ void Box::location(){
       state = MENU;
       return;
     case '#':
-      lid = location_list.getCurrent().id;
-      location_name = location_list.getCurrent().name;
+      lid = location_list->getCurrent()->id;
+      location_name = location_list->getCurrent()->name;
       location_cleanup();
       state = SCAN;
       return;
     default:
-      if (location_list == nullptr) {
+      if (location_list->numLocations()  == 0) {
         display->print("Updating list", 1);
 
+        delete location_list;
         location_list = http->getEvents();
+        Serial.println("Updated list");
+        Serial.println("There are " + String(location_list->numLocations() + " locations"));
+        Serial.println("Current itme: " + location_list->getCurrent()->name);
       }
 
-      if(location_list.numLocations() > 0){
-        display->print(location_list.getCurrent().name.c_str(), 1);
+      if(location_list->numLocations() > 0){
+        display->print(location_list->getCurrent()->name, 1);
       } else {
         display->print("No locations found", 1);
         delay(2000);
