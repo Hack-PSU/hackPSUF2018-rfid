@@ -58,15 +58,15 @@ namespace hackPSU {
       http.addHeader(p.key, p.value.as<char*>());
     }
 
-    int code;
+    int tmpcode;
     if(method == API::GET) {
-      code = http.GET();
+      tmpcode = http.GET();
     } else if(method == API::POST) {
       String pld = "";
       payload.printTo(pld);
-      code = http.POST(pld);
+      tmpcode = http.POST(pld);
     }
-    response = new Response(http.getString(),code);
+    response = new Response(http.getString(), tmpcode);
     // Terminate HTTP request
     http.end();
     return response;
@@ -95,6 +95,7 @@ namespace hackPSU {
     EEPROM.begin(36);
     EEPROM.get(0, apibuff);
     apiKey = String(apibuff);
+    Serial.print("APIKEY (constructor): ");
     Serial.println(apiKey);
   }
 
@@ -129,13 +130,16 @@ namespace hackPSU {
 
       JsonObject& data = response.get<JsonObject>("data");
       apiKey = data.get<String>("apikey");
+      Serial.println(apiKey);
       char apibuff[36];
-      apiKey.toCharArray(apibuff, 36);
+      apiKey.toCharArray(apibuff, 37);
       EEPROM.put(0, apibuff);
       EEPROM.commit();
       Serial.println(apibuff);
       #ifdef DEBUG
-        Serial.println(apiKey);
+        EEPROM.get(0, apibuff);
+        Serial.print("APIBUFF (getpin): ");
+        Serial.println(apibuff);
       #endif
 
     }
@@ -258,22 +262,26 @@ namespace hackPSU {
   Locations Network::getEvents() {
     createRequest(API::GET, "/rfid/events");
     Response* registerScanner = commit();
+    Locations list;
     if(*registerScanner){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
       int length = response.get<int>("length");
       JsonArray& jsonLoc = response.get<JsonArray>("locations");
-      Location *locations = new Location[length];
+
       for(int i = 0; i < length; i++){
-        locations[i] = {.name = jsonLoc[i]["event_title"], .id = jsonLoc[i]["event_location"]};
+        Location tmp(jsonLoc[i]["event_title"], jsonLoc[i]["event_location"]);
+        list.addLocation(tmp);
       }
+
       //TODO: clean this up
       #ifdef DEBUG
+        Location test("sample event", 5);
+        list.addLocation(test);
         Serial.print("Response Code: ");
         Serial.println(registerScanner->code.toString());
       #endif
-      Locations loc = {.data = locations, .length = length};
-      return loc;
+      return list;
 
     }
 
@@ -281,8 +289,7 @@ namespace hackPSU {
       Serial.print("Response Code: ");
       Serial.println(registerScanner->code.toString());
     #endif
-    Locations loc = {.data = nullptr, .length = 0};
-    return loc;
+    return list;
   }
 
   User Network::sendScan(String wid, int loc) {

@@ -1,5 +1,6 @@
-#ifndef CONFIG__H
-#define CONFIG__H
+#pragma once
+
+#include "locations/locations.h"
 
 #define MASTER_KEY "GET_REKT"
 #define API_VERSION "v1.0"
@@ -39,6 +40,7 @@
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
 #endif
 
+#include <locations/locations.h>
 
 namespace hackPSU{
   //#define  HTTPS
@@ -49,17 +51,6 @@ namespace hackPSU{
     constexpr uint8_t FP[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
   #endif
 
-  //TODO: properly delete or make class to delete properly
-  typedef struct{
-    String name;
-    uint32_t id;
-  } Location;
-
-  // TODO: Fix memory leak here!
-  typedef struct{
-    Location* data;
-    int length;
-  } Locations;
 
   //TODO: move the User and Location structs to a better location where its accessible by all classes
   typedef struct {
@@ -70,5 +61,3 @@ namespace hackPSU{
   } User;
 
 }
-
-#endif
