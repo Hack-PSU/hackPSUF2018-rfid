@@ -209,11 +209,10 @@ void Box::location(){
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      location_state++;
-      location_state %= num_locations;
+      location_list.next();
       return;
     case 'B':
-      location_state = (num_locations + location_state - 1) % num_locations;
+      location_list.previous();
       return;
     case 'C':
        display->scroll();
@@ -223,8 +222,8 @@ void Box::location(){
       state = MENU;
       return;
     case '#':
-      lid = location_list[location_state].id;
-      location_name = location_list[location_state].name;
+      lid = location_list.getCurrent().id;
+      location_name = location_list.getCurrent().name;
       location_cleanup();
       state = SCAN;
       return;
@@ -232,25 +231,11 @@ void Box::location(){
       if (location_list == nullptr) {
         display->print("Updating list", 1);
 
-        MAKE_BUFFER(1, 20) bf_location; // supports up to 20 locations
-        JsonObject& locations = bf_location.createObject();
-        locations.createNestedArray("locations");
-
-        //http->getLocations(locations);
-        //#error Handle getLocations
-        JsonArray& locs = locations["locations"];
-
-        num_locations = locations["locations"].size();
-        location_list = new Location[num_locations];
-        int count = 0;
-        for(int i=0; i < locs.size(); i++){
-          location_list[i] = {.name = locs[i]["location_name"].as<String>(), .id = locs[i]["uid"].as<uint32_t>()};
-        }
-        location_state = 0;
+        location_list = http->getEvents();
       }
 
-      if(num_locations > 0){
-        display->print(location_list[location_state].name.c_str(), 1);
+      if(location_list.numLocations() > 0){
+        display->print(location_list.getCurrent().name.c_str(), 1);
       } else {
         display->print("No locations found", 1);
         delay(2000);
@@ -261,12 +246,6 @@ void Box::location(){
 }
 
 void Box::location_cleanup(){
-  if(location_list != nullptr){
-    delete location_list;
-    location_list = nullptr;
-  }
-  num_locations = 0;
-  location_state = 0;
   display->clear();
 }
 

@@ -22,9 +22,7 @@ namespace hackPSU{
 
   class Box{
     private:
-      Location* location_list;
-      int num_locations;
-      int location_state;
+      Locations location_list;
       String location_name;
       
       State_e state;
