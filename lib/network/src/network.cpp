@@ -91,12 +91,12 @@ namespace hackPSU {
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     String h = "hackpsu_scanner";
     h.toCharArray(hostname, 16);
+    
+    // Get API key from memory
     char apibuff[36];
     EEPROM.begin(36);
     EEPROM.get(0, apibuff);
     apiKey = String(apibuff);
-    Serial.print("APIKEY (constructor): ");
-    Serial.println(apiKey);
   }
 
 
@@ -117,6 +117,9 @@ namespace hackPSU {
   }
 
   HTTPCode Network::getApiKey(int pin) {
+
+    // TODO: add api key check here
+
     createRequest(API::POST, "/auth/scanner/register");
     addPayload("pin",String(pin));
     addPayload("version", API_VERSION);

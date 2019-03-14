@@ -19,11 +19,15 @@ namespace hackPSU{
     }
 
     Locations::~Locations(){
+        Serial.println("Deleting locations");
         while(current != nullptr){
+            Serial.println("Deleting " + current->name);
             Location* tmp = current;
+            current->previous->next = current->next;
             current = current->next;
             delete tmp;
         }
+
     }
 
     void Locations::addLocation(Location loc){
