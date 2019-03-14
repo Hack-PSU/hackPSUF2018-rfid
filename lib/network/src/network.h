@@ -44,24 +44,24 @@ namespace hackPSU {
 
   namespace API{
     typedef enum {
-      SUCCESS, FAIL, TIMEOUT, REDIS_DOWN, OUTDATED
-    } Response;
-
-    typedef enum {
       GET, POST
     } Method;
   }
 
-  typedef struct Response {
-    String payload;
+  class HTTPCode{
+  private:
     int code;
+  public:
+    HTTPCode(int code): code(code) {}
 
-    operator String() const{
+    String toString() {
       switch(code){
         // List of known/common http codes:
         case 200: return F("Success");
         case 401: return F("Unauthorized");
         case 404: return F("Not Found");
+        case 409: return F("Wristband Tag already opened");
+        case 417: return F("Resource lost");
         case 500: return F("Internal Server Error");
         case -1:  return F("HTTPC_ERROR_CONNECTION_REFUSED");
         case -2:  return F("HTTPC_ERROR_SEND_HEADER_FAILED");
@@ -77,32 +77,33 @@ namespace hackPSU {
         default:
           if(code >= 500) return "Server error - " + String(code);
           if(code >= 400) return "Client error - " + String(code);
-          if(code >= 300) return "Redirectio - n" + String(code);
+          if(code >= 300) return "Redirection - " + String(code);
           if(code >= 200) return "Success - " + String(code);
           if(code >= 100) return "Informational response - " + String(code);
           return "Unknown code - " + String(code);
       }
     }
-    operator API::Response() const{
-      switch(code){
-        case 401:
-        case 404:
-        case 409:
-            return API::FAIL;
-        case 200:
-            return API::SUCCESS;
-        case 500:
-            return API::TIMEOUT;
-        default:
-            return API::REDIS_DOWN;
-      }
+    operator int() const{
+      return code;
     }
-    operator bool() const {
-      return code >= 200 && code < 300;
+    operator bool() const{
+      return code >=200 && code < 300;
     }
-  } Response;
 
+  };
 
+  class Response{
+  public:
+    String payload;
+    HTTPCode code;
+
+    Response(String payload, int code): payload(payload), code(code) {}
+
+    operator bool() const{
+      return bool(code);
+    }
+
+  };
 
   /**
    * Only one Request per HTTP request
@@ -112,14 +113,8 @@ namespace hackPSU {
   class Network{
     public:
       Network(String host);
-      void beginRequest(API::Method method, String route);
-
+      void createRequest(API::Method method, String route);
       Response* completeRequest();
-
-      bool addPayload(String key, String value);
-      bool addHeader(String key, String value);
-
-      API::Response getApiKey();
 
       bool connected();
       #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
@@ -128,7 +123,27 @@ namespace hackPSU {
       #endif
 
 
+      bool addPayload(String key, String value);
+      bool addHeader(String key, String value);
+      bool addParameter(String key, String value);
+
+
+      HTTPCode getApiKey(int pin);
+      User getDataFromPin(int pin);
+      HTTPCode assignUserWID(int pin, String wid);
+      User userInfoFromWID(String wid);
+      Locations getEvents();
+      User sendScan(String wid, int loc);
+
+      Response* commit();
+
+
     private:
+      String apiKey;
+      String host;
+      bool OTA_enabled;
+      char hostname[16];
+
       class Request{
       friend class Network;
       private:
@@ -143,6 +158,7 @@ namespace hackPSU {
         JsonObject& header;
         JsonObject& payload;
         String host;
+        String parameter;
 
 
         bool parse(JsonObject& data, JsonObject& form);
@@ -150,8 +166,10 @@ namespace hackPSU {
       public:
         Request(API::Method method, String host, String route = "/");
         ~Request();
+
         bool addPayload(String key, String value);
         bool addHeader(String key, String value);
+        bool addParameter(String key, String value);
 
         Response* getResponse() { return response; }
 
@@ -161,10 +179,5 @@ namespace hackPSU {
 
       };
       Request* req;
-      String apiKey;
-      String host;
-      char* hostname;
-      bool OTA_enabled;
-
   };
 }

@@ -14,7 +14,7 @@
 
 // LCD Pins (I2C pins)
 #define LCD_SCL  D1
-#define LCD_SDA  D2         
+#define LCD_SDA  D2
 
 // Keypad pins
 #define KPD_SRC  A0
@@ -30,25 +30,44 @@
 #define LCD_EN
 #define SERIAL_EN
 
-#if defined(DYNAMIC_BUFFER)
-  #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
-#else
+//#define STATIC
+#define DYNAMIC
+
+#if defined(STATIC)
   #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
-#endif 
+#elif defined(DYNAMIC)
+  #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
+#endif
 
 
 namespace hackPSU{
   //#define  HTTPS
   
   // SHA1 fingerprint of the certificate
+
   #ifdef HTTPS
     constexpr uint8_t FP[20] = {0xAD, 0x0E, 0xA5, 0xF9, 0xAB, 0x6A, 0xEF, 0xB1, 0x25, 0x3A, 0xA4, 0x47, 0x3D, 0xA5, 0x75, 0x1A, 0xE9, 0x8C, 0xA7, 0xB5};
   #endif
 
+  //TODO: properly delete or make class to delete properly
   typedef struct{
     String name;
     uint32_t id;
   } Location;
+
+  // TODO: Fix memory leak here!
+  typedef struct{
+    Location* data;
+    int length;
+  } Locations;
+
+  //TODO: move the User and Location structs to a better location where its accessible by all classes
+  typedef struct {
+    String name;
+    String shirtSize;
+    String diet;
+    bool allow;
+  } User;
 
 }
 

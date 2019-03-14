@@ -8,23 +8,28 @@ namespace hackPSU {
       payload(bf_payload.createObject()),
       method(method)
   {
+    #ifdef DEBUG
+      Serial.println(host + route);
+    #endif
     // Set the base URL for the request
     #ifdef HTTPS
       url = "https://" + host + route;
     #else
-      url = "http://"  + host + route;
+      url = "http://" + host + route;
     #endif
-
+    #ifdef DEBUG
+      Serial.print("THE URL is: ");
+      Serial.println(url);
+    #endif
     addHeader("Content-Type", "application/json");
     addHeader("macaddr", WiFi.macAddress());
-    //addPayload("version", API_VERSION);
+    addPayload("version", API_VERSION);
 
-
-    response = new Response();
+    response = nullptr;
   }
 
   Network::Request::~Request(){
-    delete response;
+    if(response != nullptr) delete response;
   }
 
   bool Network::Request::addPayload(String key, String value){
@@ -34,125 +39,134 @@ namespace hackPSU {
     return header.set(key, value);
   }
 
+  bool Network::Request::addParameter(String key, String value){
+    parameter += (parameter.length() == 0 ? '?' : '&') + key + "=" + value;
+    return true;
+  }
+
   Response* Network::Request::commit() {
     // Begin HTTP request
     #ifdef HTTPS
       //http.begin(HOST, PORT, url, true, FP);
-      http.begin(url, FP);
+      http.begin(url + parameter, FP);
     #else
-      http.begin(url);
+      http.begin(url + parameter);
     #endif
-
+    
     // Set headers, if any, for request
     for(JsonPair& p: header){
       http.addHeader(p.key, p.value.as<char*>());
     }
 
-    String pld = "";
-    payload.printTo(pld);
-
-    if(method == API::GET)       response->code = http.GET();
-    else if(method == API::POST) response->code = http.POST(pld);
-
-    response->payload = http.getString();
-
+    int code;
+    if(method == API::GET) {
+      code = http.GET();
+    } else if(method == API::POST) {
+      String pld = "";
+      payload.printTo(pld);
+      code = http.POST(pld);
+    }
+    response = new Response(http.getString(),code);
     // Terminate HTTP request
     http.end();
-
     return response;
   }
 
-  bool Network::Request::parse(JsonObject& data, JsonObject& form){
-    /*
-    for (const JsonPair& pair : form) {
-      if(data.containsKey(pair.key)){
-        Serial.print("Key, " + String(pair.key));
-        if(data.is<JsonObject>(pair.key)){
-          form.createNestedObject(pair.key);
-          if( !parse(data.get<JsonObject>(pair.key), form.get<JsonObject>(pair.key)) ) { return false; }
-
-        } else if(data.is<JsonArray>(pair.key)){
-          // TODO: deep copy of form[pair.key]
-          form.createNestedArray(pair.key);
-          int count = 0;
-          for(JsonObject& item : data[pair.key]){
-            // [ {'a':'A'}, {'b':'B'}]
-          }
-
-          // Decide how to handle this
-          // JsonArray.add(value)
-          ;
-        } else if(data.is<char*>(pair.key)){
-          if(!form.set(pair.key, data.get<String>(pair.key))) { return false; };
-        } else if(data.is<int>(pair.key)){
-          if(!form.set(pair.key, data.get<int>(pair.key))) { return false; };
-        } else if(data.is<float>(pair.key)){
-          if(!form.set(pair.key, data.get<float>(pair.key))) { return false; };
-        } else if(data.is<bool>(pair.key)){
-          if(!form.set(pair.key, data.get<bool>(pair.key))) { return false; };
-        } else {
-          Serial.println(", is an unknown type" + data.get<String>(pair.key));
-          return false;
-        }
-      }
-    }
-    //*/
-    return true;
+  bool Network::addHeader(String key, String value){
+    return req->addHeader(key, value);
+  }
+  bool Network::addPayload(String key, String value){
+    return req->addPayload(key, value);
+  }
+  bool Network::addParameter(String key, String value){
+    return req->addParameter(key, value);
   }
 
   //___________________________________________________________________ Network
 
-  Network::Network(String host):
-    host(host),
-    OTA_enabled(false)
-  {
+  Network::Network(String host) {
+    this->host = host;
+    OTA_enabled = false;
     req = nullptr;
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
-    hostname = "hackpsu_scanner";
-  }
-
-  bool Network::addPayload(String key, String value){
-    return req->addPayload(key, value);
-  }
-  bool Network::addHeader(String key, String value){
-    return req->addHeader(key, value);
+    String h = "hackpsu_scanner";
+    h.toCharArray(hostname, 16);
   }
 
 
-  void Network::beginRequest(API::Method method, String route){
+  void Network::createRequest(API::Method method, String route){
+    if(req != nullptr) delete req;
+    req = nullptr;
     req = new Request(method, host, route);
   }
 
   Response* Network::completeRequest(){
     if( req == nullptr) return nullptr;
 
-    return req->commit();
+    return commit();
   }
 
   bool Network::connected(){
     return WiFi.status() == WL_CONNECTED;
   }
 
-  API::Response Network::getApiKey() {
-    beginRequest(API::POST, "/auth/scanner/register");
-    addPayload("pin",String("change_me"));
-    //addPayload("version", API_VERSION);
+  HTTPCode Network::getApiKey(int pin) {
+    createRequest(API::POST, "/auth/scanner/register");
+    addPayload("pin",String(pin));
+    addPayload("version", API_VERSION);
 
-    Response* registerScanner = req->commit();
+    Response* registerScanner = commit();
 
-    API::Response res;
-    if(registerScanner->code == 200){
-      MAKE_BUFFER(75, 25) bf_data;
-      JsonObject& body = bf_data.parseObject(registerScanner->payload);
 
-      apiKey = body["data"]["apikey"].as<String>();
-      res = apiKey == "" ? API::FAIL : API::SUCCESS;
-    } else {
-      res = static_cast<API::Response>(registerScanner->code);
+    if(bool(*registerScanner)){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+
+      JsonObject& data = response.get<JsonObject>("data");
+      apiKey = data.get<String>("apikey");
+      #ifdef DEBUG
+        Serial.println(apiKey);
+      #endif
+
     }
+    return registerScanner->code;
+  }
 
-    delete registerScanner;
-    return res;
+  User Network::getDataFromPin(int pin) {
+    createRequest(API::POST, "/rfid/getpin");
+    addPayload("pin", String(pin));
+    addPayload("version", API_VERSION);
+    addPayload("apikey", apiKey);
+    Response* registerScanner = commit();
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    if(bool(*registerScanner)){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      JsonObject& data = response.get<JsonObject>("data");
+      user.name = data.get<String>("name");
+      user.shirtSize = data.get<String>("shirtSize");
+      user.diet = data.get<String>("diet");
+      user.allow = true;
+
+    }
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(String(registerScanner->code));
+    #endif
+    return user;
+  }
+
+  HTTPCode Network::assignUserWID(int pin, String wid) {
+    createRequest(API::POST, "/rfid/assign");
+    addPayload("pin", String(pin));
+    addPayload("wid", wid);
+    addPayload("apikey", apiKey);
+    Response* registerScanner = commit();
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(String(registerScanner->code));
+    #endif
+    return registerScanner->code;
   }
 
   #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
@@ -203,4 +217,88 @@ namespace hackPSU {
     ArduinoOTA.handle();
   }
   #endif
+  User Network::userInfoFromWID(String wid) {
+    createRequest(API::GET, "/rfid/user-info");
+    addParameter("wid", wid);
+    addParameter("apikey", apiKey);
+    Response* registerScanner = commit();
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    if(*registerScanner){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      JsonObject& data = response.get<JsonObject>("data");
+      user.name = data.get<String>("name");
+      user.shirtSize = data.get<String>("shirtSize");
+      user.diet = data.get<String>("diet");
+      user.allow = true;
+
+    }
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(String(registerScanner->code));
+    #endif
+    return user;
+  }
+
+
+  Response* Network::commit(){
+    return req->commit();
+  }
+
+  Locations Network::getEvents() {
+    createRequest(API::GET, "/rfid/events");
+    Response* registerScanner = commit();
+    if(*registerScanner){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      int length = response.get<int>("length");
+      JsonArray& jsonLoc = response.get<JsonArray>("locations");
+      Location *locations = new Location[length];
+      for(int i = 0; i < length; i++){
+        locations[i] = {.name = jsonLoc[i]["event_title"], .id = jsonLoc[i]["event_location"]};
+      }
+      //TODO: clean this up
+      #ifdef DEBUG
+        Serial.print("Response Code: ");
+        Serial.println(String(registerScanner->code));
+      #endif
+      Locations loc = {.data = locations, .length = length};
+      return loc;
+
+    }
+
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(String(registerScanner->code));
+    #endif
+    Locations loc = {.data = nullptr, .length = 0};
+    return loc;
+  }
+
+  User Network::sendScan(String wid, int loc) {
+    createRequest(API::POST, "/rfid/scan");
+    addPayload("wid", wid);
+    addPayload("location", String(loc));
+    addPayload("apikey", apiKey);
+    Response* registerScanner = commit();
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    if(*registerScanner){
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      JsonObject& data = response.get<JsonObject>("data");
+
+      user.name = data.get<String>("name");
+      user.shirtSize = data.get<String>("shirtSize");
+      user.diet = data.get<String>("diet");
+      user.allow = !(data.get<bool>("isRepeat"));
+
+    }
+
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(String(registerScanner->code));
+    #endif
+    return user;
+  }
+
 }

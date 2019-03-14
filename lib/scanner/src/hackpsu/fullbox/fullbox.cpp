@@ -25,7 +25,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   display->print("Fetching API key", 1);
 
   // TODO: check for OUTDATED return from getAPIKey
-  while(http->getApiKey() != API::SUCCESS){
+  while(http->getApiKey(0)){
     yield();
   }
   display->clear();
@@ -318,7 +318,6 @@ void Box::checkin() {
   String pin;
   char keypress;
   uint32_t uid;
-  API::Response responseCode;
 
   display->print("Enter pin: ", 1);
   pin = keypad->getPin(6, '*', '#', 10000);
