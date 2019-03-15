@@ -17,6 +17,8 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   state = LOCK;
   last_scan = 0;
 
+  OTA_enabled = false;
+
   display->print("WiFi connecting", 0);
   while(WiFi.status() != WL_CONNECTED)
     yield();
@@ -24,12 +26,18 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
 
-  if(http->getApiKey(7331)){
-    yield();
-    display->print("Enter pin: ", 0);
-    String pin = keypad->getPin(4, '*', '#', 10000);
-    http->getApiKey(pin.toInt());
-    yield();
+
+  if(!http->checkApiKey()){
+    display->clear();
+    display->print("Enter API pin: ", 0);
+    while(true) {
+      display->clear(1);
+      String pin = keypad->getPin(10, '*', '#', 10000);
+      if(pin != "timeout" && http->getApiKey(pin.toInt())){
+        break;
+      }
+      yield();
+    }
   } else {
     Serial.println("Successfully got API key");
   }
@@ -72,6 +80,9 @@ void Box::cycle(void) {
       return;
     case GETUID:
       getuid();
+      return;
+    case UPDATE:
+      update();
       return;
     default:
       state = LOCK;
@@ -125,6 +136,9 @@ void Box::menu() {
     case 6:
       display->print("Lock", 1);
       break;
+    case 7:
+      display->print("OTA update", 1);
+      break;
     default:
       menu_state = 0;
       state = LOCK;
@@ -173,6 +187,10 @@ void Box::menu() {
       state = LOCK;
       menu_cleanup();
       break;
+    case '8':
+      state = UPDATE;
+      menu_cleanup();
+      break;
     case '#':
       switch(menu_state){
         case 0:
@@ -195,6 +213,9 @@ void Box::menu() {
           break;
         case 6:
           state = LOCK;
+          break;
+        case 7:
+          state = UPDATE;
           break;
         default:
           state = LOCK;
@@ -239,9 +260,6 @@ void Box::location(){
 
         delete location_list;
         location_list = http->getEvents();
-        Serial.println("Updated list");
-        Serial.println("There are " + String(location_list->numLocations() + " locations"));
-        Serial.println("Current itme: " + location_list->getCurrent()->name);
       }
 
       if(location_list->numLocations() > 0){
@@ -281,15 +299,13 @@ void Box::scan() {
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
-        MAKE_BUFFER(2, 0) bf_scan;
-        JsonObject& scanData = bf_scan.createObject();
-        scanData.set("isRepeat", false);
-        scanData.set("status", "something");
-        /*if (http->entryScan(itoa(lid, lid_buffer, 10), itoa(uid, uid_buffer, 10), scanData)) {
+        User data = http->sendScan(String(uid), lid);
+        if (data.allow) {
           display->print("Allow", 1);
+          display->toggleDisplay();
         } else {
           display->print("Deny", 1);
-        }*/
+        }
         //#error Handle entryScan
         delay(750);
         last_scan = uid;
@@ -331,25 +347,15 @@ void Box::checkin() {
       return;
   }
 
-  MAKE_BUFFER(5, 0) bf_checkin;
-  JsonObject& checkin = bf_checkin.createObject();
-  checkin.set("name","");
-  checkin.set("uid", "");
-  checkin.set("shirtSize", "");
-  checkin.set("diet", "");
-  checkin.set("counter", "");
-  checkin.set("numScans", "");
-
-  /*responseCode = http->getDataFromPin(pin, checkin);
-  if (responseCode != API::SUCCESS){
+  User data = http->getDataFromPin(pin.toInt());
+  if (!data.allow){
     display->print("Invalid pin", 1);
     delay(2000);
     return;
-  }*/
-  //#error Handle getDataFromPin
+  }
 
   display->print("Validate name:", 0);
-  display->print(checkin["name"].as<String>(), 1);
+  display->print(data.name, 1);
 
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
@@ -381,33 +387,14 @@ void Box::checkin() {
 
         JsonObject& assign = bf_assign.createObject();
 
-        /*switch(http->assignRfidToUser(String(uid), pin, assign)){
-          case API::SUCCESS:
-            break;
-          case API::FAIL:
-            display->print("Multi-assignment",1);
-            delay(2000);
-            uid = 0;
-            break;
-          case API::TIMEOUT:
-          case API::REDIS_DOWN:
-            if( WiFi.status() == WL_CONNECTED) {
-              display->print("Redis Error", 1);
-            } else {
-              display->print("Network Error", 1);
-            }
-            delay(2000);
-            uid = 0;
-            break;
-        } */
-        //#error Handle assignRfidToUser
+        http->assignUserWID(pin.toInt(), String(uid));
       }
     }
     keypress = keypad->getUniqueKey(1200);
   } while (!uid);
 
   display->print("Shirt Size: ", 0);
-  display->print(checkin["shirtSize"].as<String>());
+  display->print(data.shirtSize);
 
   display->print("Photo consent?",1);
 
@@ -557,8 +544,7 @@ void Box::getuid(){
   display->print('#', CHECK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   display->print("Scan for UID", 1);
 
-  uint32_t uid;
-  char read_buffer[READ_BUFFER+2] = "0x";
+  byte read_buffer[READ_BUFFER] = {0};
 
   switch(keypad->getUniqueKey(2000)){
     case 'D':
@@ -566,12 +552,37 @@ void Box::getuid(){
       display->clear();
       return;
     default:
-      uid = scanner->getUID(SCAN_TIMEOUT);
-      if(uid){
-        itoa(uid, read_buffer+2, 16);
-        display->print(read_buffer, 1);
+      RfidState state = scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT);
+      //uid = scanner->getUID(SCAN_TIMEOUT);
+      if(state == GOOD_RF){
+        display->print("UID:", 1);
+        if(scanner->isMaster()){
+          display->print("*");
+        } else {
+          display->print(" ");
+        }
+        display->print(String(scanner->getLastUID()));
         while(keypad->getUniqueKey(5000) == 't');
       }
+    }
   }
-}
+
+  void Box::update(){
+    display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+    display->print("OTA update set", 1);
+    if(!OTA_enabled){
+      http->enableOTA();
+    }
+
+    
+    switch(keypad->getUniqueKey(1000)){
+    case 'D':
+      state = LOCK;
+      display->clear();
+      return;
+    default:
+      http->handleOTA();
+      break;
+    }
+  }
 }

@@ -74,6 +74,8 @@ namespace hackPSU {
         retval = CRYPTO_FAIL;
       } else if ((this->MIFARE_Read(blockAddr, buffer, &size)) != MFRC522::STATUS_OK) {
         retval = READ_FAIL;
+      } else {
+        memcpy(this->read_buffer, buffer, READ_BUFFER);
       }
     }
 
@@ -117,13 +119,22 @@ namespace hackPSU {
   }
 
   bool Scanner::isMaster(){
+    bool ret = true;
     for(int i = 0; i < WRITE_BUFFER; ++i) {
       if(read_buffer[i] != master_key[i]) {
-        Serial.println("Not a master wristband");
-        return false;
+        #ifdef DEBUG
+          Serial.println("Not a master wristband");
+        #endif
+        ret = false;
       }
     }
-    return true;
+    return ret;
   }
+
+
+  uint32_t Scanner::getLastUID(){
+    return (uint32_t)uid.uidByte;
+  }
+  
 
 }

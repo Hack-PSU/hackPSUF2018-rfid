@@ -38,6 +38,8 @@ namespace hackPSU{
       Network*  http;
       Display*  display;
 
+      bool OTA_enabled;
+
       /**
        * Description:
        *    Box is locked until a RFID tag is scanned with the secret key in the right location

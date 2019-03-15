@@ -4,9 +4,7 @@ hackPSU::Box *scanner;
 
 void setup() {
   delay(2000);
-  Serial.begin(9600);
-
-  Serial.println("Begin Scanner");  
+  Serial.begin(9600); 
 
   // Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
   scanner = new hackPSU::Box(REDIS, NETWORK_SSID, NETWORK_PASSWORD, hackPSU::DEV);

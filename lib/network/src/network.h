@@ -129,7 +129,7 @@ namespace hackPSU {
       bool addHeader(String key, String value);
       bool addParameter(String key, String value);
 
-
+      bool checkApiKey();
       HTTPCode getApiKey(int pin);
       User getDataFromPin(int pin);
       HTTPCode assignUserWID(int pin, String wid);
@@ -137,7 +137,7 @@ namespace hackPSU {
       Locations* getEvents();
       User sendScan(String wid, int loc);
 
-      Response* commit();
+      Response* commit(bool reboot = true);
 
 
     private:
@@ -175,7 +175,7 @@ namespace hackPSU {
 
         Response* getResponse() { return response; }
 
-        Response* commit();
+        Response* commit(bool reboot = true);
 
         bool parse(JsonObject& form);
 

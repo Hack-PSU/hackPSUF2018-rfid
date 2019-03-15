@@ -30,6 +30,8 @@ namespace hackPSU {
       Display(Mode_e mode);
       ~Display();
 
+      void toggleDisplay();
+
       /**
        * Description:
        *    Prints msg starting at the current location of the cursor

@@ -74,9 +74,15 @@ namespace hackPSU {
     delete lcd;
   }
 
+  void Display::toggleDisplay(){
+    lcd->setBacklight(0);
+    delay(750);
+    lcd->setBacklight(1);
+  }
+
   void Display::print(char msg){
     data[row] += msg;
-    #ifdef LCD
+    #ifdef LCD_EN
       if(data[row].length() > 16){
         clear(row);
         lcd->setCursor(0, row);
@@ -235,6 +241,7 @@ namespace hackPSU {
 
   void Display::clear(int row){
     if(mode != HEADLESS) {
+      this->row = row;
       lcd->setCursor(0, row);
       lcd->print("                ");
       lcd->setCursor(0, row);

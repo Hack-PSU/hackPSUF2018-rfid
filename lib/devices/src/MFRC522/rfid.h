@@ -33,6 +33,8 @@ namespace hackPSU {
       bool isMaster();
       RfidState getData(byte* buffer, byte size, byte blockAddr, unsigned long timeout, bool getuid = true);      
       RfidState setData(byte* buffer, byte size, byte blockAddr, unsigned long timeout, bool getuid = true); 
+
+      uint32_t getLastUID();
   };
 
 }

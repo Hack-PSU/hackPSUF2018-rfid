@@ -12,7 +12,7 @@ namespace hackPSU {
       Serial.println(host + route);
     #endif
     // Set the base URL for the request
-    #ifdef HTTPS
+    #ifdef HTTPS_FINGERPRINT
       url = "https://" + host + route;
     #else
       url = "http://" + host + route;
@@ -44,9 +44,9 @@ namespace hackPSU {
     return true;
   }
 
-  Response* Network::Request::commit() {
+  Response* Network::Request::commit(bool reboot) {
     // Begin HTTP request
-    #ifdef HTTPS
+    #ifdef HTTPS_FINGERPRINT
       //http.begin(HOST, PORT, url, true, FP);
       http.begin(url + parameter, FP);
     #else
@@ -64,7 +64,18 @@ namespace hackPSU {
     } else if(method == API::POST) {
       String pld = "";
       payload.printTo(pld);
+      Serial.println("PLD: " + pld);
       tmpcode = http.POST(pld);
+    }
+    if(tmpcode == 401){
+      Serial.println("Authentication error, rebooting...");
+      char apibuff[36] = {0};
+      EEPROM.put(0, apibuff);
+      EEPROM.commit();
+      delay(500);
+      if(reboot){
+        ESP.restart();
+      }
     }
     response = new Response(http.getString(), tmpcode);
     // Terminate HTTP request
@@ -93,9 +104,11 @@ namespace hackPSU {
     h.toCharArray(hostname, 16);
 
     // Get API key from memory
-    char apibuff[36];
-    EEPROM.begin(36);
+    char apibuff[37];
+    EEPROM.begin(37);
     EEPROM.get(0, apibuff);
+    Serial.print("API buff: ");
+    Serial.println(apibuff);
     apiKey = String(apibuff);
   }
 
@@ -116,6 +129,10 @@ namespace hackPSU {
     return WiFi.status() == WL_CONNECTED;
   }
 
+  bool Network::checkApiKey(){
+    return apiKey[0];
+  }
+
   HTTPCode Network::getApiKey(int pin) {
 
     // TODO: add api key check here
@@ -124,7 +141,7 @@ namespace hackPSU {
     addPayload("pin",String(pin));
     addPayload("version", API_VERSION);
 
-    Response* registerScanner = commit();
+    Response* registerScanner = commit(false);
 
     if(bool(*registerScanner)){
       MAKE_BUFFER(25, 25) bf_data;
@@ -133,7 +150,7 @@ namespace hackPSU {
       JsonObject& data = response.get<JsonObject>("data");
       apiKey = data.get<String>("apikey");
       Serial.println(apiKey);
-      char apibuff[36];
+      char apibuff[37];
       apiKey.toCharArray(apibuff, 37);
       EEPROM.put(0, apibuff);
       EEPROM.commit();
@@ -196,7 +213,7 @@ namespace hackPSU {
     ArduinoOTA.setPort(8266);
     ArduinoOTA.setHostname(hostname);
     ArduinoOTA.setPassword((char*)OTA_PASSWORD);
-    ArduinoOTA.setPasswordHash((char*)OTA_PASSWORD_HASH); // hd5(password)
+    ArduinoOTA.setPasswordHash((char*)OTA_PASSWORD_HASH); // md5(OTA_PASSWORD)
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -261,8 +278,8 @@ namespace hackPSU {
   }
 
 
-  Response* Network::commit(){
-    return req->commit();
+  Response* Network::commit(bool reboot){
+    return req->commit(reboot);
   }
 
   Locations* Network::getEvents() {
@@ -286,9 +303,6 @@ namespace hackPSU {
       Serial.println("Failed");
     }
     #ifdef DEBUG
-      Location tmp("testing", 9);
-      list->addLocation(tmp);
-      Serial.println("Current item: " + list->getCurrent()->name);
       Serial.print("Response Code: ");
       Serial.println(registerScanner->code.toString());
     #endif
