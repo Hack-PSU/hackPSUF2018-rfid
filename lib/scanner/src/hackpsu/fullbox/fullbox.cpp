@@ -11,6 +11,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
   location_list = new Locations();
+  item_list = new Items();
   // Set default values
   menu_state = 0;
   strength = UNDEFINED;
@@ -72,11 +73,20 @@ void Box::cycle(void) {
     case CHECKIN:
       checkin();
       return;
+    case ITEM_CHECKOUT:
+      item_checkout();
+      return;
+    case ITEM_RETURN:
+      item_return();
+      return;
+    case SCAN_ITEM:
+      scan_item();
+      return;
     case ZEROIZE:
       zeroize();
       return;
-    case SCAN:
-      scan();
+    case SCAN_EVENT:
+      scan_event();
       return;
     case GETUID:
       getuid();
@@ -122,21 +132,27 @@ void Box::menu() {
       display->print("Check-In", 1);
       break;
     case 2:
-      display->print("WiFi info", 1);
+      display->print("Item checkout", 1);
       break;
     case 3:
-      display->print("Clone Master", 1);
+      display->print("Item return", 1);
       break;
     case 4:
-      display->print("Zeroize", 1);
+      display->print("WiFi info", 1);
       break;
     case 5:
-      display->print("Show UID", 1);
+      display->print("Clone Master", 1);
       break;
     case 6:
-      display->print("Lock", 1);
+      display->print("Zeroize", 1);
       break;
     case 7:
+      display->print("Show UID", 1);
+      break;
+    case 8:
+      display->print("Lock", 1);
+      break;
+    case 9:
       display->print("OTA update", 1);
       break;
     default:
@@ -159,38 +175,6 @@ void Box::menu() {
       menu_cleanup();
       state = LOCK;
       break;
-    case '1':
-      state = LOCATION;
-      menu_cleanup();
-      break;
-    case '2':
-      state = CHECKIN;
-      menu_cleanup();
-      break;
-    case '3':
-      state = WIFI;
-      menu_cleanup();
-      break;
-    case '4':
-      state = DUPLICATE;
-      menu_cleanup();
-      break;
-    case '5':
-      state = ZEROIZE;
-      menu_cleanup();
-      break;
-    case '6':
-      state = GETUID;
-      menu_cleanup();
-      break;
-    case '7':
-      state = LOCK;
-      menu_cleanup();
-      break;
-    case '8':
-      state = UPDATE;
-      menu_cleanup();
-      break;
     case '#':
       switch(menu_state){
         case 0:
@@ -200,21 +184,27 @@ void Box::menu() {
           state = CHECKIN;
           break;
         case 2:
-          state = WIFI;
+          state = ITEM_CHECKOUT;
           break;
         case 3:
-          state = DUPLICATE;
+          state = ITEM_RETURN;
           break;
         case 4:
-          state = ZEROIZE;
+          state = WIFI;
           break;
         case 5:
-          state = GETUID;
+          state = DUPLICATE;
           break;
         case 6:
-          state = LOCK;
+          state = ZEROIZE;
           break;
         case 7:
+          state = GETUID;
+          break;
+        case 8:
+          state = LOCK;
+          break;
+        case 9:
           state = UPDATE;
           break;
         default:
@@ -245,6 +235,7 @@ void Box::location(){
        display->scroll();
        return;
     case 'D':
+      location_list = new Locations();
       location_cleanup();
       state = MENU;
       return;
@@ -252,7 +243,7 @@ void Box::location(){
       lid = location_list->getCurrent()->id;
       location_name = location_list->getCurrent()->name;
       location_cleanup();
-      state = SCAN;
+      state = SCAN_EVENT;
       return;
     default:
       if (location_list->numLocations()  == 0) {
@@ -275,9 +266,11 @@ void Box::location(){
 
 void Box::location_cleanup(){
   display->clear();
+  delete location_list;
+  location_list = new Locations();
 }
 
-void Box::scan() {
+void Box::scan_event() {
   display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
 
   uint32_t uid = 0;
@@ -327,7 +320,7 @@ void Box::checkin() {
   display->print("Enter pin: ", 1);
   pin = keypad->getPin(6, '*', '#', 10000);
 
-//Character press
+  //Character press
   switch(pin[0]){
     case 'A':
     case 'B':
@@ -387,7 +380,7 @@ void Box::checkin() {
 
         JsonObject& assign = bf_assign.createObject();
 
-        http->assignUserWID(pin.toInt(), String(uid));
+        http->assignUserWID(String(uid), pin.toInt());
       }
     }
     keypress = keypad->getUniqueKey(1200);
@@ -564,25 +557,157 @@ void Box::getuid(){
         display->print(String(scanner->getLastUID()));
         while(keypad->getUniqueKey(5000) == 't');
       }
-    }
+  }
+}
+
+void Box::update(){
+  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  display->print("OTA update set", 1);
+  if(!OTA_enabled){
+    http->enableOTA();
   }
 
-  void Box::update(){
-    display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-    display->print("OTA update set", 1);
-    if(!OTA_enabled){
-      http->enableOTA();
-    }
+  
+  switch(keypad->getUniqueKey(1000)){
+  case 'D':
+    state = LOCK;
+    display->clear();
+    return;
+  default:
+    http->handleOTA();
+    break;
+  }
+}
 
-    
-    switch(keypad->getUniqueKey(1000)){
+void Box::item_checkout(){
+  Serial.println("In item checkout");
+
+  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+
+  // Do not select item based on a number
+  switch (keypad->getUniqueKey(500)) {
+    case 'A':
+      item_list->next();
+      return;
+    case 'B':
+      item_list->previous();
+      return;
+    case 'C':
+      display->scroll();
+      return;
     case 'D':
+      item_cleanup();
+      state = MENU;
+      return;
+    case '#':
+      iid = item_list->getCurrent()->id;
+      item_name = item_list->getCurrent()->name;
+      state = SCAN_ITEM;
+      checkout = true;
+      location_cleanup();
+      break;
+    default:
+      if (item_list->numItems()  == 0) {
+        display->print("Updating list", 1);
+
+        delete item_list;
+        item_list = http->getItems();
+      }
+
+      if(item_list->numItems() > 0){
+        display->print(item_list->getCurrent()->name, 1);
+      } else {
+        display->print("No items found", 1);
+        delay(2000);
+        state = MENU;
+        item_cleanup();
+      }
+  }
+}
+
+void Box::item_return(){
+
+
+  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+
+  // Do not select item based on a number
+  switch (keypad->getUniqueKey(500)) {
+    case 'A':
+      item_list->next();
+      return;
+    case 'B':
+      item_list->previous();
+      return;
+    case 'C':
+      display->scroll();
+      return;
+    case 'D':
+      item_cleanup();
+      state = MENU;
+      return;
+    case '#':
+      iid = item_list->getCurrent()->id;
+      item_name = item_list->getCurrent()->name;
+      state = SCAN_ITEM;
+      checkout = false;
+      location_cleanup();
+      break;
+    default:
+      if (item_list->numItems()  == 0) {
+        display->print("Updating list", 1);
+
+        delete item_list;
+        item_list = http->getItems();
+      }
+
+      if(item_list->numItems() > 0){
+        display->print(item_list->getCurrent()->name, 1);
+      } else {
+        display->print("No items found", 1);
+        delay(2000);
+        state = MENU;
+        item_cleanup();
+      }
+  }
+}
+
+void Box::scan_item() {
+
+  display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+
+  uint32_t uid = 0;
+  display->print("Scan wristband", 1);
+
+  char input = keypad->getUniqueKey(1500);
+  switch (input) {
+    case 'C':
+      last_scan = 0; // reset last_scan
+      break;
+    case 'D':
+      last_scan = 0;
       state = LOCK;
       display->clear();
       return;
+    //Normal behavior = scan band
     default:
-      http->handleOTA();
-      break;
-    }
+      uid = scanner->getUID(SCAN_TIMEOUT);
+      if (uid && uid != last_scan) {
+        //User data = http->(String(uid), lid);
+        if (checkout ? http->itemCheckout(String(uid), iid) : http->itemReturn(String(uid), iid)) {
+          display->print("Allow", 1);
+          display->toggleDisplay();
+        } else {
+          display->print("Deny", 1);
+        }
+        //#error Handle entryScan
+        delay(750);
+        last_scan = uid;
+      }
   }
+}
+
+void Box::item_cleanup(){
+  delete item_list;
+  item_list = new Items();
+}
 }

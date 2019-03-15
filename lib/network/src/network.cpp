@@ -68,12 +68,14 @@ namespace hackPSU {
       tmpcode = http.POST(pld);
     }
     if(tmpcode == 401){
-      Serial.println("Authentication error, rebooting...");
+      Serial.println("Authentication error");
       char apibuff[36] = {0};
       EEPROM.put(0, apibuff);
       EEPROM.commit();
-      delay(500);
       if(reboot){
+        Serial.println("Rebooting...");
+        delay(500);
+        // Power cycle required after serial flash for this to work!!!
         ESP.restart();
       }
     }
@@ -193,7 +195,7 @@ namespace hackPSU {
     return user;
   }
 
-  HTTPCode Network::assignUserWID(int pin, String wid) {
+  HTTPCode Network::assignUserWID(String wid, int pin) {
     createRequest(API::POST, "/rfid/assign");
     addPayload("pin", String(pin));
     addPayload("wid", wid);
@@ -291,12 +293,12 @@ namespace hackPSU {
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
       int length = response.get<int>("length");
-      //Serial.println("Found "+String(length)+" events");
+      Serial.println("Found "+String(length)+" events");
       JsonArray& jsonLoc = response.get<JsonArray>("locations");
 
       for(int i = 0; i < length; i++){
         //Serial.println("Adding evetn: " + String(jsonLoc[i]["event_title"].asString()));
-        Location tmp(jsonLoc[i]["event_title"], jsonLoc[i]["event_location"]);
+        Location tmp(jsonLoc[i]["event_title"], jsonLoc[i]["uid"]);
         list->addLocation(tmp);
       }
     } else {
@@ -309,7 +311,7 @@ namespace hackPSU {
     return list;
   }
 
-  User Network::sendScan(String wid, int loc) {
+  User Network::sendScan(String wid, String loc) {
     createRequest(API::POST, "/rfid/scan");
     addPayload("wid", wid);
     addPayload("location", String(loc));
@@ -333,6 +335,43 @@ namespace hackPSU {
       Serial.println(registerScanner->code.toString());
     #endif
     return user;
+  }
+
+  Items* Network::getItems(){
+    Serial.println("Fetching items");
+    createRequest(API::GET, "/rfid/items");
+    addParameter("apikey", apiKey);
+    Response* registerScanner = commit();
+    Items* list = new Items();
+    if(*registerScanner){
+      Serial.println("Received list");
+      MAKE_BUFFER(25, 25) bf_data;
+      JsonObject& response = bf_data.parseObject(registerScanner->payload);
+      int length = response.get<int>("length");
+      //Serial.println("Found "+String(length)+" events");
+      JsonArray& jsonLoc = response.get<JsonArray>("items");
+
+      for(int i = 0; i < length; i++){
+        //Serial.println("Adding evetn: " + String(jsonLoc[i]["event_title"].asString()));
+        Item tmp(jsonLoc[i]["name"], jsonLoc[i]["uid"]);
+        list->addItem(tmp);
+      }
+    } else {
+      Serial.println("Failed");
+    }
+    #ifdef DEBUG
+      Serial.print("Response Code: ");
+      Serial.println(registerScanner->code.toString());
+    #endif
+    return list;
+  }
+
+  HTTPCode Network::itemCheckout(String wid, int iid){
+
+  }
+
+  HTTPCode Network::itemReturn(String wid, int iid){
+    
   }
 
 }

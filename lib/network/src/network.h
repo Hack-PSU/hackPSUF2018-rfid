@@ -132,10 +132,14 @@ namespace hackPSU {
       bool checkApiKey();
       HTTPCode getApiKey(int pin);
       User getDataFromPin(int pin);
-      HTTPCode assignUserWID(int pin, String wid);
+      HTTPCode assignUserWID(String wid, int pin);
       User userInfoFromWID(String wid);
       Locations* getEvents();
-      User sendScan(String wid, int loc);
+      User sendScan(String wid, String loc);
+      
+      Items* getItems();
+      HTTPCode itemCheckout(String wid, int iid);
+      HTTPCode itemReturn(String wid, int iid);
 
       Response* commit(bool reboot = true);
 

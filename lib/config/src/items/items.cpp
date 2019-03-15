@@ -1,33 +1,33 @@
-#include "locations.h"
+#include "items.h"
 namespace hackPSU{
 
-    //_______________________________________________ Location
+    //_______________________________________________ Item
 
-    Location::Location(String name, String id){
+    Item::Item(String name, uint32_t id){
         this->name = name;
         this->id = id;
     }
-    Location::~Location(){
+    Item::~Item(){
     }
 
-    //_______________________________________________ Locations
+    //_______________________________________________ Items
 
-    Locations::Locations(){ 
+    Items::Items(){ 
         current = head = nullptr; 
         length = 0; 
     }
 
-    Locations::~Locations(){
+    Items::~Items(){
         while(length-- > 0) {
-            Location* tmp = current;
+            Item* tmp = current;
             next();
             delete tmp;
             tmp = nullptr;
         }
     }
 
-    void Locations::addLocation(Location loc){
-        Location* insert = new Location(loc.name, loc.id);
+    void Items::addItem(Item loc){
+        Item* insert = new Item(loc.name, loc.id);
 
         if(length++ == 0) {
             head = current = insert;
@@ -41,20 +41,20 @@ namespace hackPSU{
         }
     }
 
-    int Locations::numLocations(){
+    int Items::numItems(){
         return length;
     }
 
-    Location* Locations::getCurrent(){
+    Item* Items::getCurrent(){
         return current;
     }
 
-    Location* Locations::next(){
+    Item* Items::next(){
         current = current->next;
         return current;
     }
 
-    Location* Locations::previous(){
+    Item* Items::previous(){
         current = current->previous;
         return current;
     }

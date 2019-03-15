@@ -1,6 +1,7 @@
 #pragma once
 
 #include "locations/locations.h"
+#include "items/items.h"
 
 #define MASTER_KEY "GET_REKT"
 #define API_VERSION "v2"

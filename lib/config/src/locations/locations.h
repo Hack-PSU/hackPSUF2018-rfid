@@ -7,10 +7,10 @@ namespace hackPSU{
     class Location{
     friend class Locations;
     public:
-        Location(String name, uint32_t id);
+        Location(String name, String id);
         ~Location();
         String name;
-        uint32_t id;
+        String id;
     private:
         Location* previous;
         Location* next;
