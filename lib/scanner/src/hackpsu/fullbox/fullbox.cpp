@@ -138,16 +138,16 @@ void Box::menu() {
       display->print("Item return", 1);
       break;
     case 4:
-      display->print("WiFi info", 1);
+      display->print("Show Name", 1);
       break;
     case 5:
-      display->print("Clone Master", 1);
+      display->print("WiFi info", 1);
       break;
     case 6:
-      display->print("Zeroize", 1);
+      display->print("Clone Master", 1);
       break;
     case 7:
-      display->print("Show UID", 1);
+      display->print("Zeroize", 1);
       break;
     case 8:
       display->print("Lock", 1);
@@ -190,16 +190,16 @@ void Box::menu() {
           state = ITEM_RETURN;
           break;
         case 4:
-          state = WIFI;
+          state = GETUID;
           break;
         case 5:
-          state = DUPLICATE;
+          state = WIFI;
           break;
         case 6:
-          state = ZEROIZE;
+          state = DUPLICATE;
           break;
         case 7:
-          state = GETUID;
+          state = ZEROIZE;
           break;
         case 8:
           state = LOCK;
@@ -618,11 +618,8 @@ void Box::item_checkout(){
 }
 
 void Box::item_return(){
-
-
   display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
 
-  // Do not select item based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
       item_list->next();
