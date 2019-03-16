@@ -27,7 +27,7 @@ if [[ ! -z $PASSWD ]]; then
     echo "-D NETWORK_SSID=\\\"$SSID\\\""
     echo "-D NETWORK_PASSWORD=\\\"${PASSWD//\"/\\\"}\\\""
     echo "-D REDIS=\\\"$REDIS:3000\\\""
-elif [[ -f hackpsu.config && $# -eq 0 ]]; then
+elif [[ -f hackpsu.config ]]; then
     echo "No password set, using config file..." >&2
     cat hackpsu.config | sed '/;/d'
 else

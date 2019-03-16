@@ -278,7 +278,7 @@ void Box::scan_event() {
   char uid_buffer[10] = {0};
   display->print("Scan wristband", 1);
 
-  char input = keypad->getUniqueKey(1500);
+  char input = keypad->getUniqueKey(750);
   switch (input) {
     case 'C':
       last_scan = 0; // reset last_scan
@@ -545,16 +545,10 @@ void Box::getuid(){
       display->clear();
       return;
     default:
-      RfidState state = scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT);
-      //uid = scanner->getUID(SCAN_TIMEOUT);
-      if(state == GOOD_RF){
-        display->print("UID:", 1);
-        if(scanner->isMaster()){
-          display->print("*");
-        } else {
-          display->print(" ");
-        }
-        display->print(String(scanner->getLastUID()));
+     uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
+      if(uid){
+        User usr = http->userInfoFromWID(String(uid));
+        display->print(usr.name, 1);
         while(keypad->getUniqueKey(5000) == 't');
       }
   }
@@ -580,8 +574,6 @@ void Box::update(){
 }
 
 void Box::item_checkout(){
-  Serial.println("In item checkout");
-
   display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
 
   // Do not select item based on a number

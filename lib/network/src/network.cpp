@@ -101,6 +101,8 @@ namespace hackPSU {
     this->host = host;
     OTA_enabled = false;
     req = nullptr;
+    Serial.println("Connecting to : " + String(NETWORK_SSID));
+    Serial.println("Password: " + String(NETWORK_PASSWORD));
     WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
     String h = "hackpsu_scanner";
     h.toCharArray(hostname, 16);
@@ -258,6 +260,7 @@ namespace hackPSU {
   #endif
   User Network::userInfoFromWID(String wid) {
     createRequest(API::GET, "/rfid/user-info");
+    Serial.println("WID: " + wid);
     addParameter("wid", wid);
     addParameter("apikey", apiKey);
     Response* registerScanner = commit();
@@ -338,7 +341,6 @@ namespace hackPSU {
   }
 
   Items* Network::getItems(){
-    Serial.println("Fetching items");
     createRequest(API::GET, "/rfid/items");
     addParameter("apikey", apiKey);
     Response* registerScanner = commit();
@@ -367,10 +369,25 @@ namespace hackPSU {
   }
 
   HTTPCode Network::itemCheckout(String wid, int iid){
+    createRequest(API::POST, "/rfid/checkout");
+    addPayload("apikey", apiKey);
+    addPayload("wid", wid);
+    addPayload("itemId", String(iid));
 
+    Response* checkout = commit();
+    HTTPCode res(checkout->code);
+    return res;
   }
 
   HTTPCode Network::itemReturn(String wid, int iid){
+    createRequest(API::POST, "/rfid/checkout");
+    addPayload("apikey", apiKey);
+    addPayload("wid", wid);
+    addPayload("itemId", String(iid));
+
+    Response* checkout = commit();
+    HTTPCode res(checkout->code);
+    return res;
     
   }
 
