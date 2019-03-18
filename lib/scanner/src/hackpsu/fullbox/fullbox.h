@@ -132,6 +132,14 @@ namespace hackPSU{
        */
       void checkin();
 
+      /**
+       * Description:
+       *    Handle item checkout which sends a band UID and a item id.
+       * 
+       * Controls:
+       *    # - select item
+       *    D - lock screen
+       */
       void item_checkout();
 
       void item_return();

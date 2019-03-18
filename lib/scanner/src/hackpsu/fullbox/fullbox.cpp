@@ -379,8 +379,14 @@ void Box::checkin() {
         MAKE_BUFFER(1, 0) bf_assign;
 
         JsonObject& assign = bf_assign.createObject();
+        HTTPCode code = http->assignUserWID(String(uid), pin.toInt());
 
-        http->assignUserWID(String(uid), pin.toInt());
+        if(!code){
+          display->print("Try again - " + String(int(code)), 0);
+          display->print(code.toString(), 2);
+          delay(2500);
+          return;
+        }
       }
     }
     keypress = keypad->getUniqueKey(1200);
@@ -546,6 +552,7 @@ void Box::getuid(){
       return;
     default:
      uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
+     Serial.println("UID: " + String(uid));
       if(uid){
         User usr = http->userInfoFromWID(String(uid));
         display->print(usr.name, 1);
@@ -555,14 +562,13 @@ void Box::getuid(){
 }
 
 void Box::update(){
-  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-  display->print("OTA update set", 1);
+  display->print("OTA Enabled. IP:", 0);
+  display->print(http->localIP(), 1);
   if(!OTA_enabled){
     http->enableOTA();
   }
-
   
-  switch(keypad->getUniqueKey(1000)){
+  switch(keypad->getUniqueKey(750)){
   case 'D':
     state = LOCK;
     display->clear();
@@ -682,11 +688,15 @@ void Box::scan_item() {
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
         //User data = http->(String(uid), lid);
-        if (checkout ? http->itemCheckout(String(uid), iid) : http->itemReturn(String(uid), iid)) {
+        HTTPCode code = checkout ? http->itemCheckout(String(uid), iid) : http->itemReturn(String(uid), iid);
+        if (code) {
           display->print("Allow", 1);
           display->toggleDisplay();
         } else {
-          display->print("Deny", 1);
+          display->print("Deny - " + int(code) , 1);
+          display->print(code.toString(), 2);
+          delay(2500);
+          return;
         }
         //#error Handle entryScan
         delay(750);

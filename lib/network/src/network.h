@@ -36,6 +36,7 @@
 
 
 #if defined(DYNAMIC_BUFFER)
+  #warning Using dynamic buffer size for JSON data
   #define MAKE_BUFFER(obj_size, arr_size) DynamicJsonBuffer
 #else
   #define MAKE_BUFFER(obj_size, arr_size) StaticJsonBuffer<JSON_OBJECT_SIZE(obj_size)+JSON_ARRAY_SIZE(arr_size)>
@@ -56,7 +57,7 @@ namespace hackPSU {
     HTTPCode(int code): code(code) {}
 
     String toString() {
-      Serial.print("HTTP code: " + String(code));
+      Serial.println("HTTP code: " + String(code));
       switch(code){
         // List of known/common http codes:
         case 200: return F("Success");
@@ -93,6 +94,15 @@ namespace hackPSU {
     }
 
   };
+
+
+  typedef struct {
+    String name;
+    String shirtSize;
+    String diet;
+    bool allow;
+    HTTPCode code;
+  } User;
 
   class Response{
   public:
@@ -142,6 +152,8 @@ namespace hackPSU {
       HTTPCode itemReturn(String wid, int iid);
 
       Response* commit(bool reboot = true);
+
+      String localIP();
 
 
     private:

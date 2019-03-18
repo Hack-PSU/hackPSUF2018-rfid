@@ -51,11 +51,6 @@ namespace hackPSU{
 
 
   //TODO: move the User and Location structs to a better location where its accessible by all classes
-  typedef struct {
-    String name;
-    String shirtSize;
-    String diet;
-    bool allow;
-  } User;
+
 
 }

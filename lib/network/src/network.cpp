@@ -45,6 +45,9 @@ namespace hackPSU {
   }
 
   Response* Network::Request::commit(bool reboot) {
+    // if(WiFi.status() == WL_DISCONNECTED){
+    //   WiFi.begin(NETWORK_SSID, NETWORK_PASSWORD);
+    // }
     // Begin HTTP request
     #ifdef HTTPS_FINGERPRINT
       //http.begin(HOST, PORT, url, true, FP);
@@ -64,7 +67,6 @@ namespace hackPSU {
     } else if(method == API::POST) {
       String pld = "";
       payload.printTo(pld);
-      Serial.println("PLD: " + pld);
       tmpcode = http.POST(pld);
     }
     if(tmpcode == 401){
@@ -80,6 +82,7 @@ namespace hackPSU {
       }
     }
     response = new Response(http.getString(), tmpcode);
+    Serial.println(response->payload);
     // Terminate HTTP request
     http.end();
     return response;
@@ -179,7 +182,7 @@ namespace hackPSU {
     addPayload("version", API_VERSION);
     addPayload("apikey", apiKey);
     Response* registerScanner = commit();
-    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false, .code = registerScanner->code};
     if(bool(*registerScanner)){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
@@ -264,7 +267,7 @@ namespace hackPSU {
     addParameter("wid", wid);
     addParameter("apikey", apiKey);
     Response* registerScanner = commit();
-    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false, .code = registerScanner->code };
     if(*registerScanner){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
@@ -320,7 +323,7 @@ namespace hackPSU {
     addPayload("location", String(loc));
     addPayload("apikey", apiKey);
     Response* registerScanner = commit();
-    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false };
+    User user = {.name = "NULL", .shirtSize = "NULL", .diet = "NULL", .allow = false, .code = registerScanner->code };
     if(*registerScanner){
       MAKE_BUFFER(25, 25) bf_data;
       JsonObject& response = bf_data.parseObject(registerScanner->payload);
@@ -380,7 +383,7 @@ namespace hackPSU {
   }
 
   HTTPCode Network::itemReturn(String wid, int iid){
-    createRequest(API::POST, "/rfid/checkout");
+    createRequest(API::POST, "/rfid/return");
     addPayload("apikey", apiKey);
     addPayload("wid", wid);
     addPayload("itemId", String(iid));
@@ -390,5 +393,7 @@ namespace hackPSU {
     return res;
     
   }
-
+  String Network::localIP(){
+    return WiFi.localIP().toString();
+  }
 }
