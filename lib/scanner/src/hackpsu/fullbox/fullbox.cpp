@@ -292,12 +292,19 @@ void Box::scan_event() {
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
+        display->toggleDisplay();
         User data = http->sendScan(String(uid), lid);
-        if (data.allow) {
-          display->print("Allow", 1);
-          display->toggleDisplay();
-        } else {
-          display->print("Deny", 1);
+        switch( int(data.code) ) {
+          case 200: display->print("Allow", 1);         break;
+          case 404: display->print("Unknown user", 1);  break;
+          case 401: display->print("Restarting...", 1); break;
+          default:
+            if(int(data.code) < 0 ){
+              display->print("Network error", 1);
+            } else {
+              display->print("Deny - " + int(data.code) , 1);
+              display->print(data.code.toString());
+            }
         }
         //#error Handle entryScan
         delay(750);
@@ -697,6 +704,18 @@ void Box::scan_item() {
           display->print(code.toString(), 2);
           delay(2500);
           return;
+        }
+        switch( int(code) ) {
+          case 200: display->print("Allow", 1);         break;
+          case 404: display->print("Unknown user", 1);  break;
+          case 401: display->print("Restarting...", 1); break;
+          default:
+            if(int(code) < 0 ){
+              display->print("Network error", 1);
+            } else {
+              display->print("Deny - " + int(code) , 1);
+              display->print(code.toString());
+            }
         }
         //#error Handle entryScan
         delay(750);
