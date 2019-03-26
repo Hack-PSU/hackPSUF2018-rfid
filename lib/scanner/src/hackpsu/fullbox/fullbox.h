@@ -8,27 +8,28 @@
 #include<Arduino.h>
 
 #include <network.h>
-#include <keypad.h>
-#include <display.h>
-#include <rfid.h>
+#include <4X4MATRIX/keypad.h>
+#include <HD44780/display.h>
+#include <MFRC522/rfid.h>
 #include <config.h>
 
-#define MENU_STATES 7
+#define MENU_STATES 10
 
 namespace hackPSU{
 
-  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN, GETUID} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN_EVENT, GETUID, UPDATE, ITEM_CHECKOUT, ITEM_RETURN, SCAN_ITEM} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
     private:
-      Location* location_list;
-      int num_locations;
-      int location_state;
+      Locations* location_list;
+      Items* item_list;
       String location_name;
+      String item_name;
+      uint32_t iid;
       
       State_e state;
-      uint32_t lid; // Location id
+      String lid; // Location id
       uint32_t last_scan;
 
       SignalStrength strength;
@@ -39,6 +40,9 @@ namespace hackPSU{
       Keypad*   keypad;
       Network*  http;
       Display*  display;
+
+      bool OTA_enabled;
+      bool checkout;
 
       /**
        * Description:
@@ -108,7 +112,7 @@ namespace hackPSU{
        *    MENU - on 'B' press
        *    LOCK - on 'D' press
        */
-      void scan();
+      void scan_event();
 
       /**
        * Description:
@@ -127,6 +131,22 @@ namespace hackPSU{
        *   LOCK - on 'D' press
        */
       void checkin();
+
+      /**
+       * Description:
+       *    Handle item checkout which sends a band UID and a item id.
+       * 
+       * Controls:
+       *    # - select item
+       *    D - lock screen
+       */
+      void item_checkout();
+
+      void item_return();
+
+      void item_cleanup();
+
+      void scan_item();
 
       /**
        * Description:
@@ -157,7 +177,9 @@ namespace hackPSU{
       /**
        * 
        */
-       void getuid();
+      void getuid();
+
+      void update();
 
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);

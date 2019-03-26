@@ -1,13 +1,16 @@
-#include "fullbox.h"
+#include <hackpsu/fullbox/fullbox.h>
+ 
+hackPSU::Box *scanner;
 
-using namespace hackPSU;
+void setup() {
+  delay(2000);
+  Serial.begin(9600); 
 
-Box* box;
+  // Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
+  scanner = new hackPSU::Box(REDIS, NETWORK_SSID, NETWORK_PASSWORD, hackPSU::DEV);
 
-void setup() {  
-  box = new Box("", SSID, PASSWD, DEV, nullptr);
 }
 
 void loop() {
-  box->cycle();
+  scanner->cycle();
 }

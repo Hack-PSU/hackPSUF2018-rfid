@@ -61,3 +61,6 @@ lib/*.DS_Store
 .DS_Store
 .pioenvs
 .piolibdeps
+
+# Others
+.vscode/

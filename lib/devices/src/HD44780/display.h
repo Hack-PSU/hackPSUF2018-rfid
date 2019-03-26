@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Wire.h>
 #include <Arduino.h>
+//#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 #include <config.h>
@@ -29,6 +29,8 @@ namespace hackPSU {
     public:
       Display(Mode_e mode);
       ~Display();
+
+      void toggleDisplay();
 
       /**
        * Description:
