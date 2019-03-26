@@ -70,12 +70,16 @@ namespace hackPSU {
       tmpcode = http.POST(pld);
     }
     if(tmpcode == 401){
+      #ifdef DEBUG
       Serial.println("Authentication error");
+      #endif
       char apibuff[36] = {0};
       EEPROM.put(0, apibuff);
       EEPROM.commit();
       if(reboot){
+        #ifdef DEBUG
         Serial.println("Rebooting...");
+        #endif
         delay(500);
         // Power cycle required after serial flash for this to work!!!
         ESP.restart();
@@ -377,8 +381,9 @@ namespace hackPSU {
     addPayload("wid", wid);
     addPayload("itemId", String(iid));
 
-    Response* checkout = commit();
-    HTTPCode res(checkout->code);
+    // Response* checkout = commit();
+    //HTTPCode res(checkout->code);
+    HTTPCode res(501);  // Unimplemented
     return res;
   }
 
