@@ -130,12 +130,6 @@ namespace hackPSU {
     req = new Request(method, host, route);
   }
 
-  Response* Network::completeRequest(){
-    if( req == nullptr) return nullptr;
-
-    return commit();
-  }
-
   bool Network::connected(){
     return WiFi.status() == WL_CONNECTED;
   }

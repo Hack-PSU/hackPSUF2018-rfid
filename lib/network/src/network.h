@@ -126,7 +126,6 @@ namespace hackPSU {
     public:
       Network(String host);
       void createRequest(API::Method method, String route);
-      Response* completeRequest();
 
       bool connected();
       #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
