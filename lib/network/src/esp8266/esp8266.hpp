@@ -42,6 +42,11 @@ namespace hackPSU {
         void enableUpdate() override;
         void handleUpdate() override;
         #endif
+
+    protected:
+        void pre_send(Request* req) override;
+        void post_send(Request* req, Response* res) override;
+
     private:
         HTTPClient http;
         bool OTA_enabled;
@@ -51,8 +56,6 @@ namespace hackPSU {
         Response* scan() override;
         void transmit(Request*) override;
 
-        void pre_send(Request* req) override;
-        void post_send(Request* req, Response* res) override;
         uint8_t retry;
         
     };

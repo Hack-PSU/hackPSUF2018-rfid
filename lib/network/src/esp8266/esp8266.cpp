@@ -59,6 +59,7 @@ namespace hackPSU{
     #endif
 
     void ESP8266_Device::pre_send(Request* request){
+        Api::pre_send(request);
         retry = RETRY_RATE;
 
         if(status() != WL_CONNECTED){
@@ -106,6 +107,8 @@ namespace hackPSU{
     }
 
     void ESP8266_Device::post_send(Request* request, Response* response){
+        Api::post_send(request, response);
+        
         if(response->code < 0 && status() != WL_CONNECTED){
             // Resend on a failed attempt
             connect();

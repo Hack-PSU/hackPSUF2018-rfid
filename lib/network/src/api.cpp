@@ -4,11 +4,6 @@
 
 namespace hackPSU{
 
-    inline int freeAndReturn(Response* res){
-        int tmp = res->code;
-        delete res;
-        return tmp;
-    }
 
     Api::Api(char* name):
         Network(name)
@@ -64,7 +59,7 @@ namespace hackPSU{
                 res->code = API_PARSE_ERROR;
             }
         }
-        return freeAndReturn(res);
+        return cleanup(req, res);
     }
 
     int Api::getApiKey(String pin) {
@@ -86,7 +81,7 @@ namespace hackPSU{
                 res->code = API_PARSE_ERROR;
             }
         }
-        return freeAndReturn(res);
+        return cleanup(req, res);
     }
 
     int Api::getUserInfo(Fields field, String id, User* user){
@@ -119,7 +114,7 @@ namespace hackPSU{
                 res->code = API_PARSE_ERROR;
             }
         }
-        return freeAndReturn(res);
+        return cleanup(req, res);
     }
 
     int Api::registerUser(String wid, String pin) {
@@ -129,11 +124,12 @@ namespace hackPSU{
 
         Response* res = sendRequest(req);
 
-        return freeAndReturn(res);
+
+        return cleanup(req, res);
     }
 
     int Api::getEvents(List<Event>* list) {
-        Request* req = createRequest(API::GET, "/rfid/items");
+        Request* req = createRequest(API::GET, "/rfid/events");
 
         Response* res = sendRequest(req);
 
@@ -142,19 +138,22 @@ namespace hackPSU{
             JsonObject& response = bf_data.parseObject(res->payload);
 
             if(response.success()){
-                JsonArray& events = response.get<JsonArray>("items");
+                JsonArray& events = response.get<JsonArray>("locations");
 
                 for(JsonObject& event : events){
                     Event* e = new Event();
                     if(extract(event, e)) {
                         list->addItem(e);
+                    } else {
+                        res->code = API_PARSE_ERROR;
                     }
                 }
             } else {
                 res->code = API_PARSE_ERROR;
             }
         }
-        return freeAndReturn(res);
+
+        return cleanup(req, res);
     }
 
     int Api::sendScan(String wid, Event* event, User* user, uint32_t offset) {
@@ -177,8 +176,62 @@ namespace hackPSU{
                 res->code = API_PARSE_ERROR;
             }
         }
-        return freeAndReturn(res);
+
+        return cleanup(req, res);
     }
+
+    int Api::getItems(List<Item>* list) {
+        Request* req = createRequest(API::GET, "/rfid/items");
+
+        Response* res = sendRequest(req);
+
+        if((*res)){
+            MAKE_BUFFER(25, 25) bf_data;
+            JsonObject& response = bf_data.parseObject(res->payload);
+
+            if(response.success()){
+                JsonArray& items = response.get<JsonArray>("items");
+
+                for(JsonObject& event : items){
+                    Item* item = new Item();
+                    if(extract(event, item)) {
+                        list->addItem(item);
+                    } else {
+                        res->code = API_PARSE_ERROR;
+                    }
+                }
+            } else {
+                res->code = API_PARSE_ERROR;
+            }
+        }
+
+        return cleanup(req, res);
+    }
+
+    int Api::itemCheckout(String wid, Item* item) {
+        #warning Route not implemented
+        return -1;
+        // Request* req = createRequest(API::POST, "/rfid/checkout");
+        // req->addPayload("wid", wid);
+        // req->addPayload("itemId", String(item->id));
+
+        // Response* res = sendRequest(req);
+
+        // return cleanup(req, res);
+    }
+
+    int Api::itemReturn(String wid, Item* item) {
+        #warning Route not implemented
+        return -1;
+        // Request* req = createRequest(API::POST, "/rfid/return");
+        // req->addPayload("wid", wid);
+        // req->addPayload("itemId", String(item->id));
+
+        // Response* res = sendRequest(req);
+
+        // return cleanup(req, res);
+    }
+
 
     void Api::pre_send(Request* request){
         request->addHeader("Content-Type", "application/json");
@@ -190,6 +243,17 @@ namespace hackPSU{
             request->addPayload("version", API_VERSION);
             request->addPayload("apikey", apiKey);
         }
+    }
+
+    void Api::post_send(Request* request, Response* response) {
+        return;
+    }
+
+    int Api::cleanup(Request* req, Response* res){
+        int tmp = res->code;
+        delete req;
+        delete res;
+        return tmp;
     }
 
     template<class Type>

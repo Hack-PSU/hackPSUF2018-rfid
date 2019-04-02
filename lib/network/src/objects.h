@@ -3,23 +3,23 @@
 #include <Arduino.h>
 
 namespace hackPSU{
-    typedef struct {
+    struct User {
         String name;
         String shirtSize;
         String diet;
         uint8_t counter;
-    } User;
+    };
 
-    typedef struct{ 
+    struct Event { 
         String name;
         uint32_t id;
         uint8_t maxEntry;
-    } Event;
+    } ;
 
-    typedef struct {
+    struct Item {
         String name;
         uint32_t id;
-    } Item;
+    };
 
     template<class Type>
     struct Pair{

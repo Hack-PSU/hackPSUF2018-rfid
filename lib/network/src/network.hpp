@@ -51,7 +51,7 @@ namespace hackPSU {
       virtual String mac() = 0;
 
 
-    private:
+    protected:
       virtual void pre_send(Request* request) = 0;
       virtual void post_send(Request* request, Response* response) = 0;
   };

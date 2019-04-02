@@ -122,12 +122,15 @@ namespace hackPSU{
 
         virtual void enableUpdate() = 0;
         virtual void handleUpdate() = 0;
+
+    protected:
+        void pre_send(Request* request) override;
+        void post_send(Request* request, Response* response) override;
+
     private:
         String apiKey; // API key require for authentication
         uint32_t start;   // Offset used for scan time
 
-        void pre_send(Request* request) override;
-        void post_send(Request* request, Response* response) override;
 
         /**
          * storeApiKey
@@ -193,5 +196,7 @@ namespace hackPSU{
         bool extract(JsonObject& json, User* data);
         bool extract(JsonObject& json, Item* data);
         bool extract(JsonObject& json, Event* data);
+
+        int cleanup(Request* req, Response* res);
     };
 }
