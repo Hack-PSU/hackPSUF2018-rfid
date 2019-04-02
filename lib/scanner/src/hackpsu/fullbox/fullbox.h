@@ -7,11 +7,12 @@
 #include<ESP8266WiFi.h>
 #include<Arduino.h>
 
-#include <network.h>
+#include <esp8266/esp8266.hpp>
 #include <4X4MATRIX/keypad.h>
 #include <HD44780/display.h>
 #include <MFRC522/rfid.h>
-#include <config.h>
+
+#include <list.hpp>
 
 #define MENU_STATES 10
 
@@ -21,15 +22,23 @@ namespace hackPSU{
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
+    public:
+      Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
+      ~Box();
+
+      /**
+       * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
+       */
+      void cycle();
+    
     private:
-      Locations* location_list;
-      Items* item_list;
-      String location_name;
-      String item_name;
-      uint32_t iid;
+      List<Event>* event_list;
+      List<Item>* item_list;
+
+      Event* event;
+      Item* item;
       
       State_e state;
-      String lid; // Location id
       uint32_t last_scan;
 
       SignalStrength strength;
@@ -38,11 +47,25 @@ namespace hackPSU{
 
       Scanner*  scanner;
       Keypad*   keypad;
-      Network*  http;
+      Api*      http;
       Display*  display;
 
       bool OTA_enabled;
       bool checkout;
+
+      /**
+       * handler
+       * 
+       * Description:
+       *   Handles HTTP codes that can be handled the same way after all calls
+       * 
+       * Codes supported:
+       *  <   0
+       * == 401
+       * != 200
+       *  > 500
+       */
+      bool handler(int code);
 
       /**
        * Description:
@@ -180,14 +203,5 @@ namespace hackPSU{
       void getuid();
 
       void update();
-
-    public:
-      Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
-      ~Box();
-
-      /**
-       * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
-       */
-      void cycle();
   };
 }

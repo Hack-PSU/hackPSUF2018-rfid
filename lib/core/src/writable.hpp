@@ -10,10 +10,10 @@ namespace hackPSU{
     public:
         Writable(char* name):  Component(name) { };
         ~Writable() {}
-        virtual void write(Packet* data, uint32_t length = 0){
-            transmit(data, length);
+        virtual void write(Packet data){
+            transmit(data);
         }
     protected:
-        virtual void transmit(Packet*, uint32_t) = 0;
+        virtual void transmit(Packet) = 0;
     };
 }

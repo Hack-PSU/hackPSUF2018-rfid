@@ -1,0 +1,59 @@
+#pragma once
+
+#include <Arduino.h>
+
+#include "api.hpp"
+
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+
+#if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
+    #include <ESP8266mDNS.h>
+    #include <WiFiUdp.h>
+    #include <ArduinoOTA.h>
+#endif
+
+
+#ifndef NETWORK_PASSWORD
+    #error Macro, NETWORK_PASSWORD, not set
+    #define NETWORK_PASSWORD "" // Here so intellisense is happy
+#endif
+
+#ifndef NETWORK_SSID
+    #error Macro, NETWORK_SSID, not set
+    #define NETWORK_SSID "" // Here so intellisense is happy
+#endif
+
+#if !defined(OTA_PASSWORD) && !defined(OTA_PASSWORD_HASH)
+    #warning OTA uploads not enabled, define OTA_PASSWORD and OTA_PASSWORD_HASH to allow OTA uplaoding.
+#endif
+
+namespace hackPSU {
+    class ESP8266_Device : public Api{
+    public:
+        ESP8266_Device(char* name);
+
+        int status() override;
+        int connect() override;
+        String localIP() override;
+        String mac() override;
+
+        #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
+        void enableUpdate() override;
+        void handleUpdate() override;
+        #endif
+    private:
+        HTTPClient http;
+        bool OTA_enabled;
+        char hostname[16];
+        int code;
+
+        Response* scan() override;
+        void transmit(Request*) override;
+
+        void pre_send(Request* req) override;
+        void post_send(Request* req, Response* res) override;
+        uint8_t retry;
+        
+    };
+}

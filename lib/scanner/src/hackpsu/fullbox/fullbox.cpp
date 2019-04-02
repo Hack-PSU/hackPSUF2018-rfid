@@ -1,32 +1,71 @@
 #include "fullbox.h"
 
-namespace hackPSU{
+#ifndef RFID_SS
+#error Macro, RFID_SS, not set
+#define RFID_SS 0
+#endif
+#ifndef RFID_RST
+#error Macro, RFID_RST, not set
+#define RFID_RST 0
+#endif
+#ifndef KPD_SRC
+#error Macro, KPD_SRC, not set
+#define KPD_SRC 0
+#endif
+#ifndef KPD_CLK
+#error Macro, KPD_CLK, not set
+#define KPD_CLK 0
+#endif
+#ifndef KPD_SIG
+#error Macro, KPD_SIG, not set
+#define KPD_SIG 0
+#endif
 
+
+
+
+namespace hackPSU{
 
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   // Create class objects
   scanner = new Scanner("scanner", RFID_SS, RFID_RST);
   display = new Display(mode);
-  http    = new Network(REDIS);
+  http    = (Api*) new ESP8266_Device("http");
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
-  location_list = new Locations();
-  item_list = new Items();
+  http->setAddress(REDIS);
+
+  event_list = new List<Event>();
+  item_list = new List<Item>();
+
   // Set default values
   menu_state = 0;
   strength = UNDEFINED;
   state = LOCK;
   last_scan = 0;
-
   OTA_enabled = false;
-
-  display->print("WiFi connecting", 0);
-  while(WiFi.status() != WL_CONNECTED)
-    yield();
+                //1234567890123456
+  display->print("Finding server..", 0);
+  do{
+    http->connect();
+  } while(http->status() != WL_CONNECTED);
 
   display->print("Connected...", 0);
   display->print("Fetching API key", 1);
 
+  int ret;
+  do {
+    ret = http->checkApiKey();
+    if(ret < 0) {
+
+    } else if( ret == 401 ) {
+      // TODO: update API key
+        display->print("Update API key", 0);
+        display->print("PIN: ", 1);
+        String pin = keypad->getPin(10, '*', '#', 10000);
+        ret = http->getApiKey(pin);
+    }
+  } while(ret != 200);
 
   if(!http->checkApiKey()){
     display->clear();
@@ -34,7 +73,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
     while(true) {
       display->clear(1);
       String pin = keypad->getPin(10, '*', '#', 10000);
-      if(pin != "timeout" && http->getApiKey(pin.toInt())){
+      if(pin != "timeout" && http->getApiKey(pin)){
         break;
       }
       yield();
@@ -226,35 +265,32 @@ void Box::location(){
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      location_list->next();
+      event_list->next();
       return;
     case 'B':
-      location_list->previous();
+      event_list->previous();
       return;
     case 'C':
        display->scroll();
        return;
     case 'D':
-      location_list = new Locations();
       location_cleanup();
       state = MENU;
       return;
     case '#':
-      lid = location_list->getCurrent()->id;
-      location_name = location_list->getCurrent()->name;
+      event = event_list->getCurrent();
       location_cleanup();
       state = SCAN_EVENT;
       return;
     default:
-      if (location_list->numLocations()  == 0) {
+      if (event_list->size()  == 0) {
         display->print("Updating list", 1);
 
-        delete location_list;
-        location_list = http->getEvents();
+        http->getEvents(event_list);
       }
 
-      if(location_list->numLocations() > 0){
-        display->print(location_list->getCurrent()->name, 1);
+      if(event_list->size() > 0){
+        display->print(event_list->getCurrent()->name, 1);
       } else {
         display->print("No locations found", 1);
         delay(2000);
@@ -266,16 +302,13 @@ void Box::location(){
 
 void Box::location_cleanup(){
   display->clear();
-  delete location_list;
-  location_list = new Locations();
+  event_list->clear();
 }
 
 void Box::scan_event() {
   display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
 
   uint32_t uid = 0;
-  char lid_buffer[10] = {0};
-  char uid_buffer[10] = {0};
   display->print("Scan wristband", 1);
 
   char input = keypad->getUniqueKey(750);
@@ -293,17 +326,17 @@ void Box::scan_event() {
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
         display->toggleDisplay();
-        User data = http->sendScan(String(uid), lid);
-        switch( int(data.code) ) {
+        User* user = new User();
+        int code = http->sendScan(String(uid), event, user, millis());
+        switch( code ) {
           case 200: display->print("Allow", 1);         break;
           case 404: display->print("Unknown user", 1);  break;
           case 401: display->print("Restarting...", 1); break;
           default:
-            if(int(data.code) < 0 ){
+            if(code < 0 ){
               display->print("Network error", 1);
             } else {
-              display->print("Deny - " + int(data.code) , 1);
-              display->print(data.code.toString());
+              display->print("Deny: Code(" + String(code) + ")", 1);
             }
         }
         //#error Handle entryScan
@@ -347,15 +380,20 @@ void Box::checkin() {
       return;
   }
 
-  User data = http->getDataFromPin(pin.toInt());
-  if (!data.allow){
-    display->print("Invalid pin", 1);
-    delay(2000);
-    return;
+  User* user = new User;
+
+  int code = http->getUserInfo(PIN, pin, user);
+  if(!handler(code)) {
+    switch(code){
+      case 404:
+        display->print("Invalid pin", 1);
+        delay(2000);
+        return;
+    }
   }
 
   display->print("Validate name:", 0);
-  display->print(data.name, 1);
+  display->print(user->name, 1);
 
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
@@ -386,11 +424,12 @@ void Box::checkin() {
         MAKE_BUFFER(1, 0) bf_assign;
 
         JsonObject& assign = bf_assign.createObject();
-        HTTPCode code = http->assignUserWID(String(uid), pin.toInt());
+        int code = http->registerUser(String(uid), pin);
 
-        if(!code){
-          display->print("Try again - " + String(int(code)), 0);
-          display->print(code.toString(), 2);
+        // TODO: handle code
+
+        if(code != 200){
+          display->print("Try again - " + String(code), 0);
           delay(2500);
           return;
         }
@@ -400,7 +439,7 @@ void Box::checkin() {
   } while (!uid);
 
   display->print("Shirt Size: ", 0);
-  display->print(data.shirtSize);
+  display->print(user->shirtSize);
 
   display->print("Photo consent?",1);
 
@@ -561,18 +600,19 @@ void Box::getuid(){
      uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
      Serial.println("UID: " + String(uid));
       if(uid){
-        User usr = http->userInfoFromWID(String(uid));
-        display->print(usr.name, 1);
+        User* user = new User();
+        int code = http->getUserInfo(WID, String(uid), user);
+        display->print(user->name, 1);
         while(keypad->getUniqueKey(5000) == 't');
       }
   }
 }
 
 void Box::update(){
-  display->print("OTA Enabled. IP:", 0);
-  display->print(http->localIP(), 1);
+  display->print("Update Enabled.", 0);
+  display->print("IP:"+http->localIP(), 1);
   if(!OTA_enabled){
-    http->enableOTA();
+    http->enableUpdate();
   }
   
   switch(keypad->getUniqueKey(750)){
@@ -581,7 +621,7 @@ void Box::update(){
     display->clear();
     return;
   default:
-    http->handleOTA();
+    http->handleUpdate();
     break;
   }
 }
@@ -605,21 +645,19 @@ void Box::item_checkout(){
       state = MENU;
       return;
     case '#':
-      iid = item_list->getCurrent()->id;
-      item_name = item_list->getCurrent()->name;
+      item = item_list->getCurrent();
       state = SCAN_ITEM;
       checkout = true;
       location_cleanup();
       break;
     default:
-      if (item_list->numItems()  == 0) {
+      if (item_list->size()  == 0) {
         display->print("Updating list", 1);
 
-        delete item_list;
-        item_list = http->getItems();
+        int res = http->getItems(item_list);
       }
 
-      if(item_list->numItems() > 0){
+      if(item_list->size() > 0){
         display->print(item_list->getCurrent()->name, 1);
       } else {
         display->print("No items found", 1);
@@ -648,21 +686,19 @@ void Box::item_return(){
       state = MENU;
       return;
     case '#':
-      iid = item_list->getCurrent()->id;
-      item_name = item_list->getCurrent()->name;
+      item = item_list->getCurrent();
       state = SCAN_ITEM;
       checkout = false;
       location_cleanup();
       break;
     default:
-      if (item_list->numItems()  == 0) {
+      if (item_list->size()  == 0) {
         display->print("Updating list", 1);
 
-        delete item_list;
-        item_list = http->getItems();
+        int res = http->getItems(item_list);
       }
 
-      if(item_list->numItems() > 0){
+      if(item_list->size() > 0){
         display->print(item_list->getCurrent()->name, 1);
       } else {
         display->print("No items found", 1);
@@ -695,13 +731,14 @@ void Box::scan_item() {
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
         //User data = http->(String(uid), lid);
-        HTTPCode code = checkout ? http->itemCheckout(String(uid), iid) : http->itemReturn(String(uid), iid);
+        int code = checkout ? http->itemCheckout(String(uid), item) : http->itemReturn(String(uid), item);
+        // TODO: handle different responses
         if (code) {
           display->print("Allow", 1);
           display->toggleDisplay();
         } else {
           display->print("Deny - " + int(code) , 1);
-          display->print(code.toString(), 2);
+          display->print(String(code), 2);
           delay(2500);
           return;
         }
@@ -714,7 +751,7 @@ void Box::scan_item() {
               display->print("Network error", 1);
             } else {
               display->print("Deny - " + int(code) , 1);
-              display->print(code.toString());
+              display->print(String(code));
             }
         }
         //#error Handle entryScan
@@ -725,7 +762,26 @@ void Box::scan_item() {
 }
 
 void Box::item_cleanup(){
-  delete item_list;
-  item_list = new Items();
+  item_list->clear();
 }
+
+  bool Box::handler(int code){
+    String pin;
+    if(code < 0) {
+      // Hanlded codes
+        display->print("Reconnecting to ", 0);
+        display->print("the Network...", 1);
+        http->connect();
+        delay(5000);
+        // reconnect to wifi;
+        return true;
+    }
+    if( code == 401 ) {
+        display->print("Undating API key", 0);
+        display->print("Pin: ", 1);
+        pin = keypad->getPin(10, '*', '#', 10000);
+        return http->getApiKey(pin) == 200;
+    }
+    return false;
+  }
 }
