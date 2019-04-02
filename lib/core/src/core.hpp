@@ -6,3 +6,4 @@
 #include "readable.hpp"
 #include "volatile.hpp"
 #include "writable.hpp"
+#include "controller.hpp"

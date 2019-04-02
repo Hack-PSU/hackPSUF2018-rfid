@@ -1,5 +1,3 @@
-#pragma once
-
 #include "api.hpp"
 
 namespace hackPSU{

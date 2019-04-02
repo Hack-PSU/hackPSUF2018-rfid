@@ -3,9 +3,7 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 
-#include <readable.hpp>
-#include <writable.hpp>
-#include <addressable.hpp>
+#include <core.hpp>
 
 #include "response.hpp"
 #include "request.hpp"
@@ -37,12 +35,33 @@ namespace hackPSU {
 
   class Network: public Readable<Response*>, public Writable<Request*>, public Addressable<String> {
     public:
-      Network(char* name, String host);
-      Network(char* name);
+      Network(char* name, String host = ""): Readable<Response*>::Readable(name), Writable<Request*>::Writable(name), Addressable<String>::Addressable() {
+        // Addressable method
+        setAddress(host);
+      }
 
-      Request* createRequest(API::Method method);
-      Request* createRequest(API::Method method, String route);
-      Response* sendRequest(Request* request, int retry = 3);
+      Request* createRequest(API::Method method) {
+        Request* req = new Request(method, getAddress());
+        return req;
+      }
+
+      Request* createRequest(API::Method method, String route) {
+        Request* req = createRequest(method);
+        req->setAddress(route);
+        return req;
+      }
+
+      Response* sendRequest(Request* request, int retry = 3) {
+        if(!request) { return nullptr; }
+
+        pre_send(request);
+        write(request);
+        
+        Response* result = read();
+        post_send(request, result);
+
+        return result;
+      }
 
 
       virtual int status() = 0;
@@ -52,7 +71,11 @@ namespace hackPSU {
 
 
     protected:
-      virtual void pre_send(Request* request) = 0;
-      virtual void post_send(Request* request, Response* response) = 0;
+      virtual void pre_send(Request* request) {
+        return;
+      }
+      virtual void post_send(Request* request, Response* response) {
+        return;
+      }
   };
 }

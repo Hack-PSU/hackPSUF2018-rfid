@@ -17,10 +17,6 @@ namespace hackPSU{
       setAddress("/");
   }
 
-  Request::~Request(){
-    if(response != nullptr) delete response;
-  }
-
   bool Request::addPayload(String key, String value){
     return payload.set(key, value);
   }

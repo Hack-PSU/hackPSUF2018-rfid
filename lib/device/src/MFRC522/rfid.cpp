@@ -21,6 +21,9 @@ namespace hackPSU {
 
   }
 
+  Scanner::~Scanner() {
+  }
+
   uint32_t Scanner::getUID(unsigned long timeout, bool stop){
     byte data[4];
     uint32_t* uid;

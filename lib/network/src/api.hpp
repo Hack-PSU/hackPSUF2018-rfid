@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Arduino.h>
-
-#include "objects.h"
 #include "network.hpp"
+#include "objects.h"
 
 #include <list.hpp>
 

@@ -35,7 +35,7 @@ else
 
     echo "; SSID of the network to use"  > hackpsu.config
     echo "  -D NETWORK_SSID=\\\"\\\""     >> hackpsu.config
-    echo "; Password for network (\, ',\" will all be escaped" >> hackpsu.config
+    echo "; Password for network (\, ',\" will all be escaped)" >> hackpsu.config
     echo "  -D NETWORK_PASSWORD=\\\"\\\"" >> hackpsu.config
     echo "; IP address of redis"          >> hackpsu.config
     echo "  -D REDIS=\\\":3000\\\""       >> hackpsu.config

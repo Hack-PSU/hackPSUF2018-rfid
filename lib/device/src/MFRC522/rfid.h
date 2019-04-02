@@ -28,6 +28,8 @@ namespace hackPSU {
       Scanner(char* name, uint8_t ssPin, uint8_t rstPin, const byte* key);
       Scanner(char* name, uint8_t ssPin, uint8_t rstPin);
 
+      ~Scanner();
+
       //Timeout is negated if timeout==0
       uint32_t getUID(unsigned long timeout, bool stop = true);
       bool isMaster();

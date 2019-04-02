@@ -1,10 +1,5 @@
 #pragma once
 
-#include<cstring>
-#include<stdint.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<ESP8266WiFi.h>
 #include<Arduino.h>
 
 #include <esp8266/esp8266.hpp>

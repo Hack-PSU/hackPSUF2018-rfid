@@ -27,7 +27,6 @@ namespace hackPSU{
     friend class Api;
     public:
         Request(API::Method method, String host);
-        ~Request();
 
         bool addPayload(String key, String value);
         bool addHeader(String key, String value);
@@ -45,7 +44,7 @@ namespace hackPSU{
         MAKE_BUFFER(15, 0) bf_payload;
 
         API::Method method;
-        Response* response;
+        //Response* response;
 
         JsonObject& header;
         JsonObject& payload;

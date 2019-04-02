@@ -265,10 +265,10 @@ void Box::location(){
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      event_list->next();
+      event = event_list->next();
       return;
     case 'B':
-      event_list->previous();
+      event = event_list->previous();
       return;
     case 'C':
        display->scroll();
@@ -421,9 +421,6 @@ void Box::checkin() {
       display->clear(1);
       uid = scanner->getUID(SCAN_TIMEOUT);
       if(uid){
-        MAKE_BUFFER(1, 0) bf_assign;
-
-        JsonObject& assign = bf_assign.createObject();
         int code = http->registerUser(String(uid), pin);
 
         // TODO: handle code
@@ -588,8 +585,6 @@ void Box::zeroize() {
 void Box::getuid(){
   display->print('#', CHECK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   display->print("Scan for UID", 1);
-
-  byte read_buffer[READ_BUFFER] = {0};
 
   switch(keypad->getUniqueKey(2000)){
     case 'D':
