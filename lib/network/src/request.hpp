@@ -7,6 +7,18 @@
 
 #include "response.hpp"
 
+
+#ifndef API_VERSION
+#error Macro, API_VERSION, not set
+#define API_VERSION ""
+#endif
+
+
+#ifndef REDIS
+#error Macro, API_VERSION, not set
+#define REDIS ""
+#endif
+
 namespace hackPSU{
 
 

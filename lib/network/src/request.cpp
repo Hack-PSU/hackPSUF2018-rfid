@@ -1,20 +1,15 @@
 #include "request.hpp"
 
-#ifndef API_VERSION
-#error Macro, API_VERSION, not set
-#define API_VERSION ""
-#endif
-
 namespace hackPSU{
 
-  Request::Request(API::Method method, String host) :
+  Request::Request(API::Method method, String route) :
     Addressable<String>::Addressable(),
     header(bf_header.createObject()),
     payload(bf_payload.createObject())
   {
       this->method = method;
-      this->host = host;
-      setAddress("/");
+      this->host = REDIS;
+      setAddress(route);
   }
 
   bool Request::addPayload(String key, String value){
@@ -36,7 +31,7 @@ namespace hackPSU{
       String url = "http://" + host + this->getAddress() + parameter;
     #endif
     #ifdef DEBUG
-      Serial.print("THE URL is: ");
+      Serial.print("Using URL: ");
       Serial.println(url);
     #endif
     return url;

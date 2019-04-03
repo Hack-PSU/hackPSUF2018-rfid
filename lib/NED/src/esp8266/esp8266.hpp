@@ -6,12 +6,10 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
-
-#if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
-    #include <ESP8266mDNS.h>
-    #include <WiFiUdp.h>
-    #include <ArduinoOTA.h>
-#endif
+// OTA libraries
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
 
 #ifndef NETWORK_PASSWORD
@@ -24,7 +22,7 @@
     #define NETWORK_SSID "" // Here so intellisense is happy
 #endif
 
-#if !defined(OTA_PASSWORD) && !defined(OTA_PASSWORD_HASH)
+#if !defined(OTA_PASSWORD)
     #warning OTA uploads not enabled, define OTA_PASSWORD and OTA_PASSWORD_HASH to allow OTA uplaoding.
 #endif
 
@@ -32,16 +30,15 @@ namespace hackPSU {
     class ESP8266_Device : public Api{
     public:
         ESP8266_Device(char* name);
+        ~ESP8266_Device() = default;
 
         int status() override;
         int connect() override;
         String localIP() override;
         String mac() override;
 
-        #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
         void enableUpdate() override;
         void handleUpdate() override;
-        #endif
 
     protected:
         void pre_send(Request* req) override;

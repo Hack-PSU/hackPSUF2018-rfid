@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arduino.h>
+
 namespace hackPSU{
 
     template <class Item>
@@ -22,8 +24,12 @@ namespace hackPSU{
     class List{
     // Circular Linked list of Items
     public:
-        List() {}
-        ~List() {}
+        List() {
+            length = 0;
+        }
+        ~List() {
+            clear();
+        }
         void addItem(Item* item) {
             Wrapper<Item>* insert = new Wrapper<Item>(item);
 

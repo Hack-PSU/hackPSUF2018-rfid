@@ -7,6 +7,6 @@ namespace hackPSU{
     }
 
     Response::operator bool() const{
-      return bool(code);
+      return code >= 200 && code < 300;
     }
 }

@@ -9,14 +9,13 @@ namespace hackPSU{
         h.toCharArray(hostname, 16);
     }
 
-    #if defined(OTA_PASSWORD) && defined(OTA_PASSWORD_HASH)
     void ESP8266_Device::enableUpdate(){
         if(OTA_enabled) { return; }
 
         ArduinoOTA.setPort(8266);
         ArduinoOTA.setHostname(hostname);
         ArduinoOTA.setPassword((char*)OTA_PASSWORD);
-        ArduinoOTA.setPasswordHash((char*)OTA_PASSWORD_HASH); // md5(OTA_PASSWORD)
+        // ArduinoOTA.setPasswordHash((char*)OTA_PASSWORD_HASH); // md5(OTA_PASSWORD)
         ArduinoOTA.onStart([]() {
             String type;
             if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -56,7 +55,6 @@ namespace hackPSU{
     void ESP8266_Device::handleUpdate(){
         ArduinoOTA.handle();
     }
-    #endif
 
     void ESP8266_Device::pre_send(Request* request){
         Api::pre_send(request);
@@ -78,9 +76,9 @@ namespace hackPSU{
         }
         
         #ifdef HTTPS_FINGERPRINT
-            http.begin(req->generateURL(this->getAddress()), FP);
+            http.begin(req->generateURL(REDIS), FP);
         #else
-            http.begin(req->generateURL(this->getAddress()));
+            http.begin(req->generateURL(REDIS));
         #endif
 
         for(JsonPair& p: req->getHeader()){
@@ -100,7 +98,7 @@ namespace hackPSU{
         if( code < 0) {
             return new Response("", code);
         }
-        
+        delay(250);
         Response* res =  new Response(http.getString(), code);
         http.end();
         return res;
@@ -108,8 +106,10 @@ namespace hackPSU{
 
     void ESP8266_Device::post_send(Request* request, Response* response){
         Api::post_send(request, response);
-        
-        if(response->code < 0 && status() != WL_CONNECTED){
+        Serial.println("Usage: " + String(100 - double(ESP.getFreeHeap()) / 819.20) + "%");
+        if(response->payload.length() == 0) {
+            response->code = OUT_OF_MEMORY;
+        } else if(response->code < 0 && status() != WL_CONNECTED){
             // Resend on a failed attempt
             connect();
             if(--retry > 0) {

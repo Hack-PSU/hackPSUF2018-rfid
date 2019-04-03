@@ -15,6 +15,7 @@ namespace hackPSU{
         #endif
 
         start = 0;
+        authenticated = true;
     }
 
     Api::Api(char* name, String host):
@@ -26,19 +27,23 @@ namespace hackPSU{
     void Api::loadApiKey(){
         char apibuff[37];
         EEPROM.get(0, apibuff);
+        apibuff[36] = '\0';
         apiKey = String(apibuff);
     }
     
     void Api::storeApiKey(){
         char apibuff[37];
         apiKey.toCharArray(apibuff, 37);
+        apibuff[36] = '\0';
         EEPROM.put(0, apibuff);
         EEPROM.commit();
     }
 
     int Api::checkApiKey() {
-        Request* req = createRequest(API::POST, "/auth/scanner/time");
-        req->addParameter("apiKey", apiKey);
+        if( !isAlphaNumeric(apiKey[0]) ) {
+            return 401;
+        }
+        Request* req = createRequest(API::POST,  "/auth/scanner/register");
 
         Response* res = sendRequest(req, 3);
 
@@ -46,13 +51,15 @@ namespace hackPSU{
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
             if(response.success()){
-                if(res->code != 401 && extract<String>(response, &apiKey, "apiKey")) {
+                JsonObject& data = response.get<JsonObject>("data");
+                if(extract<String>(data, &apiKey, "apikey")) {
                     storeApiKey();
+                } else if( res->code != 401) {
+                    res->code = API_PARSE_ERROR;
                 }
-
-                if (! (extract<uint32_t>(response, &start, "time")) ){
-                    res->code = API_FIELD_MISSING;
-                }
+                // if (! (extract<uint32_t>(response, &start, "time")) ){
+                //     res->code = API_FIELD_MISSING;
+                // }
             } else {
                 res->code = API_PARSE_ERROR;
             }
@@ -64,16 +71,20 @@ namespace hackPSU{
 
         Request* req = createRequest(API::POST, "/auth/scanner/register");
         req->addPayload("pin",String(pin));
+        authenticated = false;
 
         Response* res = sendRequest(req, 3);
-
+        Serial.println("RESPONSE: " + res->payload);
         if(bool(*res)){
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
 
             if(response.success()) {
-                if(extract<String>(response.get<JsonObject>("data"), &apiKey, "apiKey")) {
+                JsonObject& data = response.get<JsonObject>("data");
+                if(extract<String>(data, &apiKey, "apikey")) {
                     storeApiKey();
+                } else {
+                    res->code = API_PARSE_ERROR;
                 }
             } else {
                 res->code = API_PARSE_ERROR;
@@ -130,20 +141,24 @@ namespace hackPSU{
         Request* req = createRequest(API::GET, "/rfid/events");
 
         Response* res = sendRequest(req);
+        Serial.println(res->code);
+        Serial.println(res->payload);
 
-        if((*res)){
+        if(bool(*res)){
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
-
             if(response.success()){
-                JsonArray& events = response.get<JsonArray>("locations");
+                if(response.get<int>("length") > 0) {
+                    JsonArray& events = response.get<JsonArray>("locations");
 
-                for(JsonObject& event : events){
-                    Event* e = new Event();
-                    if(extract(event, e)) {
-                        list->addItem(e);
-                    } else {
-                        res->code = API_PARSE_ERROR;
+                    for(JsonObject& event : events){
+                        Event* e = new Event();
+                        if(extract(event, e)) {
+                            Serial.println("Adding event: " + e->name);
+                            list->addItem(e);
+                        } else {
+                            res->code = API_INVALID_VALUE;
+                        }
                     }
                 }
             } else {
@@ -188,14 +203,16 @@ namespace hackPSU{
             JsonObject& response = bf_data.parseObject(res->payload);
 
             if(response.success()){
-                JsonArray& items = response.get<JsonArray>("items");
+                if(response.get<int>("length") > 0) {
+                    JsonArray& items = response.get<JsonArray>("items");
 
-                for(JsonObject& event : items){
-                    Item* item = new Item();
-                    if(extract(event, item)) {
-                        list->addItem(item);
-                    } else {
-                        res->code = API_PARSE_ERROR;
+                    for(JsonObject& event : items){
+                        Item* item = new Item();
+                        if(extract(event, item)) {
+                            list->addItem(item);
+                        } else {
+                            res->code = API_FIELD_MISSING;
+                        }
                     }
                 }
             } else {
@@ -236,15 +253,19 @@ namespace hackPSU{
         request->addHeader("macaddr", mac());
         if(request->isMethod(API::GET)){
             request->addParameter("version", API_VERSION);
-            request->addParameter("apikey", apiKey);
+            if( authenticated ){
+                request->addParameter("apikey", apiKey);
+            }
         } else {
             request->addPayload("version", API_VERSION);
-            request->addPayload("apikey", apiKey);
+            if( authenticated ){
+                request->addParameter("apikey", apiKey);
+            }
         }
     }
 
     void Api::post_send(Request* request, Response* response) {
-        return;
+        authenticated = true;
     }
 
     int Api::cleanup(Request* req, Response* res){
@@ -272,13 +293,13 @@ namespace hackPSU{
 
     bool Api::extract(JsonObject& json, Event* event){
         return this->extract<String>(json, &event->name, "name") && 
-               this->extract<uint32_t>(json, &event->id, "id") && 
+               this->extract<uint32_t>(json, &event->id, "uid") && 
                this->extract<uint8_t>(json, &event->maxEntry, "maxEntry");
     }
 
     bool Api::extract(JsonObject& json, Item* item){
         return this->extract<String>(json, &item->name, "name") && 
-               this->extract<uint32_t>(json, &item->id, "id");
+               this->extract<uint32_t>(json, &item->id, "uid");
     }
 
     template<class Type>
@@ -293,4 +314,19 @@ namespace hackPSU{
         return success;
     }
 
+    String Api::decode(int code) {
+        switch(code) {
+            case API_FIELD_MISSING:     return F("Missing field");
+            case API_INVALID_VALUE:     return F("Invalid value");
+            case API_PARSE_ERROR:       return F("Parse Error");
+            case OUT_OF_MEMORY:         return F("Out of memory");
+            case OK:                    return F("Success");
+            case UNAUTHORIZED:          return F("Unauthorized");
+            case NOT_FOUND:             return F("Entity not found");
+            case INTERNAL_SERVER_ERROR: return F("Server error");
+
+
+            default:                return String(code);
+        }
+    }
 }

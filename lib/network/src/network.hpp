@@ -40,6 +40,8 @@ namespace hackPSU {
         setAddress(host);
       }
 
+      virtual ~Network() = default;
+
       Request* createRequest(API::Method method) {
         Request* req = new Request(method, getAddress());
         return req;

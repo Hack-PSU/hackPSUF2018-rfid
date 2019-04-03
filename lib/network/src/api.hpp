@@ -2,6 +2,7 @@
 
 #include "network.hpp"
 #include "objects.h"
+#include "codes.h"
 
 #include <list.hpp>
 
@@ -22,6 +23,8 @@ namespace hackPSU{
     public:
         Api(char* name);
         Api(char* name, String host);
+
+        virtual ~Api() = default;
 
         /**
          * checkApiKey
@@ -121,6 +124,8 @@ namespace hackPSU{
         virtual void enableUpdate() = 0;
         virtual void handleUpdate() = 0;
 
+        virtual String decode(int code);
+
     protected:
         void pre_send(Request* request) override;
         void post_send(Request* request, Response* response) override;
@@ -128,6 +133,7 @@ namespace hackPSU{
     private:
         String apiKey; // API key require for authentication
         uint32_t start;   // Offset used for scan time
+        bool authenticated;
 
 
         /**
