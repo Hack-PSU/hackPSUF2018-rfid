@@ -12,7 +12,7 @@ namespace hackPSU{
 
     struct Event { 
         String name;
-        uint32_t id;
+        String id;
         uint8_t maxEntry;
     } ;
 
