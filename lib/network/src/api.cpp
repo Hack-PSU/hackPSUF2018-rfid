@@ -40,7 +40,8 @@ namespace hackPSU{
         if( !isAlphaNumeric(apiKey[0]) ) {
             return 401;
         }
-        Request* req = createRequest(API::POST,  "/scanner/verify");
+        
+        Request* req = createRequest(API::POST,  "/auth/scanner/verify");
 
         Response* res = sendRequest(req, 3);
 
@@ -50,15 +51,15 @@ namespace hackPSU{
 
             if(response.success()){
                 JsonObject& data = response.get<JsonObject>("data");
-
-                if(extract<String>(data, apiKey, "apikey")) {
-                    storeApiKey();
-                } else if( res->code != 401) {
+                bool valid;
+                if(!extract<bool>(data, valid, "isValid")) {
                     res->code = API_PARSE_ERROR;
+                } else if(!valid) {
+                    res->code = API_INVALID_KEY;
                 }
-                // if (! (extract<uint32_t>(response, start, "time")) ){
-                //     res->code = API_FIELD_MISSING;
-                // }
+                if (! (extract<uint32_t>(data, start, "time")) ){
+                    res->code = API_FIELD_MISSING;
+                }
             } else {
                 res->code = API_PARSE_ERROR;
             }
@@ -254,10 +255,10 @@ namespace hackPSU{
 
         if(request->isMethod(API::GET)){
             request->addParameter("version", API_VERSION);
-            request->addParameter("apikey", apiKey);
+            request->addParameter("apikey", apiKey+"\0");  // make sure API key is null terminated
         } else {
             request->addPayload("version", API_VERSION);
-            request->addParameter("apikey", apiKey);
+            request->addPayload("apikey", apiKey+"\0");
         }
     }
 
@@ -328,6 +329,7 @@ namespace hackPSU{
             case API_INVALID_VALUE:     return F("Invalid value");
             case API_PARSE_ERROR:       return F("Parse Error");
             case API_NOT_IMPLIMENTED:   return F("Route not implemented");
+            case API_INVALID_KEY:       return F("Invalid API key");
             case OUT_OF_MEMORY:         return F("Out of memory");
             case OK:                    return F("Success");
             case UNAUTHORIZED:          return F("Unauthorized");

@@ -15,6 +15,7 @@
 #define API_FIELD_MISSING -102
 #define API_INVALID_VALUE -103
 #define API_NOT_IMPLIMENTED -104
+#define API_INVALID_KEY -105
 
 namespace hackPSU{
 
