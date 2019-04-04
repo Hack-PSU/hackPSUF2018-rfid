@@ -43,7 +43,7 @@ namespace hackPSU{
         if( !isAlphaNumeric(apiKey[0]) ) {
             return 401;
         }
-        Request* req = createRequest(API::POST,  "/auth/scanner/register");
+        Request* req = createRequest(API::POST,  "/scanner/verify");
 
         Response* res = sendRequest(req, 3);
 
@@ -74,7 +74,7 @@ namespace hackPSU{
         authenticated = false;
 
         Response* res = sendRequest(req, 3);
-        Serial.println("RESPONSE: " + res->payload);
+
         if(bool(*res)){
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
@@ -98,11 +98,11 @@ namespace hackPSU{
 
         switch(field){
         case PIN:
-            req->setAddress("/rfid/getpin");
+            req->setAddress("/scanner/getpin");
             req->addPayload("pin", id);
             break;
         case WID:
-            req->setAddress("/rfid/user-info");
+            req->setAddress("/scanner/user-info");
             req->addPayload("wid", id);
             break;
         default:
@@ -127,7 +127,7 @@ namespace hackPSU{
     }
 
     int Api::registerUser(String wid, String pin) {
-        Request* req = createRequest(API::POST, "/rfid/assign");
+        Request* req = createRequest(API::POST, "/scanner/assign");
         req->addPayload("pin", String(pin));
         req->addPayload("wid", wid);
 
@@ -138,7 +138,7 @@ namespace hackPSU{
     }
 
     int Api::getEvents(List<Event>* list) {
-        Request* req = createRequest(API::GET, "/rfid/events");
+        Request* req = createRequest(API::GET, "/scanner/events");
 
         Response* res = sendRequest(req);
 
@@ -168,7 +168,7 @@ namespace hackPSU{
     }
 
     int Api::sendScan(String wid, Event* event, User* user, uint32_t offset) {
-        Request* req = createRequest(API::POST, "/rfid/scan");
+        Request* req = createRequest(API::POST, "/scanner/scan");
         req->addPayload("wid", wid);
         req->addPayload("location", String(event->id));
         req->addPayload("timestamp", String(start + offset));
@@ -193,7 +193,7 @@ namespace hackPSU{
     }
 
     int Api::getItems(List<Item>* list) {
-        Request* req = createRequest(API::GET, "/rfid/items");
+        Request* req = createRequest(API::GET, "/scanner/items");
 
         Response* res = sendRequest(req);
 
@@ -225,7 +225,7 @@ namespace hackPSU{
     int Api::itemCheckout(String wid, Item* item) {
         #warning Route not implemented
         return -1;
-        // Request* req = createRequest(API::POST, "/rfid/checkout");
+        // Request* req = createRequest(API::POST, "/scanner/checkout");
         // req->addPayload("wid", wid);
         // req->addPayload("itemId", String(item->id));
 
@@ -237,7 +237,7 @@ namespace hackPSU{
     int Api::itemReturn(String wid, Item* item) {
         #warning Route not implemented
         return -1;
-        // Request* req = createRequest(API::POST, "/rfid/return");
+        // Request* req = createRequest(API::POST, "/scanner/return");
         // req->addPayload("wid", wid);
         // req->addPayload("itemId", String(item->id));
 
@@ -252,14 +252,10 @@ namespace hackPSU{
         request->addHeader("macaddr", mac());
         if(request->isMethod(API::GET)){
             request->addParameter("version", API_VERSION);
-            if( authenticated ){
-                request->addParameter("apikey", apiKey);
-            }
+            request->addParameter("apikey", apiKey);
         } else {
             request->addPayload("version", API_VERSION);
-            if( authenticated ){
-                request->addParameter("apikey", apiKey);
-            }
+            request->addParameter("apikey", apiKey);
         }
     }
 
