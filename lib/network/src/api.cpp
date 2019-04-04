@@ -141,8 +141,6 @@ namespace hackPSU{
         Request* req = createRequest(API::GET, "/rfid/events");
 
         Response* res = sendRequest(req);
-        Serial.println(res->code);
-        Serial.println(res->payload);
 
         if(bool(*res)){
             MAKE_BUFFER(25, 25) bf_data;
@@ -176,6 +174,7 @@ namespace hackPSU{
         req->addPayload("timestamp", String(start + offset));
 
         Response* res = sendRequest(req);
+
         if(bool(*res)){
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
@@ -265,6 +264,9 @@ namespace hackPSU{
     }
 
     void Api::post_send(Request* request, Response* response) {
+        #if defined(DEBUG) && defined(SERIAL_EN)
+        Serial.println(response->payload);
+        #endif
         authenticated = true;
     }
 
@@ -281,25 +283,32 @@ namespace hackPSU{
             *data = json.get<Type>(key);
             return true;
         } else {
+            #if defined(DEBUG) && defined(SERIAL_EN)
+            Serial.println("Could not extract data for key, " + key);
+            #endif
             return false;
         }
     }
 
     bool Api::extract(JsonObject& json, User* user){
+        #warning Update fields to extract for type "User"
         return this->extract<String>(json, &user->name, "name") && 
                this->extract<String>(json, &user->shirtSize, "shirtSize") && 
-               this->extract<String>(json, &user->diet, "diet");
+               this->extract<String>(json, &user->diet, "diet") &&
+               this->extract<uint8_t>(json, &user->counter, "counter");
     }
 
     bool Api::extract(JsonObject& json, Event* event){
-        return this->extract<String>(json, &event->name, "name") && 
-               this->extract<uint32_t>(json, &event->id, "uid") && 
-               this->extract<uint8_t>(json, &event->maxEntry, "maxEntry");
+        #warning Hard coding event max entry value
+        event->maxEntry = 1;
+        return this->extract<String>(json, &event->name, "event_title") && 
+               this->extract<String>(json, &event->id, "uid") /* && 
+               this->extract<uint8_t>(json, &event->maxEntry, "maxEntry") */;
     }
 
     bool Api::extract(JsonObject& json, Item* item){
         return this->extract<String>(json, &item->name, "name") && 
-               this->extract<uint32_t>(json, &item->id, "uid");
+               this->extract<String>(json, &item->id, "uid");
     }
 
     template<class Type>

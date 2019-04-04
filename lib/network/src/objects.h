@@ -3,6 +3,8 @@
 #include <Arduino.h>
 
 namespace hackPSU{
+
+    #warning Update field in type "User"
     struct User {
         String name;
         String shirtSize;
@@ -18,7 +20,7 @@ namespace hackPSU{
 
     struct Item {
         String name;
-        uint32_t id;
+        String id;
     };
 
     template<class Type>

@@ -106,7 +106,6 @@ namespace hackPSU{
 
     void ESP8266_Device::post_send(Request* request, Response* response){
         Api::post_send(request, response);
-        Serial.println("Usage: " + String(100 - double(ESP.getFreeHeap()) / 819.20) + "%");
         if(response->payload.length() == 0) {
             response->code = OUT_OF_MEMORY;
         } else if(response->code < 0 && status() != WL_CONNECTED){
