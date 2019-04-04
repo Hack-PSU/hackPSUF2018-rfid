@@ -95,7 +95,7 @@ namespace hackPSU{
     }
 
     Response* ESP8266_Device::scan() {
-        if( code < 0) {
+        if(code < 0) {
             return new Response("", code);
         }
         delay(250);

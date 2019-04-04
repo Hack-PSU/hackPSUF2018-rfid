@@ -14,6 +14,7 @@
 #define API_PARSE_ERROR -101
 #define API_FIELD_MISSING -102
 #define API_INVALID_VALUE -103
+#define API_NOT_IMPLIMENTED -104
 
 namespace hackPSU{
 
@@ -133,7 +134,6 @@ namespace hackPSU{
     private:
         String apiKey; // API key require for authentication
         uint32_t start;   // Offset used for scan time
-        bool authenticated;
 
 
         /**
@@ -195,7 +195,7 @@ namespace hackPSU{
          * - true if data was extracted successfully
          */
         template<class Type>
-        bool extract(JsonObject& json, Type* data, String key = "");
+        bool extract(JsonObject& json, Type& data, String key = "");
 
         bool extract(JsonObject& json, User* data);
         bool extract(JsonObject& json, Item* data);
