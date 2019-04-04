@@ -14,7 +14,7 @@ String getPin(char term = '\n') {
     while(!Serial.available());
     input = Serial.read();
     Serial.print(input);
-    pin += input;
+    if(input != term) pin += input;
   } while(input != term);
 
   return pin;
@@ -27,52 +27,71 @@ void printUsage() {
 void setup() {
   Serial.begin(9600); 
   delay(2000);
-  printUsage();
   esp = new hackPSU::ESP8266_Device((char*)"esp");
-  printUsage();
 
 
   while(esp->status() != WL_CONNECTED){
     Serial.println("Not conected: " + String(esp->status()));
     delay(500);
   }
+  
+  //_______________________________________________ Update API key
 
-  /*
-    Serial.println("Fetching list of events...");
-    printUsage();
-    hackPSU::List<hackPSU::Event>* events = new hackPSU::List<hackPSU::Event>();
-    printUsage();
-    Serial.println("Fetch code: " + esp->decode(esp->getEvents(events)));
-    printUsage();
-    Serial.println("There are " + String(events->size()) + " events");
+  Serial.println("Fetching new API key...");
+  Serial.print("Pin: ");
 
-    hackPSU::Event *e = new hackPSU::Event();
-    e->id = "3b697e8dc49045f3a9dc6d76a3d80ba5";
-    e->maxEntry = 1;
-    e->name = "Dinner";
+  String pin = getPin();
+  if(pin != "")  Serial.println(esp->decode(esp->getApiKey(pin)));
 
-    events->addItem(e);
+  //_______________________________________________ Fetch events
 
-    if(events->size() > 0)
-      Serial.println("Current event: " + events->getCurrent()->name);
+  Serial.println("Fetching list of events...");
+  hackPSU::List<hackPSU::Event>* events = new hackPSU::List<hackPSU::Event>();
+  Serial.println("Fetch code: " + esp->decode(esp->getEvents(events)));
+  Serial.println("There are " + String(events->size()) + " events");
 
-  /*/
-    Serial.println("Fetching list of items...");
-    printUsage();
-    hackPSU::List<hackPSU::Item>* items = new hackPSU::List<hackPSU::Item>();
-    printUsage();
-    Serial.println("Fetch code: " + esp->decode(esp->getItems(items)));
-    printUsage();
-    Serial.println("There are " + String(items->size()) + " items");
+  hackPSU::Event* event = nullptr;
 
-    if(items->size() > 0)
-      Serial.println("Current items: " + items->getCurrent()->name);
-  //*/
+  if(events->size() > 0) {
+    event = events->getCurrent();
+    Serial.println("Current event: " + event->name);
+  }
+
+  //_______________________________________________ Fetch items
+
+  Serial.println("Fetching list of items...");
+  hackPSU::List<hackPSU::Item>* items = new hackPSU::List<hackPSU::Item>();
+  Serial.println("Fetch code: " + esp->decode(esp->getItems(items)));
+  Serial.println("There are " + String(items->size()) + " items");
+
+  if(items->size() > 0)
+    Serial.println("Current items: " + items->getCurrent()->name);  
 
   
-  printUsage();
+  //_______________________________________________ Get User info
+  
+  Serial.print("Enter a pin to fetch user data: ");
+  String userPin = getPin();
 
+  hackPSU::User* user = new hackPSU::User();
 
+  
+  Serial.println("Fetch code: " + esp->decode(esp->getUserInfo(hackPSU::PIN, userPin, user)));
+  Serial.println("Data for " + user->name);
+  Serial.println("Shirt Size: " + user->shirtSize);
+  Serial.println("Diet:       " + user->diet);
+  Serial.println("Counter:    " + String(user->counter));
+  
+  //_______________________________________________ Registering user
+  
+  Serial.println("Registering " + user->name);
+  String wid = "123456789";
+  Serial.println("Code: " + esp->decode(esp->registerUser(wid, userPin)));
+
+  //_______________________________________________ Scanning user into evetn
+  
+  Serial.println("Scanning " + user->name + " into " + event->name);
+  Serial.println("Code: " + esp->decode(esp->sendScan(wid, event, user, millis())));
 
 
   // Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);

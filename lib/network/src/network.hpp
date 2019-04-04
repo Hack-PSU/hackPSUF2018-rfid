@@ -12,12 +12,10 @@
 
 #ifndef MASTER_KEY
 #error Macro, MASTER_KEY, not set
-#define MASTER_KEY ""
 #endif
 
 #ifndef REDIS
 #error Macro, REDIS, not set
-#define REDIS ""
 #endif
 
 #ifndef RETRY_RATE
