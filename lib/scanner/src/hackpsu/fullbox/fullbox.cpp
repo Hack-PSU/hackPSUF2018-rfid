@@ -10,8 +10,51 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   http    = new Network(REDIS);
   keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
 
-  location_list = new Locations();
-  item_list = new Items();
+  location_list = new List<Event>();
+  item_list = new List<Item>();
+  menu_list = new List<MenuItem>();
+  MenuItem* menuItem = new MenuItem();
+  //add each menu item to menuitem list
+  menuItem->heading = "Set & Scan";
+  menuItem->loop = &location;
+  menu_list->addItem(menuItem); //memcpy in list
+
+  menuItem->heading = "Check-In";
+  menuItem->loop = &checkin;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Item checkout";
+  menuItem->loop = &item_checkout;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Item return";
+  menuItem->loop = &item_return;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Show Name";
+  menuItem->loop = &getuid;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "WiFi info";
+  menuItem->loop = &wifi;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Clone Master";
+  menuItem->loop = &duplicate;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Zeroize";
+  menuItem->loop = &zeroize;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Lock";
+  menuItem->loop = &lock;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "OTA update";
+  menuItem->loop = &update;
+  menu_list->addItem(menuItem);
+
   // Set default values
   menu_state = 0;
   strength = UNDEFINED;
@@ -54,50 +97,7 @@ Box::~Box() {
 
 void Box::cycle(void) {
   //switch on state; default to init
-  switch (state) {
-    case LOCK:
-      lock();
-      return;
-    case MENU:
-      menu();
-      return;
-    case DUPLICATE:
-      duplicate();
-      return;
-    case WIFI:
-      wifi();
-      return;
-    case LOCATION:
-      location();
-      return;
-    case CHECKIN:
-      checkin();
-      return;
-    case ITEM_CHECKOUT:
-      item_checkout();
-      return;
-    case ITEM_RETURN:
-      item_return();
-      return;
-    case SCAN_ITEM:
-      scan_item();
-      return;
-    case ZEROIZE:
-      zeroize();
-      return;
-    case SCAN_EVENT:
-      scan_event();
-      return;
-    case GETUID:
-      getuid();
-      return;
-    case UPDATE:
-      update();
-      return;
-    default:
-      state = LOCK;
-      return;
-  }
+  menu_list->getCurrent()->loop();
 }
 
 void Box::lock(){
@@ -123,43 +123,7 @@ void Box::lock(){
 
 void Box::menu() {
   display->print('A', UP_C, 'B', DOWN_C, '#', CHECK_C, 'D', LOCK_C);
-
-  switch(menu_state){
-    case 0:
-      display->print("Set & Scan", 1);
-      break;
-    case 1:
-      display->print("Check-In", 1);
-      break;
-    case 2:
-      display->print("Item checkout", 1);
-      break;
-    case 3:
-      display->print("Item return", 1);
-      break;
-    case 4:
-      display->print("Show Name", 1);
-      break;
-    case 5:
-      display->print("WiFi info", 1);
-      break;
-    case 6:
-      display->print("Clone Master", 1);
-      break;
-    case 7:
-      display->print("Zeroize", 1);
-      break;
-    case 8:
-      display->print("Lock", 1);
-      break;
-    case 9:
-      display->print("OTA update", 1);
-      break;
-    default:
-      menu_state = 0;
-      state = LOCK;
-      display->clear();
-      return;
+  display->print(menu_list->getCurrent()->heading, 1);
   }
 
   switch (keypad->getUniqueKey(500)) {
@@ -574,7 +538,7 @@ void Box::update(){
   if(!OTA_enabled){
     http->enableOTA();
   }
-  
+
   switch(keypad->getUniqueKey(750)){
   case 'D':
     state = LOCK;
