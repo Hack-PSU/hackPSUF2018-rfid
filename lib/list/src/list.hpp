@@ -63,6 +63,11 @@ namespace hackPSU{
             return getCurrent();
         }
 
+        Item* reset() {
+          current = head;
+          return getCurrent();
+        }
+
         void clear() {
             while(length-- > 0) {
                 Wrapper<Item>* tmp = current;

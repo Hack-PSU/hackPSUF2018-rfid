@@ -14,7 +14,7 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   item_list = new List<Item>();
   menu_list = new List<MenuItem>();
   MenuItem* menuItem = new MenuItem();
-  //add each menu item to menuitem list
+  //add each menu item to menu_item list
   menuItem->heading = "Set & Scan";
   menuItem->loop = &location;
   menu_list->addItem(menuItem); //memcpy in list
@@ -124,63 +124,29 @@ void Box::lock(){
 void Box::menu() {
   display->print('A', UP_C, 'B', DOWN_C, '#', CHECK_C, 'D', LOCK_C);
   display->print(menu_list->getCurrent()->heading, 1);
-  }
 
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      menu_state = (MENU_STATES + menu_state - 1) % MENU_STATES;
-      menu_state %= MENU_STATES;
+      menu_list->previous();
       break;
     case 'B':
-      menu_state++;
-      menu_state %= MENU_STATES;
+      menu_list->next();
       break;
     case 'D':
       menu_cleanup();
       state = LOCK;
       break;
     case '#':
-      switch(menu_state){
-        case 0:
-          state = LOCATION;
-          break;
-        case 1:
-          state = CHECKIN;
-          break;
-        case 2:
-          state = ITEM_CHECKOUT;
-          break;
-        case 3:
-          state = ITEM_RETURN;
-          break;
-        case 4:
-          state = GETUID;
-          break;
-        case 5:
-          state = WIFI;
-          break;
-        case 6:
-          state = DUPLICATE;
-          break;
-        case 7:
-          state = ZEROIZE;
-          break;
-        case 8:
-          state = LOCK;
-          break;
-        case 9:
-          state = UPDATE;
-          break;
-        default:
-          state = LOCK;
-      }
+      MenuItem *curr = menu_list->getCurrent();
+      curr->loop();
+      break;
       menu_cleanup();
-  }
+    }
 }
 
 void Box::menu_cleanup(){
-  menu_state = 0;
   display->clear();
+  menu_list->reset();
 
 }
 
@@ -411,9 +377,6 @@ void Box::wifi() {
         strength = WEAK;
       }
   }
-
-
-
 }
 
 void Box::duplicate() {

@@ -8,6 +8,7 @@
 #include <MFRC522/rfid.h>
 
 #include <list.hpp>
+#include <menu.h>
 
 #define MENU_STATES 10
 
@@ -25,14 +26,15 @@ namespace hackPSU{
        * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
        */
       void cycle();
-    
+
     private:
       List<Event>* event_list;
       List<Item>* item_list;
+      List<MenuItem>* menu_list;
 
       Event* event;
       Item* item;
-      
+
       State_e state;
       uint32_t last_scan;
 
@@ -50,10 +52,10 @@ namespace hackPSU{
 
       /**
        * handler
-       * 
+       *
        * Description:
        *   Handles HTTP codes that can be handled the same way after all calls
-       * 
+       *
        * Codes supported:
        *  <   0
        * == 401
@@ -66,7 +68,7 @@ namespace hackPSU{
        * Description:
        *    Box is locked until a RFID tag is scanned with the secret key in the right location
        *    Blocks execution until unlocked
-       *    
+       *
        * State transition:
        *    MENU - on master tag read
        */
@@ -85,12 +87,12 @@ namespace hackPSU{
        *       * Duplicates the master granting access to other people
        *    5) Lock device
        *       * Locks the device again until master tag is scanned
-       * 
+       *
        * Controls:
        *   Numbers select menu item (for ease)
        *   # selects current item
-       *  
-       *      
+       *
+       *
        *  State transitions:
        *    LOCATION - on menu selection
        *    WIFI - on menu selection
@@ -104,13 +106,13 @@ namespace hackPSU{
       /**
        * Description:
        *    Set the location of the box
-       * 
+       *
        * Controls:
        *    # selects current item
        *    A/B up and down
        *    C scrolls the LCD
        *    D returns to the menu
-       *    
+       *
        * State transitions:
        *    SCAN - on selection of location
        *    MENU - on 'D' press
@@ -121,11 +123,11 @@ namespace hackPSU{
       /**
        * Description:
        *    Scan members into location after location is set
-       * 
+       *
        * Controls:
        *    B Back button
        *    D Locks device
-       *   
+       *
        * State transistions:
        *    MENU - on 'B' press
        *    LOCK - on 'D' press
@@ -135,15 +137,15 @@ namespace hackPSU{
       /**
        * Description:
        *    Handle check-in process which will include band association
-       *    
+       *
        * Controls:
        *    # confirm
        *    * reject
        *    C scroll LCD
        *    D lock device
-       * 
-       * 
-       * 
+       *
+       *
+       *
        * State transitions:
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
@@ -153,7 +155,7 @@ namespace hackPSU{
       /**
        * Description:
        *    Handle item checkout which sends a band UID and a item id.
-       * 
+       *
        * Controls:
        *    # - select item
        *    D - lock screen
@@ -169,7 +171,7 @@ namespace hackPSU{
       /**
        * Description:
        *    Display WiFi diagnostics
-       *    
+       *
        * State transitions:
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
@@ -179,12 +181,12 @@ namespace hackPSU{
       /**
        * Description:
        *    Duplicates the master key onto a RFID tag.  Only do this for tags you wish to grant access to the system
-       *    
+       *
        * State transitions:
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      void duplicate();  
+      void duplicate();
 
       /**
        * Description:
@@ -193,7 +195,7 @@ namespace hackPSU{
       void zeroize();
 
       /**
-       * 
+       *
        */
       void getuid();
 
