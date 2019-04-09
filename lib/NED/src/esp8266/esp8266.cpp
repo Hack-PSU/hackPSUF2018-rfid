@@ -7,6 +7,7 @@ namespace hackPSU{
         OTA_enabled = false;
         String h = "hackpsu_scanner";
         h.toCharArray(hostname, 16);
+
     }
 
     void ESP8266_Device::enableUpdate(){
@@ -58,7 +59,6 @@ namespace hackPSU{
 
     void ESP8266_Device::pre_send(Request* request){
         Api::pre_send(request);
-        retry = RETRY_RATE;
 
         if(status() != WL_CONNECTED){
             connect();
@@ -71,6 +71,7 @@ namespace hackPSU{
 
         int status = WiFi.status();
         if(status != WL_CONNECTED){
+            // make the code a negative number
             code = -1 * status;
             return;
         }
@@ -105,20 +106,21 @@ namespace hackPSU{
     }
 
     void ESP8266_Device::post_send(Request* request, Response* response){
-        Api::post_send(request, response);
-        if(response->payload.length() == 0) {
-            response->code = OUT_OF_MEMORY;
-        } else if(response->code < 0 && status() != WL_CONNECTED){
-            // Resend on a failed attempt
-            connect();
-            if(--retry > 0) {
+        for(uint8_t i = 0; i < RETRY_RATE; ++i) {
+            Api::post_send(request, response);
+            if(response->payload.length() == 0) {
+                response->code = OUT_OF_MEMORY;
+            } else if(response->code < 0 && status() != WL_CONNECTED){
+                // Resend on a failed attempt
+                connect();
                 delete response;
                 write(request);
                 response = read();
-                post_send(request, response);
+            } else {
+                break;
             }
         }
-        code = 0;
+        code = 0; // reset this value for next use
     }
 
 
@@ -139,5 +141,14 @@ namespace hackPSU{
 
     String ESP8266_Device::mac() {
         return WiFi.macAddress();
+    }
+
+    String ESP8266_Device::decode(int code) {
+        String res = Api::decode(code);
+        if(res  == String(code)) return res;
+        switch(code){
+            case OUT_OF_MEMORY: return "Out of memory";
+            default:            return res;
+        }
     }
 }
