@@ -26,6 +26,8 @@
     #warning OTA uploads not enabled, define OTA_PASSWORD and OTA_PASSWORD_HASH to allow OTA uplaoding.
 #endif
 
+#define OUT_OF_MEMORY -99
+
 namespace hackPSU {
     class ESP8266_Device : public Api{
     public:
@@ -39,6 +41,8 @@ namespace hackPSU {
 
         void enableUpdate() override;
         void handleUpdate() override;
+
+        String decode(int code) override;
 
     protected:
         void pre_send(Request* req) override;

@@ -11,11 +11,12 @@
 #define API_VERSION ""
 #endif
 
-#define API_PARSE_ERROR -101
-#define API_FIELD_MISSING -102
-#define API_INVALID_VALUE -103
-#define API_NOT_IMPLIMENTED -104
-#define API_INVALID_KEY -105
+// [-1,-100] are reserved codes for device-specific error codes
+#define API_PARSE_ERROR -100
+#define API_FIELD_MISSING -101
+#define API_INVALID_VALUE -102
+#define API_NOT_IMPLIMENTED -103
+#define API_INVALID_KEY -104
 
 namespace hackPSU{
 

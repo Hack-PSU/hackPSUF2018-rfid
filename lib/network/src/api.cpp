@@ -330,7 +330,6 @@ namespace hackPSU{
             case API_PARSE_ERROR:       return F("Parse Error");
             case API_NOT_IMPLIMENTED:   return F("Route not implemented");
             case API_INVALID_KEY:       return F("Invalid API key");
-            case OUT_OF_MEMORY:         return F("Out of memory");
             case OK:                    return F("Success");
             case UNAUTHORIZED:          return F("Unauthorized");
             case NOT_FOUND:             return F("Entity not found");

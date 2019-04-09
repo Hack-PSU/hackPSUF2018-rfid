@@ -1,12 +1,3 @@
-// User defined codes
-#define CONNECTION_REFUSED -1
-#define NOT_CONNECTED -4
-#define NETWORK_TIMEOUT -11
-#define PARSE_ERROR -12
-#define INVALID_VALUE -13
-#define OUT_OF_MEMORY -14
-
-
 // HTTP standard codes
 #define CONTINUE 100
 #define SWITCHING_PROTOCOLS 101

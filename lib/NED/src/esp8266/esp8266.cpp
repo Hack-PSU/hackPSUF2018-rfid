@@ -142,4 +142,13 @@ namespace hackPSU{
     String ESP8266_Device::mac() {
         return WiFi.macAddress();
     }
+
+    String ESP8266_Device::decode(int code) {
+        String res = Api::decode(code);
+        if(res  == String(code)) return res;
+        switch(code){
+            case OUT_OF_MEMORY: return "Out of memory";
+            default:            return res;
+        }
+    }
 }
