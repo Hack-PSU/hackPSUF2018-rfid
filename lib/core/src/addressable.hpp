@@ -8,8 +8,7 @@ public:
     Addressable() {}
     ~Addressable() {}
     void setAddress(Address position) { 
-        address = position; 
-        post_set();
+        address = position;
     }
 
     Address getAddress(){
@@ -19,9 +18,6 @@ public:
 private:
     Address address;
 
-    virtual void post_set(){
-        return;
-    }
 };
 
 }

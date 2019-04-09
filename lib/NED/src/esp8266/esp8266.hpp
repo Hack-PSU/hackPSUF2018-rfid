@@ -51,9 +51,6 @@ namespace hackPSU {
         int code;
 
         Response* scan() override;
-        void transmit(Request*) override;
-
-        uint8_t retry;
-        
+        void transmit(Request*) override;        
     };
 }
