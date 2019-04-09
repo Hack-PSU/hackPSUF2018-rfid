@@ -35,13 +35,23 @@ void setup() {
     delay(500);
   }
   
-  //_______________________________________________ Update API key
+  //_______________________________________________ Checking API key
+  Serial.println("Verifying current API key");
+  int result = esp->checkApiKey();
+  if(result == OK) {
+    Serial.println("API key good!");
+  } else {
+    Serial.println("Need to update API key: " + esp->decode(result));
+    //_______________________________________________ Update API key
 
-  Serial.println("Fetching new API key...");
-  Serial.print("Pin: ");
+    Serial.println("Fetching new API key...");
+    Serial.print("Pin: ");
 
-  String pin = getPin();
-  if(pin != "")  Serial.println(esp->decode(esp->getApiKey(pin)));
+    String pin = getPin();
+    Serial.println(esp->decode(esp->getApiKey(pin)));
+  }
+
+
 
   //_______________________________________________ Fetch events
 
@@ -89,10 +99,12 @@ void setup() {
   Serial.println("Code: " + esp->decode(esp->registerUser(wid, userPin)));
 
   //_______________________________________________ Scanning user into evetn
-  
-  Serial.println("Scanning " + user->name + " into " + event->name);
-  Serial.println("Code: " + esp->decode(esp->sendScan(wid, event, user, millis())));
-
+  if(events->size() > 0) {
+    Serial.println("Scanning " + user->name + " into " + event->name);
+    Serial.println("Code: " + esp->decode(esp->sendScan(wid, event, user, millis())));
+  } else {
+    Serial.println("No events to scan in for...");
+  }
 
   // Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
   // scanner = new hackPSU::Box(REDIS, NETWORK_SSID, NETWORK_PASSWORD, hackPSU::DEV);
