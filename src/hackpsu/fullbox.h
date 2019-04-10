@@ -8,7 +8,7 @@
 #include <MFRC522/rfid.h>
 
 #include <list.hpp>
-#include <menu.h>
+#include "menu.h"
 
 #define MENU_STATES 10
 
@@ -18,6 +18,7 @@ namespace hackPSU{
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
+
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
       ~Box();
@@ -35,20 +36,14 @@ namespace hackPSU{
       Event* event;
       Item* item;
 
-      State_e state;
       uint32_t last_scan;
 
       SignalStrength strength;
-
-      uint8_t menu_state;
 
       Scanner*  scanner;
       Keypad*   keypad;
       Api*      http;
       Display*  display;
-
-      bool OTA_enabled;
-      bool checkout;
 
       /**
        * handler
@@ -166,7 +161,7 @@ namespace hackPSU{
 
       void item_cleanup();
 
-      void scan_item();
+      void scan_item(bool checkout = true);
 
       /**
        * Description:
