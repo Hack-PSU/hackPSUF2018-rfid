@@ -28,50 +28,76 @@ namespace hackPSU{
 
 Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key) {
   // Create class objects
-  scanner = new Scanner("scanner", RFID_SS, RFID_RST);
-  display = new Display(mode);
-  http    = (Api*) new ESP8266_Device("http");
-  keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, display);
-
+  scanner = new Scanner((char*)"scanner", RFID_SS, RFID_RST);
+  if(Box::display != nullptr)  Box::display = new Display(mode);
+  http    = (Api*) new ESP8266_Device((char*)"http");
   http->setAddress(REDIS);
+
+  keypad  = new Keypad(KPD_SRC, KPD_CLK, KPD_SIG, Box::display);
 
   event_list = new List<Event>();
   item_list = new List<Item>();
+  menu_list = new List<MenuItem>();
+
+  MenuItem* menuItem = new MenuItem();
+  //add each menu item to menu_item list
+  menuItem->heading = "Lock";
+  menuItem->loop = &lock;
+  menu_list->addItem(menuItem); //memcpy in list
+
+  menuItem->heading = "Set & Scan";
+  menuItem->loop = &location;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Check-In";
+  menuItem->loop = &checkin;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Item checkout";
+  menuItem->loop = &item_checkout;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Item return";
+  menuItem->loop = &item_return;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Show Name";
+  menuItem->loop = &getuid;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "WiFi info";
+  menuItem->loop = &wifi;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Clone Master";
+  menuItem->loop = &duplicate;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Zeroize";
+  menuItem->loop = &zeroize;
+  menu_list->addItem(menuItem);
+
+  menuItem->heading = "Update Firmware";
+  menuItem->loop = &update;
+  menu_list->addItem(menuItem);
 
   // Set default values
-  menu_state = 0;
   strength = UNDEFINED;
-  state = LOCK;
   last_scan = 0;
-  OTA_enabled = false;
-                //1234567890123456
-  display->print("Finding server..", 0);
-  do{
-    http->connect();
-  } while(http->status() != WL_CONNECTED);
 
-  display->print("Connected...", 0);
-  display->print("Fetching API key", 1);
+  Box::display->print("WiFi connecting", 0);
+  while(WiFi.status() != WL_CONNECTED)
+    yield();
 
-  int ret;
-  do {
-    ret = http->checkApiKey();
-    if(ret < 0) {
+  Box::display->print("Connected...", 0);
+  Box::display->print("Fetching API key", 1);
 
-    } else if( ret == 401 ) {
-      // TODO: update API key
-        display->print("Update API key", 0);
-        display->print("PIN: ", 1);
-        String pin = keypad->getPin(10, '*', '#', 10000);
-        ret = http->getApiKey(pin);
-    }
-  } while(ret != 200);
 
   if(!http->checkApiKey()){
-    display->clear();
-    display->print("Enter API pin: ", 0);
+    Box::display->clear();
+    Box::display->print("Enter API pin: ", 0);
     while(true) {
-      display->clear(1);
+      Box::display->clear(1);
       String pin = keypad->getPin(10, '*', '#', 10000);
       if(pin != "timeout" && http->getApiKey(pin)){
         break;
@@ -81,235 +107,136 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   } else {
     Serial.println("Successfully got API key");
   }
-  display->clear();
+  Box::display->clear();
+  menu_list->reset();
 }
 
 Box::~Box() {
   delete scanner;
   delete keypad;
   delete http;
-  delete display;
+  delete Box::display;
 }
 
 void Box::cycle(void) {
   //switch on state; default to init
-  switch (state) {
-    case LOCK:
-      lock();
-      return;
-    case MENU:
-      menu();
-      return;
-    case DUPLICATE:
-      duplicate();
-      return;
-    case WIFI:
-      wifi();
-      return;
-    case LOCATION:
-      location();
-      return;
-    case CHECKIN:
-      checkin();
-      return;
-    case ITEM_CHECKOUT:
-      item_checkout();
-      return;
-    case ITEM_RETURN:
-      item_return();
-      return;
-    case SCAN_ITEM:
-      scan_item();
-      return;
-    case ZEROIZE:
-      zeroize();
-      return;
-    case SCAN_EVENT:
-      scan_event();
-      return;
-    case GETUID:
-      getuid();
-      return;
-    case UPDATE:
-      update();
-      return;
-    default:
-      state = LOCK;
-      return;
-  }
+  menu_list->getCurrent()->loop();
 }
 
 void Box::lock(){
+  if(event_list->size() > 0) {
+    event_list->clear();
+    event = nullptr;
+  }
+  if(item_list->size() > 0) {
+    item_list->clear();
+    item = nullptr;
+  }
 
-    #ifdef SECURE_BOX
-      display->print("Scan to unlock", 0);
+    #if !defined(DEBUG) || defined(SECURE_BOX)
+      Box::display->print("Scan to unlock", 1);
 
       byte buffer[READ_BUFFER] = {0};
       if(GOOD_RF != scanner->getData(buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT))
         return;
 
       if(String(MASTER_KEY) == String((char*)buffer)){
-        state = MENU;
-        display->clear();
+        Box::display->clear();
+        menu_list->next();
       }
     #else
-      display->print("INSECURE BOOT!", 0);
+      Box::display->print("INSECURE BOOT!", 0);
+      Box::display->print("Happy Debugging!", 1);
       delay(1000);
-      state = MENU;
+      menu_list->next();
     #endif
 
 }
 
 void Box::menu() {
-  display->print('A', UP_C, 'B', DOWN_C, '#', CHECK_C, 'D', LOCK_C);
-
-  switch(menu_state){
-    case 0:
-      display->print("Set & Scan", 1);
-      break;
-    case 1:
-      display->print("Check-In", 1);
-      break;
-    case 2:
-      display->print("Item checkout", 1);
-      break;
-    case 3:
-      display->print("Item return", 1);
-      break;
-    case 4:
-      display->print("Show Name", 1);
-      break;
-    case 5:
-      display->print("WiFi info", 1);
-      break;
-    case 6:
-      display->print("Clone Master", 1);
-      break;
-    case 7:
-      display->print("Zeroize", 1);
-      break;
-    case 8:
-      display->print("Lock", 1);
-      break;
-    case 9:
-      display->print("OTA update", 1);
-      break;
-    default:
-      menu_state = 0;
-      state = LOCK;
-      display->clear();
-      return;
-  }
+  Box::display->print('A', UP_C, 'B', DOWN_C, '#', CHECK_C, 'D', LOCK_C);
+  Box::display->print(menu_list->getCurrent()->heading, 1);
 
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      menu_state = (MENU_STATES + menu_state - 1) % MENU_STATES;
-      menu_state %= MENU_STATES;
+      menu_list->previous();
       break;
     case 'B':
-      menu_state++;
-      menu_state %= MENU_STATES;
+      menu_list->next();
       break;
     case 'D':
       menu_cleanup();
-      state = LOCK;
+      menu_list->reset();
       break;
     case '#':
-      switch(menu_state){
-        case 0:
-          state = LOCATION;
-          break;
-        case 1:
-          state = CHECKIN;
-          break;
-        case 2:
-          state = ITEM_CHECKOUT;
-          break;
-        case 3:
-          state = ITEM_RETURN;
-          break;
-        case 4:
-          state = GETUID;
-          break;
-        case 5:
-          state = WIFI;
-          break;
-        case 6:
-          state = DUPLICATE;
-          break;
-        case 7:
-          state = ZEROIZE;
-          break;
-        case 8:
-          state = LOCK;
-          break;
-        case 9:
-          state = UPDATE;
-          break;
-        default:
-          state = LOCK;
-      }
+      MenuItem *curr = menu_list->getCurrent();
+      curr->loop();
+      break;
       menu_cleanup();
-  }
+    }
 }
 
 void Box::menu_cleanup(){
-  menu_state = 0;
-  display->clear();
-
+  Box::display->clear();
+  menu_list->reset();
 }
 
 void Box::location(){
-  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  Box::display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  if(event != nullptr) {
+    scan_event();
+    return;
+  }
 
   // Do not select location based on a number
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      event = event_list->next();
+      event_list->next();
       return;
     case 'B':
-      event = event_list->previous();
+      event_list->previous();
       return;
     case 'C':
-       display->scroll();
+       Box::display->scroll();
        return;
     case 'D':
       location_cleanup();
-      state = MENU;
+      menu_list->reset();
+      menu_list->next();
       return;
     case '#':
       event = event_list->getCurrent();
-      location_cleanup();
-      state = SCAN_EVENT;
       return;
     default:
       if (event_list->size()  == 0) {
-        display->print("Updating list", 1);
+        Box::display->print("Updating list", 1);
 
         http->getEvents(event_list);
       }
 
       if(event_list->size() > 0){
-        display->print(event_list->getCurrent()->name, 1);
+        Box::display->print(event->name, 1);
       } else {
-        display->print("No locations found", 1);
+        Box::display->print("No locations found", 1);
         delay(2000);
-        state = MENU;
         location_cleanup();
+        menu_list->next();
       }
   }
 }
 
 void Box::location_cleanup(){
-  display->clear();
+  Box::display->clear();
   event_list->clear();
+  event = nullptr;
+  menu_list->reset(); // lock
 }
 
 void Box::scan_event() {
-  display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
 
   uint32_t uid = 0;
-  display->print("Scan wristband", 1);
+  Box::display->print("Scan wristband", 1);
 
   char input = keypad->getUniqueKey(750);
   switch (input) {
@@ -318,25 +245,25 @@ void Box::scan_event() {
       break;
     case 'D':
       last_scan = 0;
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      location_cleanup();
       return;
     //Normal behavior = scan band
     default:
       uid = scanner->getUID(SCAN_TIMEOUT);
       if (uid && uid != last_scan) {
-        display->toggleDisplay();
+        Box::display->toggleDisplay();
         User* user = new User();
         int code = http->sendScan(String(uid), event, user, millis());
-        switch( code ) {
-          case 200: display->print("Allow", 1);         break;
-          case 404: display->print("Unknown user", 1);  break;
-          case 401: display->print("Restarting...", 1); break;
+        switch(code) {
+          case 200: Box::display->print("Success", 1);         break;
+          case 404: Box::display->print("Unknown user", 1);  break;
+          case 401: Box::display->print("Restarting...", 1); break;
           default:
             if(code < 0 ){
-              display->print("Network error", 1);
+              Box::display->print("Network error", 1);
             } else {
-              display->print("Deny: Code(" + String(code) + ")", 1);
+              Box::display->print("Fail: " + http->decode(code), 1);
             }
         }
         //#error Handle entryScan
@@ -351,13 +278,13 @@ void Box::scan_event() {
  * Second half is associating registrant to wristband
  */
 void Box::checkin() {
-  display->print('*',CLEAR_C, '#', CHECK_C, 'C', SCROLL_C, 'D', LOCK_C);
+  Box::display->print('*',CLEAR_C, '#', CHECK_C, 'C', SCROLL_C, 'D', LOCK_C);
 
   String pin;
   char keypress;
   uint32_t uid;
 
-  display->print("Enter pin: ", 1);
+  Box::display->print("Enter pin: ", 1);
   pin = keypad->getPin(6, '*', '#', 10000);
 
   //Character press
@@ -365,16 +292,16 @@ void Box::checkin() {
     case 'A':
     case 'B':
     case 'C':
-      display->print("Invalid command", 1);
+      Box::display->print("Invalid command", 1);
       delay(1000);
       return;
     case '\0':
-      display->print("Invalid pin", 1);
+      Box::display->print("Invalid pin", 1);
       delay(1000);
       return;
     case 'D':
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       return;
     case 't': // timeout
       return;
@@ -386,14 +313,14 @@ void Box::checkin() {
   if(!handler(code)) {
     switch(code){
       case 404:
-        display->print("Invalid pin", 1);
+        Box::display->print("Invalid pin", 1);
         delay(2000);
         return;
     }
   }
 
-  display->print("Validate name:", 0);
-  display->print(user->name, 1);
+  Box::display->print("Validate name:", 0);
+  Box::display->print(user->name, 1);
 
   // Enter next half of checkin: associating registrant with wristband
   keypress = keypad->getUniqueKey(5000);
@@ -406,19 +333,19 @@ void Box::checkin() {
         }
         break;
       case 'D':
-        state = LOCK;
-        display->clear();
+        Box::display->clear();
+        menu_list->reset();
         return;
       case 'C':
-        display->scroll();
+        Box::display->scroll();
         break;
       case '#': // Name validated
         validated = true;
         break;
     }
     if(validated){
-      display->print("Scan wristband", 0);
-      display->clear(1);
+      Box::display->print("Scan wristband", 0);
+      Box::display->clear(1);
       uid = scanner->getUID(SCAN_TIMEOUT);
       if(uid){
         int code = http->registerUser(String(uid), pin);
@@ -426,7 +353,7 @@ void Box::checkin() {
         // TODO: handle code
 
         if(code != 200){
-          display->print("Try again - " + String(code), 0);
+          Box::display->print("Try again - " + String(code), 0);
           delay(2500);
           return;
         }
@@ -435,161 +362,159 @@ void Box::checkin() {
     keypress = keypad->getUniqueKey(1200);
   } while (!uid);
 
-  display->print("Shirt Size: ", 0);
-  display->print(user->shirtSize);
+  Box::display->print("Shirt Size: ", 0);
+  Box::display->print(user->shirtSize);
 
-  display->print("Photo consent?",1);
+  Box::display->print("Photo consent?",1);
 
   // Require keypress to continue
   while(keypad->getUniqueKey(5000) == 't');
 
-  display->clear();
+  Box::display->clear();
 }
 
 void Box::wifi() {
 
-  display->print('B', BACK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print('B', BACK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
   switch(keypad->getUniqueKey(500)){
     case 'B':
-      state = MENU;
+      menu_list->reset();
+      menu_list->next();
       strength = UNDEFINED;
-      display->clear();
+      Box::display->clear();
       break;
     case 'D':
-      state = LOCK;
       strength = UNDEFINED;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       break;
     default:
       int32_t rssi;
       if (WiFi.status() != WL_CONNECTED) {
-        display->print("WiFi Disconnect", 1);
+        Box::display->print("WiFi Disconnect", 1);
         return;
       }
 
       rssi = WiFi.RSSI();
 
       if(rssi > -50) {
-        display->print("Excellent signal", 1);
+        Box::display->print("Excellent signal", 1);
         strength = EXCELLENT;
       }  else if(rssi > -60) {
-        display->print("Good signal", 1);
+        Box::display->print("Good signal", 1);
         strength = GOOD;
       } else if( rssi > -70) {
-        display->print("Fair signal", 1);
+        Box::display->print("Fair signal", 1);
         strength = FAIR;
       } else {
-        display->print("Weak signal", 1);
+        Box::display->print("Weak signal", 1);
         strength = WEAK;
       }
   }
-
-
-
 }
 
 void Box::duplicate() {
   RfidState lastState = GOOD_RF;
-  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-  display->print("Scan Target", 1);
+  Box::display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = MASTER_KEY;
   byte read_buffer[READ_BUFFER] = {0};
 
   switch(keypad->getUniqueKey(2000)){
     case 'D':
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       break;
     default:
       switch(scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
         case GOOD_RF:
-          display->print("Target written", 0);
-          display->print("Rescan target", 1);
+          Box::display->print("Target written", 0);
+          Box::display->print("Rescan target", 1);
           while((lastState = scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)) == TIMEOUT){
             yield();
           }
           switch(lastState){
               case READ_FAIL:
-                display->print("Read Failure!", 1);
+                Box::display->print("Read Failure!", 1);
                 break;
               case CRYPTO_FAIL:
-                display->print("Crypo Failure!", 1);
+                Box::display->print("Crypo Failure!", 1);
                break;
               case GOOD_RF:
                 if (String((char*)read_buffer) == String(MASTER_KEY)) {
-                  display->print("Write success!", 1);
+                  Box::display->print("Write success!", 1);
                 } else {
-                  display->print("Write failure!", 1);
+                  Box::display->print("Write failure!", 1);
                 }
                 delay(1000);
                 break;
             }
           break;
         case WRITE_FAIL:
-          display->print("Write Failure!", 1);
+          Box::display->print("Write Failure!", 1);
           break;
         case CRYPTO_FAIL:
-          display->print("Crypto Failure!", 1);
+          Box::display->print("Crypto Failure!", 1);
       }
   }
 }
 
 void Box::zeroize() {
   RfidState lastState = GOOD_RF;
-  display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-  display->print("Scan Target", 1);
+  Box::display->print('\0', NONE_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print("Scan Target", 1);
 
   byte write_buffer[WRITE_BUFFER] = {0};
   byte read_buffer[READ_BUFFER] = {0};
 
   switch(keypad->getUniqueKey(2000)){
     case 'D':
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       break;
     default:
       switch(scanner->setData(write_buffer, WRITE_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)){
         case GOOD_RF:
-          display->print("Target zeroized", 0);
-          display->print("Rescan target", 1);
+          Box::display->print("Target zeroized", 0);
+          Box::display->print("Rescan target", 1);
           while((lastState = scanner->getData(read_buffer, READ_BUFFER, KEY_BLOCK, SCAN_TIMEOUT)) == TIMEOUT){
             yield();
           }
           switch(lastState){
               case READ_FAIL:
-                display->print("Read Failure!", 1);
+                Box::display->print("Read Failure!", 1);
                 break;
               case CRYPTO_FAIL:
-                display->print("Crypo Failure!", 1);
+                Box::display->print("Crypo Failure!", 1);
                break;
               case GOOD_RF:
                 if (String((char*)read_buffer) == String((char*)read_buffer)) {
-                  display->print("Write success!", 1);
+                  Box::display->print("Write success!", 1);
                 } else {
-                  display->print("Write failure!", 1);
+                  Box::display->print("Write failure!", 1);
                 }
                 delay(1000);
                 break;
             }
           break;
         case WRITE_FAIL:
-          display->print("Write Failure!", 1);
+          Box::display->print("Write Failure!", 1);
           break;
         case CRYPTO_FAIL:
-          display->print("Crypto Failure!", 1);
+          Box::display->print("Crypto Failure!", 1);
       }
   }
 }
 
 void Box::getuid(){
-  display->print('#', CHECK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
-  display->print("Scan for UID", 1);
+  Box::display->print('#', CHECK_C, '\0', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print("Scan for UID", 1);
 
   switch(keypad->getUniqueKey(2000)){
     case 'D':
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       return;
     default:
      uint32_t uid = scanner->getUID(SCAN_TIMEOUT);
@@ -597,23 +522,21 @@ void Box::getuid(){
       if(uid){
         User* user = new User();
         int code = http->getUserInfo(WID, String(uid), user);
-        display->print(user->name, 1);
+        Box::display->print(user->name, 1);
         while(keypad->getUniqueKey(5000) == 't');
       }
   }
 }
 
 void Box::update(){
-  display->print("Update Enabled.", 0);
-  display->print("IP:"+http->localIP(), 1);
-  if(!OTA_enabled){
-    http->enableUpdate();
-  }
+  Box::display->print("Update Enabled.", 0);
+  Box::display->print("IP:"+http->localIP(), 1);
+  http->enableUpdate();
   
   switch(keypad->getUniqueKey(750)){
   case 'D':
-    state = LOCK;
-    display->clear();
+    Box::display->clear();
+    menu_list->reset();
     return;
   default:
     http->handleUpdate();
@@ -622,7 +545,11 @@ void Box::update(){
 }
 
 void Box::item_checkout(){
-  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  Box::display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  if(item != nullptr) {
+    scan_item(true);
+    return;
+  }
 
   // Do not select item based on a number
   switch (keypad->getUniqueKey(500)) {
@@ -633,83 +560,83 @@ void Box::item_checkout(){
       item_list->previous();
       return;
     case 'C':
-      display->scroll();
+      Box::display->scroll();
       return;
     case 'D':
       item_cleanup();
-      state = MENU;
+      menu_list->next();
       return;
     case '#':
       item = item_list->getCurrent();
-      state = SCAN_ITEM;
-      checkout = true;
-      location_cleanup();
       break;
     default:
       if (item_list->size()  == 0) {
-        display->print("Updating list", 1);
+        Box::display->print("Updating list", 1);
 
         int res = http->getItems(item_list);
       }
 
       if(item_list->size() > 0){
-        display->print(item_list->getCurrent()->name, 1);
+        Box::display->print(item_list->getCurrent()->name, 1);
       } else {
-        display->print("No items found", 1);
+        Box::display->print("No items found", 1);
         delay(2000);
-        state = MENU;
         item_cleanup();
+        menu_list->next();
       }
   }
 }
 
 void Box::item_return(){
-  display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  Box::display->print('#', CHECK_C, 'B', DOWN_C, 'C', SCROLL_C, 'D', BACK_C);
+  if(item != nullptr) {
+    scan_item(false);
+    return;
+  }
 
   switch (keypad->getUniqueKey(500)) {
     case 'A':
-      item_list->next();
+      item = item_list->next();
       return;
     case 'B':
-      item_list->previous();
+      item = item_list->previous();
       return;
     case 'C':
-      display->scroll();
+      Box::display->scroll();
       return;
     case 'D':
       item_cleanup();
-      state = MENU;
+      menu_list->next();
       return;
     case '#':
       item = item_list->getCurrent();
-      state = SCAN_ITEM;
-      checkout = false;
-      location_cleanup();
       break;
     default:
       if (item_list->size()  == 0) {
-        display->print("Updating list", 1);
+        Box::display->print("Updating list", 1);
 
         int res = http->getItems(item_list);
+
+        // TODO handle response
       }
 
       if(item_list->size() > 0){
-        display->print(item_list->getCurrent()->name, 1);
+        Box::display->print(item_list->getCurrent()->name, 1);
       } else {
-        display->print("No items found", 1);
+        Box::display->print("No items found", 1);
         delay(2000);
-        state = MENU;
         item_cleanup();
+        menu_list->next();
       }
   }
 }
 
-void Box::scan_item() {
+void Box::scan_item(bool checkout) {
 
-  display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
+  Box::display->print('*',NONE_C, '#', NONE_C, '\0', NONE_C, 'D', LOCK_C);
 
   uint32_t uid = 0;
-  display->print("Scan wristband", 1);
+  Box::display->print("Scan wristband", 1);
 
   char input = keypad->getUniqueKey(1500);
   switch (input) {
@@ -718,8 +645,8 @@ void Box::scan_item() {
       break;
     case 'D':
       last_scan = 0;
-      state = LOCK;
-      display->clear();
+      Box::display->clear();
+      menu_list->reset();
       return;
     //Normal behavior = scan band
     default:
@@ -729,24 +656,22 @@ void Box::scan_item() {
         int code = checkout ? http->itemCheckout(String(uid), item) : http->itemReturn(String(uid), item);
         // TODO: handle different responses
         if (code) {
-          display->print("Allow", 1);
-          display->toggleDisplay();
+          Box::display->print("Allow", 1);
+          Box::display->toggleDisplay();
         } else {
-          display->print("Deny - " + int(code) , 1);
-          display->print(String(code), 2);
+          Box::display->print("Deny - " + http->decode(code) , 1);
           delay(2500);
           return;
         }
         switch( int(code) ) {
-          case 200: display->print("Allow", 1);         break;
-          case 404: display->print("Unknown user", 1);  break;
-          case 401: display->print("Restarting...", 1); break;
+          case 200: Box::display->print("Allow", 1);         break;
+          case 404: Box::display->print("Unknown user", 1);  break;
+          case 401: Box::display->print("Restarting...", 1); break;
           default:
             if(int(code) < 0 ){
-              display->print("Network error", 1);
+              Box::display->print("Network error", 1);
             } else {
-              display->print("Deny - " + int(code) , 1);
-              display->print(String(code));
+              Box::display->print("Deny - " + http->decode(code) , 1);
             }
         }
         //#error Handle entryScan
@@ -758,22 +683,23 @@ void Box::scan_item() {
 
 void Box::item_cleanup(){
   item_list->clear();
+  menu_list->reset();
 }
 
   bool Box::handler(int code){
     String pin;
     if(code < 0) {
       // Hanlded codes
-        display->print("Reconnecting to ", 0);
-        display->print("the Network...", 1);
+        Box::display->print("Reconnecting to ", 0);
+        Box::display->print("the Network...", 1);
         http->connect();
         delay(5000);
         // reconnect to wifi;
         return true;
     }
     if( code == 401 ) {
-        display->print("Undating API key", 0);
-        display->print("Pin: ", 1);
+        Box::display->print("Undating API key", 0);
+        Box::display->print("Pin: ", 1);
         pin = keypad->getPin(10, '*', '#', 10000);
         return http->getApiKey(pin) == 200;
     }

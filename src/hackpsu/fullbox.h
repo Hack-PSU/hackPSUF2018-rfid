@@ -28,27 +28,21 @@ namespace hackPSU{
       void cycle();
 
     private:
-      List<Event>* event_list;
-      List<Item>* item_list;
-      List<MenuItem>* menu_list;
+      static List<Event>* event_list;
+      static List<Item>* item_list;
+      static List<MenuItem>* menu_list;
 
-      Event* event;
-      Item* item;
+      static Event* event;
+      static Item* item;
 
-      State_e state;
-      uint32_t last_scan;
+      static uint32_t last_scan;
 
-      SignalStrength strength;
+      static SignalStrength strength;
 
-      uint8_t menu_state;
-
-      Scanner*  scanner;
-      Keypad*   keypad;
-      Api*      http;
-      Display*  display;
-
-      bool OTA_enabled;
-      bool checkout;
+      static Scanner*  scanner;
+      static Keypad*   keypad;
+      static Api*      http;
+      static Display*  display;
 
       /**
        * handler
@@ -62,7 +56,7 @@ namespace hackPSU{
        * != 200
        *  > 500
        */
-      bool handler(int code);
+      static bool handler(int code);
 
       /**
        * Description:
@@ -72,7 +66,7 @@ namespace hackPSU{
        * State transition:
        *    MENU - on master tag read
        */
-      void lock();
+      static void lock();
 
       /**
        * Description:
@@ -100,8 +94,8 @@ namespace hackPSU{
        *    CHECKIN - on menu selection
        *    INIT - on menu selection or invalid state
        */
-      void menu();
-      void menu_cleanup();
+      static void menu();
+      static void menu_cleanup();
 
       /**
        * Description:
@@ -117,8 +111,8 @@ namespace hackPSU{
        *    SCAN - on selection of location
        *    MENU - on 'D' press
        */
-      void location();
-      void location_cleanup();
+      static void location();
+      static void location_cleanup();
 
       /**
        * Description:
@@ -132,7 +126,7 @@ namespace hackPSU{
        *    MENU - on 'B' press
        *    LOCK - on 'D' press
        */
-      void scan_event();
+      static void scan_event();
 
       /**
        * Description:
@@ -150,7 +144,7 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      void checkin();
+      static void checkin();
 
       /**
        * Description:
@@ -160,13 +154,13 @@ namespace hackPSU{
        *    # - select item
        *    D - lock screen
        */
-      void item_checkout();
+      static void item_checkout();
 
-      void item_return();
+      static void item_return();
 
-      void item_cleanup();
+      static void item_cleanup();
 
-      void scan_item();
+      static void scan_item(bool checkout = true);
 
       /**
        * Description:
@@ -176,7 +170,7 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      void wifi();
+      static void wifi();
 
       /**
        * Description:
@@ -186,19 +180,19 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      void duplicate();
+      static void duplicate();
 
       /**
        * Description:
        *    Revoks master status of wristband
        */
-      void zeroize();
+      static void zeroize();
 
       /**
        *
        */
-      void getuid();
+      static void getuid();
 
-      void update();
+      static void update();
   };
 }
