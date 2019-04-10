@@ -8,7 +8,7 @@
 #include <MFRC522/rfid.h>
 
 #include <list.hpp>
-#include <menu.h>
+#include "menu.h"
 
 #define MENU_STATES 10
 
@@ -18,6 +18,7 @@ namespace hackPSU{
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
+
     public:
       Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
       ~Box();
@@ -28,21 +29,21 @@ namespace hackPSU{
       void cycle();
 
     private:
-      static List<Event>* event_list;
-      static List<Item>* item_list;
-      static List<MenuItem>* menu_list;
+      List<Event>* event_list;
+      List<Item>* item_list;
+      List<MenuItem>* menu_list;
 
-      static Event* event;
-      static Item* item;
+      Event* event;
+      Item* item;
 
-      static uint32_t last_scan;
+      uint32_t last_scan;
 
-      static SignalStrength strength;
+      SignalStrength strength;
 
-      static Scanner*  scanner;
-      static Keypad*   keypad;
-      static Api*      http;
-      static Display*  display;
+      Scanner*  scanner;
+      Keypad*   keypad;
+      Api*      http;
+      Display*  display;
 
       /**
        * handler
@@ -56,7 +57,7 @@ namespace hackPSU{
        * != 200
        *  > 500
        */
-      static bool handler(int code);
+      bool handler(int code);
 
       /**
        * Description:
@@ -66,7 +67,7 @@ namespace hackPSU{
        * State transition:
        *    MENU - on master tag read
        */
-      static void lock();
+      void lock();
 
       /**
        * Description:
@@ -94,8 +95,8 @@ namespace hackPSU{
        *    CHECKIN - on menu selection
        *    INIT - on menu selection or invalid state
        */
-      static void menu();
-      static void menu_cleanup();
+      void menu();
+      void menu_cleanup();
 
       /**
        * Description:
@@ -111,8 +112,8 @@ namespace hackPSU{
        *    SCAN - on selection of location
        *    MENU - on 'D' press
        */
-      static void location();
-      static void location_cleanup();
+      void location();
+      void location_cleanup();
 
       /**
        * Description:
@@ -126,7 +127,7 @@ namespace hackPSU{
        *    MENU - on 'B' press
        *    LOCK - on 'D' press
        */
-      static void scan_event();
+      void scan_event();
 
       /**
        * Description:
@@ -144,7 +145,7 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      static void checkin();
+      void checkin();
 
       /**
        * Description:
@@ -154,13 +155,13 @@ namespace hackPSU{
        *    # - select item
        *    D - lock screen
        */
-      static void item_checkout();
+      void item_checkout();
 
-      static void item_return();
+      void item_return();
 
-      static void item_cleanup();
+      void item_cleanup();
 
-      static void scan_item(bool checkout = true);
+      void scan_item(bool checkout = true);
 
       /**
        * Description:
@@ -170,7 +171,7 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      static void wifi();
+      void wifi();
 
       /**
        * Description:
@@ -180,19 +181,19 @@ namespace hackPSU{
        *   MENU - on 'B' press
        *   LOCK - on 'D' press
        */
-      static void duplicate();
+      void duplicate();
 
       /**
        * Description:
        *    Revoks master status of wristband
        */
-      static void zeroize();
+      void zeroize();
 
       /**
        *
        */
-      static void getuid();
+      void getuid();
 
-      static void update();
+      void update();
   };
 }

@@ -42,43 +42,43 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   MenuItem* menuItem = new MenuItem();
   //add each menu item to menu_item list
   menuItem->heading = "Lock";
-  menuItem->loop = &lock;
+  menuItem->loop = [](Box* box) {box->lock();};
   menu_list->addItem(menuItem); //memcpy in list
 
   menuItem->heading = "Set & Scan";
-  menuItem->loop = &location;
+  menuItem->loop = [](Box* box) {box->location();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Check-In";
-  menuItem->loop = &checkin;
+  menuItem->loop = [](Box* box) {box->checkin();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Item checkout";
-  menuItem->loop = &item_checkout;
+  menuItem->loop = [](Box* box) {box->item_checkout();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Item return";
-  menuItem->loop = &item_return;
+  menuItem->loop = [](Box* box) {box->item_return();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Show Name";
-  menuItem->loop = &getuid;
+  menuItem->loop = [](Box* box) {box->getuid();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "WiFi info";
-  menuItem->loop = &wifi;
+  menuItem->loop = [](Box* box) {box->wifi();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Clone Master";
-  menuItem->loop = &duplicate;
+  menuItem->loop = [](Box* box) {box->duplicate();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Zeroize";
-  menuItem->loop = &zeroize;
+  menuItem->loop = [](Box* box) {box->zeroize();};
   menu_list->addItem(menuItem);
 
   menuItem->heading = "Update Firmware";
-  menuItem->loop = &update;
+  menuItem->loop = [](Box* box) {box->update();};
   menu_list->addItem(menuItem);
 
   // Set default values
@@ -120,7 +120,7 @@ Box::~Box() {
 
 void Box::cycle(void) {
   //switch on state; default to init
-  menu_list->getCurrent()->loop();
+  menu_list->getCurrent()->loop(this);
 }
 
 void Box::lock(){
@@ -170,7 +170,7 @@ void Box::menu() {
       break;
     case '#':
       MenuItem *curr = menu_list->getCurrent();
-      curr->loop();
+      curr->loop(this);
       break;
       menu_cleanup();
     }
