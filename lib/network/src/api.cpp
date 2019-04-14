@@ -25,7 +25,7 @@ namespace hackPSU{
         char apibuff[37];
         EEPROM.get(0, apibuff);
         apibuff[36] = '\0';
-        apiKey = String(apibuff);
+        apiKey = apibuff[0] == 0xFF || apibuff[35] == 0xFF ? "" : String(apibuff);
     }
     
     void Api::storeApiKey(){
@@ -38,14 +38,14 @@ namespace hackPSU{
 
     int Api::checkApiKey() {
         if( !isAlphaNumeric(apiKey[0]) ) {
-            return 401;
+            return UNAUTHORIZED;
         }
         
         Request* req = createRequest(API::POST,  "/auth/scanner/verify");
 
         Response* res = sendRequest(req, 3);
 
-        if(bool(*res) || res->code == 401){
+        if(bool(*res) || res->code == UNAUTHORIZED){
             MAKE_BUFFER(25, 25) bf_data;
             JsonObject& response = bf_data.parseObject(res->payload);
 

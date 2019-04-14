@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Arduino.h>
+#include <stdint.h>
 
-namespace hackPSU{
-
+namespace hackPSU {
     template <class Item>
     class List;
 
@@ -11,9 +10,12 @@ namespace hackPSU{
     class Wrapper{
         friend class List<Item>;
         Wrapper(Item* item){
-            uint16_t size = sizeof(Item);
-            data = (Item*) malloc(size);
-            memcpy(data, item, size);
+            data = item;
+            previous = next = this;
+        }
+        ~Wrapper() {
+            delete data;
+            data = nullptr;
         }
         Item* data;
         Wrapper<Item>* previous;
@@ -31,11 +33,11 @@ namespace hackPSU{
             clear();
         }
         void addItem(Item* item) {
+
             Wrapper<Item>* insert = new Wrapper<Item>(item);
 
             if(length++ == 0) {
                 head = current = insert;
-                insert->next = insert->previous = insert;
             } else {
                 insert->previous = head->previous;
                 insert->next = head;
@@ -64,21 +66,34 @@ namespace hackPSU{
         }
 
         Item* reset() {
-          current = head;
-          return getCurrent();
+            current = head;
+            return getCurrent();
         }
 
         void clear() {
-            while(length-- > 0) {
-                Wrapper<Item>* tmp = current;
-                next();
-                delete tmp;
-                tmp = nullptr;
+            while(length > 0) {
+                deleteCurrent();
             }
+            head = nullptr;
+            current = nullptr;
         }
+
     private:
         Wrapper<Item>* current;
         Wrapper<Item>* head;
         uint8_t length;
+
+        void deleteCurrent() {
+
+            if(length > 0) {
+
+                Wrapper<Item>* tmp = current;
+                tmp->next->previous = tmp->previous;
+                current = tmp->previous->next = tmp->next;
+                delete tmp;
+                tmp = nullptr;
+                --length;   
+            }
+        }
     };
 }

@@ -39,47 +39,57 @@ Box::Box(String redis_addr, const char* ssid, const char* password, Mode_e mode,
   item_list = new List<Item>();
   menu_list = new List<MenuItem>();
 
-  MenuItem* menuItem = new MenuItem();
-  //add each menu item to menu_item list
-  menuItem->heading = "Lock";
-  menuItem->loop = [](Box* box) {box->lock();};
-  menu_list->addItem(menuItem); //memcpy in list
+  menu_list->addItem(new MenuItem({
+    .heading = "Lock",
+    .loop = [](Box* box) {box->lock();}
+  }));
 
-  menuItem->heading = "Set & Scan";
-  menuItem->loop = [](Box* box) {box->location();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Set & Scan",
+    .loop = [](Box* box) {box->location();}
+  }));
 
-  menuItem->heading = "Check-In";
-  menuItem->loop = [](Box* box) {box->checkin();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Check-In",
+    .loop = [](Box* box) {box->checkin();}
+  }));
 
-  menuItem->heading = "Item checkout";
-  menuItem->loop = [](Box* box) {box->item_checkout();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Item checkout",
+    .loop = [](Box* box) {box->item_checkout();}
+  }));
 
-  menuItem->heading = "Item return";
-  menuItem->loop = [](Box* box) {box->item_return();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Item return",
+    .loop = [](Box* box) {box->item_return();}
+  }));
 
-  menuItem->heading = "Show Name";
-  menuItem->loop = [](Box* box) {box->getuid();};
-  menu_list->addItem(menuItem);
 
-  menuItem->heading = "WiFi info";
-  menuItem->loop = [](Box* box) {box->wifi();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Show name",
+    .loop = [](Box* box) {box->getuid();}
+  }));
 
-  menuItem->heading = "Clone Master";
-  menuItem->loop = [](Box* box) {box->duplicate();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Network Status",
+    .loop = [](Box* box) {box->wifi();}
+  }));
 
-  menuItem->heading = "Zeroize";
-  menuItem->loop = [](Box* box) {box->zeroize();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Clone Master",
+    .loop = [](Box* box) {box->duplicate();}
+  }));
 
-  menuItem->heading = "Update Firmware";
-  menuItem->loop = [](Box* box) {box->update();};
-  menu_list->addItem(menuItem);
+  menu_list->addItem(new MenuItem({
+    .heading = "Zeroize",
+    .loop = [](Box* box) {box->zeroize();}
+  }));
+
+
+  menu_list->addItem(new MenuItem({
+    .heading = "Upgrade Firmware",
+    .loop = [](Box* box) {box->item_checkout();}
+  }));
 
   // Set default values
   strength = UNDEFINED;
