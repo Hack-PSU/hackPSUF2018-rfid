@@ -4,13 +4,13 @@
 
 namespace hackPSU{
 
-    class led: public Writable<int> {
+    class Led: public Writable<int> {
     public:
-        led(char* name, int pin1): Writable<int>::Writable(name), pin(pin1) {
+        Led(char* name, int pin): Writable<int>::Writable(name), pin(pin) {
             pinMode(pin, OUTPUT);
             digitalWrite(pin, LOW);
         }
-        ~led(){
+        ~Led(){
             Serial.println("LED completed");
         }
     

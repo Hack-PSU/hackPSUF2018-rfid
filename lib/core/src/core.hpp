@@ -1,8 +1,9 @@
 #pragma once
 
+#include "addressable.hpp"
 #include "component.hpp"
-#include "readable.hpp"
 #include "pollable.hpp"
+#include "readable.hpp"
 #include "volatile.hpp"
 #include "writable.hpp"
-#include "addressable.hpp"
+#include "controller.hpp"

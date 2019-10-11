@@ -1,35 +1,39 @@
 #pragma once
 
-#include<cstring>
-#include<stdint.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<ESP8266WiFi.h>
 #include<Arduino.h>
 
-//#include "hackPSUwifi.h"
-#include "hackPSUkeypad.h"
-#include "hackPSUdisplay.h"
-#include "hackPSUrfid.h"
-#include "config.h"
-#include "network.h"
+#include <esp8266/esp8266.hpp>
+#include <4X4MATRIX/keypad.h>
+#include <HD44780/display.h>
+#include <MFRC522/rfid.h>
 
-#define MENU_STATES 7
+#include <list.hpp>
+
+#define MENU_STATES 10
 
 namespace hackPSU{
 
-  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN, GETUID} State_e;
+  typedef enum {LOCK, MENU, DUPLICATE, ZEROIZE, WIFI, LOCATION, CHECKIN, SCAN_EVENT, GETUID, UPDATE, ITEM_CHECKOUT, ITEM_RETURN, SCAN_ITEM} State_e;
   typedef enum {UNDEFINED, EXCELLENT, GOOD, FAIR, WEAK} SignalStrength;
 
   class Box{
+    public:
+      Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
+      ~Box();
+
+      /**
+       * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
+       */
+      void cycle();
+    
     private:
-      Location* location_list;
-      int num_locations;
-      int location_state;
-      String location_name;
+      List<Event>* event_list;
+      List<Item>* item_list;
+
+      Event* event;
+      Item* item;
       
       State_e state;
-      uint32_t lid; // Location id
       uint32_t last_scan;
 
       SignalStrength strength;
@@ -38,8 +42,25 @@ namespace hackPSU{
 
       Scanner*  scanner;
       Keypad*   keypad;
-      Network*  http;
+      Api*      http;
       Display*  display;
+
+      bool OTA_enabled;
+      bool checkout;
+
+      /**
+       * handler
+       * 
+       * Description:
+       *   Handles HTTP codes that can be handled the same way after all calls
+       * 
+       * Codes supported:
+       *  <   0
+       * == 401
+       * != 200
+       *  > 500
+       */
+      bool handler(int code);
 
       /**
        * Description:
@@ -109,7 +130,7 @@ namespace hackPSU{
        *    MENU - on 'B' press
        *    LOCK - on 'D' press
        */
-      void scan();
+      void scan_event();
 
       /**
        * Description:
@@ -128,6 +149,22 @@ namespace hackPSU{
        *   LOCK - on 'D' press
        */
       void checkin();
+
+      /**
+       * Description:
+       *    Handle item checkout which sends a band UID and a item id.
+       * 
+       * Controls:
+       *    # - select item
+       *    D - lock screen
+       */
+      void item_checkout();
+
+      void item_return();
+
+      void item_cleanup();
+
+      void scan_item();
 
       /**
        * Description:
@@ -158,15 +195,8 @@ namespace hackPSU{
       /**
        * 
        */
-       void getuid();
+      void getuid();
 
-    public:
-      Box(String redis_addr, const char* ssid, const char* password, Mode_e mode, const byte* band_key=nullptr);
-      ~Box();
-
-      /**
-       * Call this to allow the Box to run.  Best if called in ``loop()'' or in a for(;;)/while(true) loop
-       */
-      void cycle();
+      void update();
   };
 }
