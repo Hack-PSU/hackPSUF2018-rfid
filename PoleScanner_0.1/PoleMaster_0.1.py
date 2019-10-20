@@ -90,12 +90,11 @@ def core():
     ## --------------SAVE TO FILE--------------------------
     #A function that will Creates or Edit a text file in the Present working dir. that takes no arguments but using the current global varible for server parameters
     def Save():
-        def Save():
-            global ServerParameters
-            Dir = os.getcwd()
-            f = open(os.path.join(Dir, 'ServerParameters.txt'), 'w')
-            f.write(str(ServerParameters))
-            f.close()
+        global ServerParameters
+        Dir = os.getcwd()
+        f = open(os.path.join(Dir, 'ServerParameters.txt'), 'w')
+        f.write(str(ServerParameters))
+        f.close()
     ## --------------LOAD FROM FILE-------------------------
     #A function that will open and read a text file in the Present working dir. that returns nothing but will store the server parameters for current global varible
     def Load():
