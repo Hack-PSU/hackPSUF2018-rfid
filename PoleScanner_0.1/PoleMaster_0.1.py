@@ -18,6 +18,7 @@ import threading
 ###LOGIC IMPORT###
 import urllib2
 import sys
+import os
 
 
 ####SYSTEM LOGIC####==================================================================================================
@@ -26,11 +27,12 @@ import sys
 
 def core():
     light(0)
+    global FirstTimeStartup
     CurrentTag = SearchforTag(FirstTimeStartup)  # not defined yet
     if boxLockCheck(currentTag) == True:
-        core()
+        main()
 
-    critical, status, admit = SendToServer(CurrentTag)
+    critical, status, admit = SendToServer(CurrentTag) #bolean,string,bolean
 
     if critical:                                                        #may add Soft Reset Proceedure on multi-fail???
         print("WARNING: Crit Error from server reply:" + status)
@@ -39,18 +41,19 @@ def core():
 
     if admit == False:
         light(3)
+        wait.time(5) #add to in between all
         light(0)
-        core()
+        main()
     else:
         light(2)
         light(0)
-        core()
+        main()
 ## --------------STARTUP LOGIC-------------------------
-    def startUp(IsFirst):
+    def startUp(FirstTimeStartup):
         check = SearchforTag(FirstTimeStartup)
         if check != "-10000": #case return needs to be defined later
             print("STATUS: Setup Has concluded going into autonomous mode")
-            restore() #Not definded yet will load old config
+            restore() #X Not definded yet will load old config (10/20/19 completed -maz)
             light(2)
             return
 
@@ -74,7 +77,10 @@ def core():
                     sys.exit()
                 print("STATUS: Setup has concluded going into autonomous mode")
                 #save slection parmeters to global
+                global ServerParameters
+                ServerParameters = [Events[slection]] ###BUG CHECK after we know paremeters
                 #save slection with save() function
+                Save()
                 break
 
             else:
@@ -83,10 +89,29 @@ def core():
 
     ## --------------SAVE TO FILE--------------------------
     #A function that will Creates or Edit a text file in the Present working dir. that takes no arguments but using the current global varible for server parameters
-
+    def Save():
+        def Save():
+            global ServerParameters
+            Dir = os.getcwd()
+            f = open(os.path.join(Dir, 'ServerParameters.txt'), 'w')
+            f.write(str(ServerParameters))
+            f.close()
     ## --------------LOAD FROM FILE-------------------------
     #A function that will open and read a text file in the Present working dir. that returns nothing but will store the server parameters for current global varible
-
+    def Load():
+        global ServerParameters
+        Dir = os.getcwd()
+        f = open(os.path.join(Dir, 'ServerParameters.txt'), 'r')
+        out = f.read()
+        ServerParameters = out.strip('][').split(', ')  ###MAJOR BUG### Needs a for loop for casting once we know what "parsmters" look like
+        f.close()
+        #print(ServerParameters)
+        
+    ## --------------RESTORE--------------------------------
+    def restore():
+        Load()
+        global FirstTimeStartup
+        FirstTimeStartup = False
     ## --------------INTERNET CHECK-------------------------
 
     def internet_test():
@@ -310,7 +335,10 @@ def light(signal):
 ###DAS MAIN####
 def main():
     global FirstTimeStartup
-    startUp(FirstTimeStartup)
+    if FirstTimeStartup:
+        startUp(FirstTimeStartup)
+        FirstTimeStartup = False
+    
     Core()
 
 
