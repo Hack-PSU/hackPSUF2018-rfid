@@ -7,7 +7,7 @@ namespace hackPSU{
         Network(name)
     {
         // Get API key from memory
-        EEPROM.begin(37);
+        Storage::begin(37);
         loadApiKey();
 
         #if defined(DEBUG) && defined(SERIAL_EN)
@@ -23,7 +23,7 @@ namespace hackPSU{
 
     void Api::loadApiKey(){
         char apibuff[37];
-        EEPROM.get(0, apibuff);
+        Storage::get(0, apibuff, 37);
         apibuff[36] = '\0';
         apiKey = String(apibuff);
     }
@@ -32,8 +32,7 @@ namespace hackPSU{
         char apibuff[37];
         apiKey.toCharArray(apibuff, 37);
         apibuff[36] = '\0';
-        EEPROM.put(0, apibuff);
-        EEPROM.commit();
+        Storage::put(0, apibuff, 37);
     }
 
     int Api::checkApiKey() {

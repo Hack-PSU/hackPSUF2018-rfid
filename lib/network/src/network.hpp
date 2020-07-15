@@ -1,7 +1,12 @@
 #pragma once
 
 #include <ArduinoJson.h>
+
+#ifdef ARDUINO_ARCH_SAM
+#include <DueFlashStorage.h>
+#else
 #include <EEPROM.h>
+#endif
 
 #include <core.hpp>
 

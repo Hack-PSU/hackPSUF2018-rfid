@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network.hpp"
+#include "storage.hpp"
 #include "objects.h"
 #include "codes.h"
 
